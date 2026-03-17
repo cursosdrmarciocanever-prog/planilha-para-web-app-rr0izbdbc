@@ -1,126 +1,104 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import {
   LayoutDashboard,
-  FileSpreadsheet,
-  GitBranch,
-  Settings2,
-  Database,
-  LayoutTemplate,
-  PlusCircle,
-  FolderOpen,
+  Calendar,
+  TrendingUp,
+  Users,
+  Target,
+  Building,
+  CreditCard,
+  UserCircle,
+  LogOut,
+  User,
 } from 'lucide-react'
 import {
   Sidebar,
   SidebarContent,
-  SidebarGroup,
-  SidebarGroupLabel,
-  SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   SidebarFooter,
+  SidebarHeader,
 } from '@/components/ui/sidebar'
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
+import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+
+const navItems = [
+  { label: 'Painel', icon: LayoutDashboard, active: true },
+  { label: 'diário', icon: Calendar },
+  { label: 'Raio-X Financeiro', icon: TrendingUp },
+  { label: 'Custo Funcionário', icon: Users },
+  { label: 'Precisão', icon: Target },
+  { label: 'Taxa de Sala', icon: Building },
+  { label: 'Plano Assinar', icon: CreditCard },
+  { label: 'Meu perfil', icon: UserCircle },
+]
 
 export function AppSidebar() {
-  const location = useLocation()
-  const match = location.pathname.match(/\/p\/([^/]+)/)
-  const projectId = match ? match[1] : null
-
   return (
-    <Sidebar variant="inset" collapsible="icon">
-      <SidebarHeader>
-        <div className="flex items-center gap-3 px-2 py-3">
-          <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary text-primary-foreground font-bold shadow-sm">
-            SA
+    <Sidebar className="border-r-0 bg-[#0b1121]">
+      <SidebarHeader className="pt-8 pb-4">
+        <div className="flex flex-col items-center justify-center">
+          <div className="flex items-center justify-center mb-2">
+            <span className="text-4xl font-light tracking-tighter text-[#3b5bdb]">G</span>
+            <span className="text-4xl font-semibold tracking-tighter text-slate-200 -ml-1">M</span>
           </div>
-          <span className="truncate font-semibold text-lg tracking-tight">SheetArch</span>
+          <h2 className="text-lg font-light tracking-widest text-slate-200 uppercase mt-1">
+            Método GM
+          </h2>
+          <p className="text-[9px] tracking-[0.2em] text-slate-500 uppercase mt-1">Growth Médico</p>
         </div>
       </SidebarHeader>
 
-      <SidebarContent>
-        <SidebarGroup>
-          <SidebarGroupLabel>Espaço de Trabalho</SidebarGroupLabel>
-          <SidebarMenu>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild isActive={location.pathname === '/'}>
-                <Link to="/">
-                  <FolderOpen />
-                  <span>Meus Projetos</span>
+      <SidebarContent className="px-3 pt-6">
+        <SidebarMenu className="gap-2">
+          {navItems.map((item) => (
+            <SidebarMenuItem key={item.label}>
+              <SidebarMenuButton
+                asChild
+                isActive={item.active}
+                className={cn(
+                  'h-12 rounded-xl px-4 justify-start text-[15px] transition-all duration-200',
+                  item.active
+                    ? 'bg-[#3b5bdb] hover:bg-[#364fc7] text-white shadow-md'
+                    : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200',
+                )}
+              >
+                <Link to="#" onClick={(e) => (!item.active ? e.preventDefault() : null)}>
+                  <item.icon className="w-5 h-5 mr-3 shrink-0" />
+                  <span className="font-medium">{item.label}</span>
                 </Link>
               </SidebarMenuButton>
             </SidebarMenuItem>
-            <SidebarMenuItem>
-              <SidebarMenuButton asChild>
-                <Link to="/" onClick={(e) => e.preventDefault()}>
-                  <PlusCircle />
-                  <span>Nova Transformação</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          </SidebarMenu>
-        </SidebarGroup>
-
-        {projectId && (
-          <SidebarGroup>
-            <SidebarGroupLabel>Framework (Projeto Atual)</SidebarGroupLabel>
-            <SidebarMenu>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={location.pathname.includes('/estrutura')}>
-                  <Link to={`/p/${projectId}/estrutura`}>
-                    <FileSpreadsheet />
-                    <span>1. Análise Estrutural</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={location.pathname.includes('/regras')}>
-                  <Link to={`/p/${projectId}/regras`}>
-                    <GitBranch />
-                    <span>2. Regras de Negócio</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={location.pathname.includes('/funcoes')}>
-                  <Link to={`/p/${projectId}/funcoes`}>
-                    <Settings2 />
-                    <span>3. Funcionalidades</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={location.pathname.includes('/dados')}>
-                  <Link to={`/p/${projectId}/dados`}>
-                    <Database />
-                    <span>4. Modelo de Dados</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-              <SidebarMenuItem>
-                <SidebarMenuButton asChild isActive={location.pathname.includes('/telas')}>
-                  <Link to={`/p/${projectId}/telas`}>
-                    <LayoutTemplate />
-                    <span>5. Spec de Telas</span>
-                  </Link>
-                </SidebarMenuButton>
-              </SidebarMenuItem>
-            </SidebarMenu>
-          </SidebarGroup>
-        )}
+          ))}
+        </SidebarMenu>
       </SidebarContent>
 
-      <SidebarFooter>
-        <div className="flex items-center gap-3 px-2 py-3 border-t border-sidebar-border mt-auto">
-          <Avatar className="h-8 w-8 border border-border">
-            <AvatarImage src="https://img.usecurling.com/ppl/thumbnail?gender=female" />
-            <AvatarFallback>AR</AvatarFallback>
-          </Avatar>
-          <div className="flex flex-col truncate">
-            <span className="text-sm font-medium">Arquiteta Sênior</span>
-            <span className="text-xs text-muted-foreground truncate">arq@empresa.com</span>
+      <SidebarFooter className="p-4 pb-6">
+        <div className="bg-[#151e32] p-4 rounded-2xl flex flex-col gap-4 border border-slate-800/50">
+          <div className="flex items-center gap-3">
+            <Avatar className="h-10 w-10 bg-[#3b5bdb] rounded-xl shrink-0">
+              <AvatarFallback className="bg-[#3b5bdb] text-white rounded-xl">
+                <User className="w-5 h-5" />
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col overflow-hidden">
+              <span className="text-sm font-semibold text-slate-200 truncate">
+                MARCIO RENATÓ M...
+              </span>
+              <span className="text-[10px] font-medium uppercase tracking-wider text-slate-500 truncate mt-0.5">
+                CLÍNICA CANEVER
+              </span>
+            </div>
           </div>
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-slate-400 hover:text-white hover:bg-slate-800 px-2 h-9"
+          >
+            <LogOut className="w-4 h-4 mr-2" />
+            Sair
+          </Button>
         </div>
       </SidebarFooter>
     </Sidebar>
