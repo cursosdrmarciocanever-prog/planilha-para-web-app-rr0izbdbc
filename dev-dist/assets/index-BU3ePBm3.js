@@ -29729,60 +29729,142 @@ function Custo() {
 	});
 }
 //#endregion
+//#region src/pages/Precisao.tsx
+function Precisao() {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		"data-uid": "src/pages/Precisao.tsx:7:5",
+		"data-prohibitions": "[editContent]",
+		className: "p-6 md:p-10 animate-fade-in flex flex-col min-h-[calc(100vh-3.5rem)] lg:min-h-screen",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			"data-uid": "src/pages/Precisao.tsx:9:7",
+			"data-prohibitions": "[]",
+			className: "flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 shrink-0",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/Precisao.tsx:10:9",
+				"data-prohibitions": "[]",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+					"data-uid": "src/pages/Precisao.tsx:11:11",
+					"data-prohibitions": "[]",
+					className: "text-3xl font-bold text-slate-900 tracking-tight",
+					children: "Precificação de Serviços"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					"data-uid": "src/pages/Precisao.tsx:14:11",
+					"data-prohibitions": "[]",
+					className: "text-slate-500 mt-1 text-[15px]",
+					children: "Gerencie custos, margens e preços dos seus serviços"
+				})]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/Precisao.tsx:18:9",
+				"data-prohibitions": "[]",
+				className: "flex flex-wrap items-center gap-3 w-full md:w-auto",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+					"data-uid": "src/pages/Precisao.tsx:19:11",
+					"data-prohibitions": "[]",
+					className: "flex-1 md:flex-none bg-[#a5dbb7] hover:bg-[#88c99e] text-white font-medium gap-2 shadow-sm rounded-lg h-10 px-4",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileDown, {
+						"data-uid": "src/pages/Precisao.tsx:20:13",
+						"data-prohibitions": "[editContent]",
+						className: "w-4 h-4"
+					}), " Gerar PDF"]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+					"data-uid": "src/pages/Precisao.tsx:22:11",
+					"data-prohibitions": "[]",
+					className: "flex-1 md:flex-none bg-[#3b5bdb] hover:bg-[#364fc7] text-white font-medium gap-2 shadow-sm rounded-lg h-10 px-4",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, {
+						"data-uid": "src/pages/Precisao.tsx:23:13",
+						"data-prohibitions": "[editContent]",
+						className: "w-4 h-4"
+					}), " Novo"]
+				})]
+			})]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+			"data-uid": "src/pages/Precisao.tsx:29:7",
+			"data-prohibitions": "[editContent]",
+			className: "shadow-sm border-slate-200/60 rounded-xl bg-white flex-1 flex flex-col",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				"data-uid": "src/pages/Precisao.tsx:30:9",
+				"data-prohibitions": "[]",
+				className: "p-6",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+					"data-uid": "src/pages/Precisao.tsx:31:11",
+					"data-prohibitions": "[]",
+					className: "text-[16px] font-semibold text-[#8d5b4c]",
+					children: "Serviços e Produtos"
+				})
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/Precisao.tsx:35:9",
+				"data-prohibitions": "[]",
+				className: "flex-1 flex flex-col items-center justify-center pb-20",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DollarSign, {
+						"data-uid": "src/pages/Precisao.tsx:36:11",
+						"data-prohibitions": "[editContent]",
+						className: "w-20 h-20 text-slate-300 mb-6",
+						strokeWidth: 1
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+						"data-uid": "src/pages/Precisao.tsx:37:11",
+						"data-prohibitions": "[]",
+						className: "text-xl font-semibold text-slate-800 mb-2",
+						children: "nenhum serviço cadastrado"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						"data-uid": "src/pages/Precisao.tsx:38:11",
+						"data-prohibitions": "[]",
+						className: "text-slate-500 text-[15px]",
+						children: "Adicione seus serviços para calcular preços e margens"
+					})
+				]
+			})]
+		})]
+	});
+}
+//#endregion
 //#region src/App.tsx
 var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
-	"data-uid": "src/App.tsx:13:3",
+	"data-uid": "src/App.tsx:14:3",
 	"data-prohibitions": "[]",
 	future: {
 		v7_startTransition: false,
 		v7_relativeSplatPath: false
 	},
 	children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TooltipProvider, {
-		"data-uid": "src/App.tsx:14:5",
+		"data-uid": "src/App.tsx:15:5",
 		"data-prohibitions": "[]",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster$2, {
-				"data-uid": "src/App.tsx:15:7",
-				"data-prohibitions": "[editContent]"
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster, {
 				"data-uid": "src/App.tsx:16:7",
 				"data-prohibitions": "[editContent]"
 			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Routes, {
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster, {
 				"data-uid": "src/App.tsx:17:7",
+				"data-prohibitions": "[editContent]"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Routes, {
+				"data-uid": "src/App.tsx:18:7",
 				"data-prohibitions": "[]",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Route, {
-					"data-uid": "src/App.tsx:18:9",
+					"data-uid": "src/App.tsx:19:9",
 					"data-prohibitions": "[]",
 					element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Layout, {
-						"data-uid": "src/App.tsx:18:25",
+						"data-uid": "src/App.tsx:19:25",
 						"data-prohibitions": "[editContent]"
 					}),
 					children: [
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-							"data-uid": "src/App.tsx:19:11",
+							"data-uid": "src/App.tsx:20:11",
 							"data-prohibitions": "[editContent]",
 							path: "/",
 							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Index, {
-								"data-uid": "src/App.tsx:19:36",
-								"data-prohibitions": "[editContent]"
-							})
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-							"data-uid": "src/App.tsx:20:11",
-							"data-prohibitions": "[editContent]",
-							path: "/diario",
-							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Diario, {
-								"data-uid": "src/App.tsx:20:42",
+								"data-uid": "src/App.tsx:20:36",
 								"data-prohibitions": "[editContent]"
 							})
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
 							"data-uid": "src/App.tsx:21:11",
 							"data-prohibitions": "[editContent]",
-							path: "/raio-x",
-							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RaioX, {
+							path: "/diario",
+							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Diario, {
 								"data-uid": "src/App.tsx:21:42",
 								"data-prohibitions": "[editContent]"
 							})
@@ -29790,9 +29872,27 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
 							"data-uid": "src/App.tsx:22:11",
 							"data-prohibitions": "[editContent]",
+							path: "/raio-x",
+							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RaioX, {
+								"data-uid": "src/App.tsx:22:42",
+								"data-prohibitions": "[editContent]"
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+							"data-uid": "src/App.tsx:23:11",
+							"data-prohibitions": "[editContent]",
 							path: "/custo",
 							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Custo, {
-								"data-uid": "src/App.tsx:22:41",
+								"data-uid": "src/App.tsx:23:41",
+								"data-prohibitions": "[editContent]"
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+							"data-uid": "src/App.tsx:24:11",
+							"data-prohibitions": "[editContent]",
+							path: "/precisao",
+							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Precisao, {
+								"data-uid": "src/App.tsx:24:44",
 								"data-prohibitions": "[editContent]"
 							})
 						})
@@ -29810,4 +29910,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 }));
 //#endregion
 
-//# sourceMappingURL=index-D_RJFHnO.js.map
+//# sourceMappingURL=index-BU3ePBm3.js.map
