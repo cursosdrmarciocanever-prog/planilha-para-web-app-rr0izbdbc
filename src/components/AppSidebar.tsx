@@ -6,8 +6,6 @@ import {
   Users,
   Target,
   Building,
-  CreditCard,
-  UserCircle,
   LogOut,
   User,
 } from 'lucide-react'
@@ -31,8 +29,6 @@ const navItems = [
   { label: 'Custo Funcionário', path: '/custo', icon: Users },
   { label: 'Precisão', path: '/precisao', icon: Target },
   { label: 'Taxa de Sala', path: '/taxa', icon: Building },
-  { label: 'Plano Assinar', path: '/plano', icon: CreditCard },
-  { label: 'Meu perfil', path: '/perfil', icon: UserCircle },
 ]
 
 export function AppSidebar() {
@@ -43,13 +39,15 @@ export function AppSidebar() {
       <SidebarHeader className="pt-8 pb-4">
         <div className="flex flex-col items-center justify-center">
           <div className="flex items-center justify-center mb-2">
-            <span className="text-4xl font-light tracking-tighter text-[#3b5bdb]">G</span>
-            <span className="text-4xl font-semibold tracking-tighter text-slate-200 -ml-1">M</span>
+            <span className="text-4xl font-light tracking-tighter text-[#3b5bdb]">C</span>
+            <span className="text-4xl font-semibold tracking-tighter text-slate-200 -ml-1">C</span>
           </div>
-          <h2 className="text-lg font-light tracking-widest text-slate-200 uppercase mt-1">
-            Método GM
+          <h2 className="text-sm text-center font-semibold tracking-widest text-slate-200 uppercase mt-1">
+            Clínica Canever
           </h2>
-          <p className="text-[9px] tracking-[0.2em] text-slate-500 uppercase mt-1">Growth Médico</p>
+          <p className="text-[10px] tracking-[0.2em] text-[#3b5bdb] font-medium uppercase mt-1">
+            Financeiro
+          </p>
         </div>
       </SidebarHeader>
 

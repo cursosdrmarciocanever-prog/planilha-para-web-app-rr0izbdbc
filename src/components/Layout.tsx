@@ -20,7 +20,7 @@ export default function Layout() {
         <SidebarInset className="bg-[#f8fafc] min-h-screen">
           <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-white px-4 lg:hidden">
             <SidebarTrigger />
-            <span className="font-semibold text-sm">Método GM</span>
+            <span className="font-semibold text-sm">Clínica Canever Financeiro</span>
           </header>
           <main className="flex-1 w-full mx-auto pb-12">
             <Outlet />

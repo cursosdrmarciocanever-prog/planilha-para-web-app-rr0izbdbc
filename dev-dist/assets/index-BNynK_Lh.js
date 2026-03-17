@@ -19179,38 +19179,6 @@ var ChevronUp = createLucideIcon("chevron-up", [["path", {
 	d: "m18 15-6-6-6 6",
 	key: "153udz"
 }]]);
-var CircleUser = createLucideIcon("circle-user", [
-	["circle", {
-		cx: "12",
-		cy: "12",
-		r: "10",
-		key: "1mglay"
-	}],
-	["circle", {
-		cx: "12",
-		cy: "10",
-		r: "3",
-		key: "ilqhr7"
-	}],
-	["path", {
-		d: "M7 20.662V19a2 2 0 0 1 2-2h6a2 2 0 0 1 2 2v1.662",
-		key: "154egf"
-	}]
-]);
-var CreditCard = createLucideIcon("credit-card", [["rect", {
-	width: "20",
-	height: "14",
-	x: "2",
-	y: "5",
-	rx: "2",
-	key: "ynyp8z"
-}], ["line", {
-	x1: "2",
-	x2: "22",
-	y1: "10",
-	y2: "10",
-	key: "1b3vmo"
-}]]);
 var DollarSign = createLucideIcon("dollar-sign", [["line", {
 	x1: "12",
 	x2: "12",
@@ -26768,94 +26736,84 @@ var navItems = [
 		label: "Taxa de Sala",
 		path: "/taxa",
 		icon: Building
-	},
-	{
-		label: "Plano Assinar",
-		path: "/plano",
-		icon: CreditCard
-	},
-	{
-		label: "Meu perfil",
-		path: "/perfil",
-		icon: CircleUser
 	}
 ];
 function AppSidebar() {
 	const location = useLocation();
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Sidebar, {
-		"data-uid": "src/components/AppSidebar.tsx:42:5",
+		"data-uid": "src/components/AppSidebar.tsx:38:5",
 		"data-prohibitions": "[editContent]",
 		className: "border-r-0 bg-[#0b1121]",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarHeader, {
-				"data-uid": "src/components/AppSidebar.tsx:43:7",
+				"data-uid": "src/components/AppSidebar.tsx:39:7",
 				"data-prohibitions": "[]",
 				className: "pt-8 pb-4",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/components/AppSidebar.tsx:44:9",
+					"data-uid": "src/components/AppSidebar.tsx:40:9",
 					"data-prohibitions": "[]",
 					className: "flex flex-col items-center justify-center",
 					children: [
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/components/AppSidebar.tsx:45:11",
+							"data-uid": "src/components/AppSidebar.tsx:41:11",
 							"data-prohibitions": "[]",
 							className: "flex items-center justify-center mb-2",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								"data-uid": "src/components/AppSidebar.tsx:46:13",
+								"data-uid": "src/components/AppSidebar.tsx:42:13",
 								"data-prohibitions": "[]",
 								className: "text-4xl font-light tracking-tighter text-[#3b5bdb]",
-								children: "G"
+								children: "C"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								"data-uid": "src/components/AppSidebar.tsx:47:13",
+								"data-uid": "src/components/AppSidebar.tsx:43:13",
 								"data-prohibitions": "[]",
 								className: "text-4xl font-semibold tracking-tighter text-slate-200 -ml-1",
-								children: "M"
+								children: "C"
 							})]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
-							"data-uid": "src/components/AppSidebar.tsx:49:11",
+							"data-uid": "src/components/AppSidebar.tsx:45:11",
 							"data-prohibitions": "[]",
-							className: "text-lg font-light tracking-widest text-slate-200 uppercase mt-1",
-							children: "Método GM"
+							className: "text-sm text-center font-semibold tracking-widest text-slate-200 uppercase mt-1",
+							children: "Clínica Canever"
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-							"data-uid": "src/components/AppSidebar.tsx:52:11",
+							"data-uid": "src/components/AppSidebar.tsx:48:11",
 							"data-prohibitions": "[]",
-							className: "text-[9px] tracking-[0.2em] text-slate-500 uppercase mt-1",
-							children: "Growth Médico"
+							className: "text-[10px] tracking-[0.2em] text-[#3b5bdb] font-medium uppercase mt-1",
+							children: "Financeiro"
 						})
 					]
 				})
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarContent, {
-				"data-uid": "src/components/AppSidebar.tsx:56:7",
+				"data-uid": "src/components/AppSidebar.tsx:54:7",
 				"data-prohibitions": "[editContent]",
 				className: "px-3 pt-6",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenu, {
-					"data-uid": "src/components/AppSidebar.tsx:57:9",
+					"data-uid": "src/components/AppSidebar.tsx:55:9",
 					"data-prohibitions": "[editContent]",
 					className: "gap-2",
 					children: navItems.map((item) => {
 						const isActive = location.pathname === item.path;
 						return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenuItem, {
-							"data-uid": "src/components/AppSidebar.tsx:61:15",
+							"data-uid": "src/components/AppSidebar.tsx:59:15",
 							"data-prohibitions": "[editContent]",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenuButton, {
-								"data-uid": "src/components/AppSidebar.tsx:62:17",
+								"data-uid": "src/components/AppSidebar.tsx:60:17",
 								"data-prohibitions": "[editContent]",
 								asChild: true,
 								isActive,
 								className: cn$1("h-12 rounded-xl px-4 justify-start text-[15px] transition-all duration-200", isActive ? "bg-[#3b5bdb] hover:bg-[#364fc7] text-white shadow-md" : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"),
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
-									"data-uid": "src/components/AppSidebar.tsx:72:19",
+									"data-uid": "src/components/AppSidebar.tsx:70:19",
 									"data-prohibitions": "[editContent]",
 									to: item.path,
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(item.icon, {
-										"data-uid": "src/components/AppSidebar.tsx:73:21",
+										"data-uid": "src/components/AppSidebar.tsx:71:21",
 										"data-prohibitions": "[editContent]",
 										className: "w-5 h-5 mr-3 shrink-0"
 									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-										"data-uid": "src/components/AppSidebar.tsx:74:21",
+										"data-uid": "src/components/AppSidebar.tsx:72:21",
 										"data-prohibitions": "[editContent]",
 										className: "font-medium",
 										children: item.label
@@ -26867,54 +26825,54 @@ function AppSidebar() {
 				})
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarFooter, {
-				"data-uid": "src/components/AppSidebar.tsx:83:7",
+				"data-uid": "src/components/AppSidebar.tsx:81:7",
 				"data-prohibitions": "[]",
 				className: "p-4 pb-6",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/components/AppSidebar.tsx:84:9",
+					"data-uid": "src/components/AppSidebar.tsx:82:9",
 					"data-prohibitions": "[]",
 					className: "bg-[#151e32] p-4 rounded-2xl flex flex-col gap-4 border border-slate-800/50",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/components/AppSidebar.tsx:85:11",
+						"data-uid": "src/components/AppSidebar.tsx:83:11",
 						"data-prohibitions": "[]",
 						className: "flex items-center gap-3",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Avatar, {
-							"data-uid": "src/components/AppSidebar.tsx:86:13",
+							"data-uid": "src/components/AppSidebar.tsx:84:13",
 							"data-prohibitions": "[]",
 							className: "h-10 w-10 bg-[#3b5bdb] rounded-xl shrink-0",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AvatarFallback, {
-								"data-uid": "src/components/AppSidebar.tsx:87:15",
+								"data-uid": "src/components/AppSidebar.tsx:85:15",
 								"data-prohibitions": "[]",
 								className: "bg-[#3b5bdb] text-white rounded-xl",
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(User, {
-									"data-uid": "src/components/AppSidebar.tsx:88:17",
+									"data-uid": "src/components/AppSidebar.tsx:86:17",
 									"data-prohibitions": "[editContent]",
 									className: "w-5 h-5"
 								})
 							})
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/components/AppSidebar.tsx:91:13",
+							"data-uid": "src/components/AppSidebar.tsx:89:13",
 							"data-prohibitions": "[]",
 							className: "flex flex-col overflow-hidden",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								"data-uid": "src/components/AppSidebar.tsx:92:15",
+								"data-uid": "src/components/AppSidebar.tsx:90:15",
 								"data-prohibitions": "[]",
 								className: "text-sm font-semibold text-slate-200 truncate",
 								children: "MARCIO RENATÓ M..."
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								"data-uid": "src/components/AppSidebar.tsx:95:15",
+								"data-uid": "src/components/AppSidebar.tsx:93:15",
 								"data-prohibitions": "[]",
 								className: "text-[10px] font-medium uppercase tracking-wider text-slate-500 truncate mt-0.5",
 								children: "CLÍNICA CANEVER"
 							})]
 						})]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-						"data-uid": "src/components/AppSidebar.tsx:100:11",
+						"data-uid": "src/components/AppSidebar.tsx:98:11",
 						"data-prohibitions": "[]",
 						variant: "ghost",
 						className: "w-full justify-start text-slate-400 hover:text-white hover:bg-slate-800 px-2 h-9",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LogOut, {
-							"data-uid": "src/components/AppSidebar.tsx:104:13",
+							"data-uid": "src/components/AppSidebar.tsx:102:13",
 							"data-prohibitions": "[editContent]",
 							className: "w-4 h-4 mr-2"
 						}), "Sair"]
@@ -26958,7 +26916,7 @@ function Layout() {
 						"data-uid": "src/components/Layout.tsx:23:13",
 						"data-prohibitions": "[]",
 						className: "font-semibold text-sm",
-						children: "Método GM"
+						children: "Clínica Canever Financeiro"
 					})]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("main", {
 					"data-uid": "src/components/Layout.tsx:25:11",
@@ -30484,4 +30442,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 }));
 //#endregion
 
-//# sourceMappingURL=index-DirOuNZc.js.map
+//# sourceMappingURL=index-BNynK_Lh.js.map
