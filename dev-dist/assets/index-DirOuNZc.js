@@ -19021,6 +19021,28 @@ var createLucideIcon = (iconName, iconNode) => {
 	Component.displayName = toPascalCase(iconName);
 	return Component;
 };
+var Building2 = createLucideIcon("building-2", [
+	["path", {
+		d: "M10 12h4",
+		key: "a56b0p"
+	}],
+	["path", {
+		d: "M10 8h4",
+		key: "1sr2af"
+	}],
+	["path", {
+		d: "M14 21v-3a2 2 0 0 0-4 0v3",
+		key: "1rgiei"
+	}],
+	["path", {
+		d: "M6 10H4a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-2",
+		key: "secmi2"
+	}],
+	["path", {
+		d: "M6 21V5a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v16",
+		key: "16ra0t"
+	}]
+]);
 var Building = createLucideIcon("building", [
 	["path", {
 		d: "M12 10h.01",
@@ -19231,6 +19253,22 @@ var FileDown = createLucideIcon("file-down", [
 		key: "1npd3o"
 	}]
 ]);
+var Info = createLucideIcon("info", [
+	["circle", {
+		cx: "12",
+		cy: "12",
+		r: "10",
+		key: "1mglay"
+	}],
+	["path", {
+		d: "M12 16v-4",
+		key: "1dtifu"
+	}],
+	["path", {
+		d: "M12 8h.01",
+		key: "e9boi3"
+	}]
+]);
 var LayoutDashboard = createLucideIcon("layout-dashboard", [
 	["rect", {
 		width: "7",
@@ -19290,6 +19328,13 @@ var PanelLeft = createLucideIcon("panel-left", [["rect", {
 	d: "M9 3v18",
 	key: "fh3hqa"
 }]]);
+var Pencil = createLucideIcon("pencil", [["path", {
+	d: "M21.174 6.812a1 1 0 0 0-3.986-3.987L3.842 16.174a2 2 0 0 0-.5.83l-1.321 4.352a.5.5 0 0 0 .623.622l4.353-1.32a2 2 0 0 0 .83-.497z",
+	key: "1a8usu"
+}], ["path", {
+	d: "m15 5 4 4",
+	key: "1mk7zo"
+}]]);
 var Plus = createLucideIcon("plus", [["path", {
 	d: "M5 12h14",
 	key: "1ays0h"
@@ -19315,6 +19360,28 @@ var Target = createLucideIcon("target", [
 		cy: "12",
 		r: "2",
 		key: "1c9p78"
+	}]
+]);
+var Trash2 = createLucideIcon("trash-2", [
+	["path", {
+		d: "M10 11v6",
+		key: "nco0om"
+	}],
+	["path", {
+		d: "M14 11v6",
+		key: "outv1u"
+	}],
+	["path", {
+		d: "M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6",
+		key: "miytrc"
+	}],
+	["path", {
+		d: "M3 6h18",
+		key: "d0wm0j"
+	}],
+	["path", {
+		d: "M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2",
+		key: "e791ji"
 	}]
 ]);
 var TrendingUp = createLucideIcon("trending-up", [["path", {
@@ -29820,60 +29887,549 @@ function Precisao() {
 	});
 }
 //#endregion
+//#region src/components/ui/table.tsx
+var Table = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+	"data-uid": "src/components/ui/table.tsx:8:5",
+	"data-prohibitions": "[editContent]",
+	className: "relative w-full overflow-auto",
+	children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("table", {
+		"data-uid": "src/components/ui/table.tsx:9:7",
+		"data-prohibitions": "[editContent]",
+		ref,
+		className: cn$1("w-full caption-bottom text-sm", className),
+		...props
+	})
+}));
+Table.displayName = "Table";
+var TableHeader = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("thead", {
+	"data-uid": "src/components/ui/table.tsx:19:3",
+	"data-prohibitions": "[editContent]",
+	ref,
+	className: cn$1("[&_tr]:border-b", className),
+	...props
+}));
+TableHeader.displayName = "TableHeader";
+var TableBody = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tbody", {
+	"data-uid": "src/components/ui/table.tsx:27:3",
+	"data-prohibitions": "[editContent]",
+	ref,
+	className: cn$1("[&_tr:last-child]:border-0", className),
+	...props
+}));
+TableBody.displayName = "TableBody";
+var TableFooter = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tfoot", {
+	"data-uid": "src/components/ui/table.tsx:35:3",
+	"data-prohibitions": "[editContent]",
+	ref,
+	className: cn$1("border-t bg-muted/50 font-medium [&>tr]:last:border-b-0", className),
+	...props
+}));
+TableFooter.displayName = "TableFooter";
+var TableRow = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("tr", {
+	"data-uid": "src/components/ui/table.tsx:45:5",
+	"data-prohibitions": "[editContent]",
+	ref,
+	className: cn$1("border-b transition-colors hover:bg-muted/50 data-[state=selected]:bg-muted", className),
+	...props
+}));
+TableRow.displayName = "TableRow";
+var TableHead = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("th", {
+	"data-uid": "src/components/ui/table.tsx:61:3",
+	"data-prohibitions": "[editContent]",
+	ref,
+	className: cn$1("h-12 px-4 text-left align-middle font-medium text-muted-foreground [&:has([role=checkbox])]:pr-0", className),
+	...props
+}));
+TableHead.displayName = "TableHead";
+var TableCell = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("td", {
+	"data-uid": "src/components/ui/table.tsx:76:3",
+	"data-prohibitions": "[editContent]",
+	ref,
+	className: cn$1("p-4 align-middle [&:has([role=checkbox])]:pr-0", className),
+	...props
+}));
+TableCell.displayName = "TableCell";
+var TableCaption = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)("caption", {
+	"data-uid": "src/components/ui/table.tsx:88:3",
+	"data-prohibitions": "[editContent]",
+	ref,
+	className: cn$1("mt-4 text-sm text-muted-foreground", className),
+	...props
+}));
+TableCaption.displayName = "TableCaption";
+//#endregion
+//#region src/pages/TaxaSala.tsx
+var expenseCategories = [
+	"Aluguel da sala",
+	"Água, luz e internet",
+	"Salários e benefícios",
+	"Manutenção e",
+	"Seguros",
+	"Licenças, taxas e condomínio",
+	"Contabilidade",
+	"Jurídico",
+	"Marketing e acessórios",
+	"Sistema de gestão",
+	"Verba de impulsionamento",
+	"Financiamento",
+	"Outros"
+];
+var kpiCards = [
+	{
+		label: "CUSTOS TOTAIS",
+		value: 0
+	},
+	{
+		label: "OPERACIONAIS FIXAS/DIA",
+		value: 0
+	},
+	{
+		label: "CUSTO SALA/",
+		value: 0
+	},
+	{
+		label: "CUSTO POR TURNO/",
+		value: 0
+	},
+	{
+		label: "TURNO SEMANAL",
+		value: 0
+	},
+	{
+		label: "SALA DIA",
+		value: 0
+	},
+	{
+		label: "CUSTO HORA OCUPA. 100%",
+		value: 0,
+		highlight: true
+	},
+	{
+		label: "CUSTO HORA OCUPA 50%",
+		value: 0
+	},
+	{
+		label: "CUSTO HORA OCUPA 20%",
+		value: 0
+	}
+];
+function TaxaSala() {
+	const [expenses, setExpenses] = (0, import_react.useState)({});
+	const handleExpenseChange = (category, value) => {
+		setExpenses((prev) => ({
+			...prev,
+			[category]: value
+		}));
+	};
+	const totalExpenses = expenseCategories.reduce((acc, cat) => {
+		const val = parseFloat(expenses[cat]);
+		return acc + (isNaN(val) ? 0 : val);
+	}, 0);
+	const formatCurrency = (value) => {
+		return new Intl.NumberFormat("pt-BR", {
+			style: "currency",
+			currency: "BRL",
+			minimumFractionDigits: 2
+		}).format(value);
+	};
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		"data-uid": "src/pages/TaxaSala.tsx:65:5",
+		"data-prohibitions": "[editContent]",
+		className: "p-6 md:p-10 animate-fade-in flex flex-col gap-8 max-w-6xl mx-auto",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/TaxaSala.tsx:66:7",
+				"data-prohibitions": "[]",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+					"data-uid": "src/pages/TaxaSala.tsx:67:9",
+					"data-prohibitions": "[]",
+					className: "text-2xl font-bold text-slate-900 tracking-tight mb-1",
+					children: "Registro de taxa de sala"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					"data-uid": "src/pages/TaxaSala.tsx:70:9",
+					"data-prohibitions": "[]",
+					className: "text-slate-500 text-[15px]",
+					children: "Preencha as despesas operacionais fixas e cadastradas nas salas. Os valores são salvos automaticamente."
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/TaxaSala.tsx:76:7",
+				"data-prohibitions": "[editContent]",
+				className: "bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					"data-uid": "src/pages/TaxaSala.tsx:77:9",
+					"data-prohibitions": "[]",
+					className: "bg-[#3b5bdb] px-6 py-3.5",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+						"data-uid": "src/pages/TaxaSala.tsx:78:11",
+						"data-prohibitions": "[]",
+						className: "text-white font-semibold text-[13px] tracking-wide",
+						children: "DESPESAS ESPER FIXAS"
+					})
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					"data-uid": "src/pages/TaxaSala.tsx:82:9",
+					"data-prohibitions": "[editContent]",
+					className: "p-0",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, {
+						"data-uid": "src/pages/TaxaSala.tsx:83:11",
+						"data-prohibitions": "[editContent]",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, {
+							"data-uid": "src/pages/TaxaSala.tsx:84:13",
+							"data-prohibitions": "[]",
+							className: "bg-transparent",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+								"data-uid": "src/pages/TaxaSala.tsx:85:15",
+								"data-prohibitions": "[]",
+								className: "hover:bg-transparent border-b-slate-100",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/TaxaSala.tsx:86:17",
+									"data-prohibitions": "[]",
+									className: "text-slate-600 font-medium h-12 px-6",
+									children: "Categoria"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/TaxaSala.tsx:87:17",
+									"data-prohibitions": "[]",
+									className: "text-slate-600 font-medium h-12 px-6 text-right w-48",
+									children: "Valor (R$)"
+								})]
+							})
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, {
+							"data-uid": "src/pages/TaxaSala.tsx:92:13",
+							"data-prohibitions": "[editContent]",
+							children: [expenseCategories.map((category) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+								"data-uid": "src/pages/TaxaSala.tsx:94:17",
+								"data-prohibitions": "[editContent]",
+								className: "hover:bg-slate-50/50 border-b-slate-100",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+									"data-uid": "src/pages/TaxaSala.tsx:95:19",
+									"data-prohibitions": "[editContent]",
+									className: "py-3 px-6 text-[14px] font-medium text-slate-700",
+									children: category
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+									"data-uid": "src/pages/TaxaSala.tsx:98:19",
+									"data-prohibitions": "[]",
+									className: "py-2 px-6 text-right",
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+										"data-uid": "src/pages/TaxaSala.tsx:99:21",
+										"data-prohibitions": "[]",
+										className: "flex justify-end",
+										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+											"data-uid": "src/pages/TaxaSala.tsx:100:23",
+											"data-prohibitions": "[editContent]",
+											type: "number",
+											min: "0",
+											className: "h-9 w-32 px-3 text-right border-slate-200 text-[14px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none focus-visible:ring-1 focus-visible:ring-[#3b5bdb] focus-visible:border-[#3b5bdb]",
+											value: expenses[category] ?? "0",
+											onChange: (e) => handleExpenseChange(category, e.target.value)
+										})
+									})
+								})]
+							}, category)), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+								"data-uid": "src/pages/TaxaSala.tsx:111:15",
+								"data-prohibitions": "[editContent]",
+								className: "hover:bg-transparent bg-slate-50/40",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+									"data-uid": "src/pages/TaxaSala.tsx:112:17",
+									"data-prohibitions": "[]",
+									className: "py-4 px-6 text-[15px] font-bold text-slate-900",
+									children: "Total"
+								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+									"data-uid": "src/pages/TaxaSala.tsx:115:17",
+									"data-prohibitions": "[editContent]",
+									className: "py-4 px-6 text-right font-bold text-slate-900 text-[15px]",
+									children: formatCurrency(totalExpenses)
+								})]
+							})]
+						})]
+					})
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/TaxaSala.tsx:124:7",
+				"data-prohibitions": "[]",
+				className: "bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					"data-uid": "src/pages/TaxaSala.tsx:125:9",
+					"data-prohibitions": "[]",
+					className: "px-6 py-4 border-b border-slate-100 flex items-center gap-2.5",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Building2, {
+						"data-uid": "src/pages/TaxaSala.tsx:126:11",
+						"data-prohibitions": "[editContent]",
+						className: "w-5 h-5 text-[#3b5bdb]"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+						"data-uid": "src/pages/TaxaSala.tsx:127:11",
+						"data-prohibitions": "[]",
+						className: "text-[15px] font-semibold text-slate-900",
+						children: "Salas"
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, {
+					"data-uid": "src/pages/TaxaSala.tsx:129:9",
+					"data-prohibitions": "[]",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, {
+						"data-uid": "src/pages/TaxaSala.tsx:130:11",
+						"data-prohibitions": "[]",
+						className: "bg-slate-50/50",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+							"data-uid": "src/pages/TaxaSala.tsx:131:13",
+							"data-prohibitions": "[]",
+							className: "hover:bg-transparent border-b-slate-100",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/TaxaSala.tsx:132:15",
+									"data-prohibitions": "[]",
+									className: "text-slate-600 font-medium h-11 px-6",
+									children: "Nome da sala"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/TaxaSala.tsx:133:15",
+									"data-prohibitions": "[]",
+									className: "text-slate-600 font-medium h-11 px-6",
+									children: "Horas/ ;"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/TaxaSala.tsx:134:15",
+									"data-prohibitions": "[]",
+									className: "text-slate-600 font-medium h-11 px-6",
+									children: "Dias trab."
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+									"data-uid": "src/pages/TaxaSala.tsx:135:15",
+									"data-prohibitions": "[]",
+									className: "text-slate-600 font-medium h-11 px-6 text-right",
+									children: "Ações"
+								})
+							]
+						})
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableBody, {
+						"data-uid": "src/pages/TaxaSala.tsx:140:11",
+						"data-prohibitions": "[]",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+							"data-uid": "src/pages/TaxaSala.tsx:141:13",
+							"data-prohibitions": "[]",
+							className: "hover:bg-slate-50/50",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+									"data-uid": "src/pages/TaxaSala.tsx:142:15",
+									"data-prohibitions": "[]",
+									className: "py-3.5 px-6 text-[14px] text-slate-700",
+									children: "sala dr marcio"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+									"data-uid": "src/pages/TaxaSala.tsx:145:15",
+									"data-prohibitions": "[]",
+									className: "py-3.5 px-6 text-[14px] text-slate-700",
+									children: "176"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+									"data-uid": "src/pages/TaxaSala.tsx:146:15",
+									"data-prohibitions": "[]",
+									className: "py-3.5 px-6 text-[14px] text-slate-700",
+									children: "22"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+									"data-uid": "src/pages/TaxaSala.tsx:147:15",
+									"data-prohibitions": "[]",
+									className: "py-3.5 px-6 text-right",
+									children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+										"data-uid": "src/pages/TaxaSala.tsx:148:17",
+										"data-prohibitions": "[]",
+										className: "flex items-center justify-end gap-1",
+										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+											"data-uid": "src/pages/TaxaSala.tsx:149:19",
+											"data-prohibitions": "[]",
+											variant: "ghost",
+											size: "icon",
+											className: "h-8 w-8 text-slate-400 hover:text-[#3b5bdb]",
+											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, {
+												"data-uid": "src/pages/TaxaSala.tsx:154:21",
+												"data-prohibitions": "[editContent]",
+												className: "w-4 h-4"
+											})
+										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
+											"data-uid": "src/pages/TaxaSala.tsx:156:19",
+											"data-prohibitions": "[]",
+											variant: "ghost",
+											size: "icon",
+											className: "h-8 w-8 text-slate-400 hover:text-red-500",
+											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, {
+												"data-uid": "src/pages/TaxaSala.tsx:161:21",
+												"data-prohibitions": "[editContent]",
+												className: "w-4 h-4"
+											})
+										})]
+									})
+								})
+							]
+						})
+					})]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/TaxaSala.tsx:170:7",
+				"data-prohibitions": "[editContent]",
+				className: "mt-4",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+					"data-uid": "src/pages/TaxaSala.tsx:171:9",
+					"data-prohibitions": "[]",
+					className: "text-xl font-bold text-slate-900 mb-5",
+					children: "Visão de custos"
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					"data-uid": "src/pages/TaxaSala.tsx:172:9",
+					"data-prohibitions": "[editContent]",
+					className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5",
+					children: kpiCards.map((kpi, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+						"data-uid": "src/pages/TaxaSala.tsx:174:13",
+						"data-prohibitions": "[editContent]",
+						className: cn$1("shadow-sm border-slate-200/80 rounded-xl transition-all", kpi.highlight ? "border-[#3b5bdb] bg-blue-50/30" : "bg-white"),
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+							"data-uid": "src/pages/TaxaSala.tsx:181:15",
+							"data-prohibitions": "[editContent]",
+							className: "p-6",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+								"data-uid": "src/pages/TaxaSala.tsx:182:17",
+								"data-prohibitions": "[editContent]",
+								className: "flex items-center gap-1.5 mb-3",
+								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									"data-uid": "src/pages/TaxaSala.tsx:183:19",
+									"data-prohibitions": "[editContent]",
+									className: cn$1("text-[11px] font-bold uppercase tracking-wider", kpi.highlight ? "text-[#3b5bdb]" : "text-slate-500"),
+									children: kpi.label
+								}), kpi.highlight && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Info, {
+									"data-uid": "src/pages/TaxaSala.tsx:191:37",
+									"data-prohibitions": "[editContent]",
+									className: "w-3.5 h-3.5 text-[#3b5bdb]"
+								})]
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+								"data-uid": "src/pages/TaxaSala.tsx:193:17",
+								"data-prohibitions": "[editContent]",
+								className: cn$1("text-[26px] font-bold tracking-tight", kpi.highlight ? "text-[#3b5bdb]" : "text-slate-900"),
+								children: formatCurrency(kpi.value)
+							})]
+						})
+					}, idx))
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				"data-uid": "src/pages/TaxaSala.tsx:207:7",
+				"data-prohibitions": "[]",
+				className: "mt-6 flex justify-center pb-8",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					"data-uid": "src/pages/TaxaSala.tsx:208:9",
+					"data-prohibitions": "[]",
+					className: "bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden w-full max-w-2xl",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, {
+						"data-uid": "src/pages/TaxaSala.tsx:209:11",
+						"data-prohibitions": "[]",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, {
+							"data-uid": "src/pages/TaxaSala.tsx:210:13",
+							"data-prohibitions": "[]",
+							className: "bg-slate-50/50",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+								"data-uid": "src/pages/TaxaSala.tsx:211:15",
+								"data-prohibitions": "[]",
+								className: "hover:bg-transparent border-b-slate-100",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+										"data-uid": "src/pages/TaxaSala.tsx:212:17",
+										"data-prohibitions": "[]",
+										className: "text-slate-600 font-semibold h-11 px-6 text-center text-[13px]",
+										children: "Salas disponíveis"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+										"data-uid": "src/pages/TaxaSala.tsx:215:17",
+										"data-prohibitions": "[]",
+										className: "text-slate-600 font-semibold h-11 px-6 text-center text-[13px]",
+										children: "Horário disponível"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
+										"data-uid": "src/pages/TaxaSala.tsx:218:17",
+										"data-prohibitions": "[]",
+										className: "text-slate-600 font-semibold h-11 px-6 text-center text-[13px]",
+										children: "Total de dias disponíveis"
+									})
+								]
+							})
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableBody, {
+							"data-uid": "src/pages/TaxaSala.tsx:223:13",
+							"data-prohibitions": "[]",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
+								"data-uid": "src/pages/TaxaSala.tsx:224:15",
+								"data-prohibitions": "[]",
+								className: "hover:bg-transparent",
+								children: [
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+										"data-uid": "src/pages/TaxaSala.tsx:225:17",
+										"data-prohibitions": "[]",
+										className: "py-4 px-6 text-center font-bold text-slate-800 text-[15px]",
+										children: "1"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+										"data-uid": "src/pages/TaxaSala.tsx:228:17",
+										"data-prohibitions": "[]",
+										className: "py-4 px-6 text-center font-bold text-slate-800 text-[15px]",
+										children: "176"
+									}),
+									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
+										"data-uid": "src/pages/TaxaSala.tsx:231:17",
+										"data-prohibitions": "[]",
+										className: "py-4 px-6 text-center font-bold text-slate-800 text-[15px]",
+										children: "22"
+									})
+								]
+							})
+						})]
+					})
+				})
+			})
+		]
+	});
+}
+//#endregion
 //#region src/App.tsx
 var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
-	"data-uid": "src/App.tsx:14:3",
+	"data-uid": "src/App.tsx:15:3",
 	"data-prohibitions": "[]",
 	future: {
 		v7_startTransition: false,
 		v7_relativeSplatPath: false
 	},
 	children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TooltipProvider, {
-		"data-uid": "src/App.tsx:15:5",
+		"data-uid": "src/App.tsx:16:5",
 		"data-prohibitions": "[]",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster$2, {
-				"data-uid": "src/App.tsx:16:7",
-				"data-prohibitions": "[editContent]"
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster, {
 				"data-uid": "src/App.tsx:17:7",
 				"data-prohibitions": "[editContent]"
 			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Routes, {
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster, {
 				"data-uid": "src/App.tsx:18:7",
+				"data-prohibitions": "[editContent]"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Routes, {
+				"data-uid": "src/App.tsx:19:7",
 				"data-prohibitions": "[]",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Route, {
-					"data-uid": "src/App.tsx:19:9",
+					"data-uid": "src/App.tsx:20:9",
 					"data-prohibitions": "[]",
 					element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Layout, {
-						"data-uid": "src/App.tsx:19:25",
+						"data-uid": "src/App.tsx:20:25",
 						"data-prohibitions": "[editContent]"
 					}),
 					children: [
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-							"data-uid": "src/App.tsx:20:11",
+							"data-uid": "src/App.tsx:21:11",
 							"data-prohibitions": "[editContent]",
 							path: "/",
 							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Index, {
-								"data-uid": "src/App.tsx:20:36",
-								"data-prohibitions": "[editContent]"
-							})
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-							"data-uid": "src/App.tsx:21:11",
-							"data-prohibitions": "[editContent]",
-							path: "/diario",
-							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Diario, {
-								"data-uid": "src/App.tsx:21:42",
+								"data-uid": "src/App.tsx:21:36",
 								"data-prohibitions": "[editContent]"
 							})
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
 							"data-uid": "src/App.tsx:22:11",
 							"data-prohibitions": "[editContent]",
-							path: "/raio-x",
-							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RaioX, {
+							path: "/diario",
+							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Diario, {
 								"data-uid": "src/App.tsx:22:42",
 								"data-prohibitions": "[editContent]"
 							})
@@ -29881,18 +30437,36 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
 							"data-uid": "src/App.tsx:23:11",
 							"data-prohibitions": "[editContent]",
-							path: "/custo",
-							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Custo, {
-								"data-uid": "src/App.tsx:23:41",
+							path: "/raio-x",
+							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RaioX, {
+								"data-uid": "src/App.tsx:23:42",
 								"data-prohibitions": "[editContent]"
 							})
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
 							"data-uid": "src/App.tsx:24:11",
 							"data-prohibitions": "[editContent]",
+							path: "/custo",
+							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Custo, {
+								"data-uid": "src/App.tsx:24:41",
+								"data-prohibitions": "[editContent]"
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+							"data-uid": "src/App.tsx:25:11",
+							"data-prohibitions": "[editContent]",
 							path: "/precisao",
 							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Precisao, {
-								"data-uid": "src/App.tsx:24:44",
+								"data-uid": "src/App.tsx:25:44",
+								"data-prohibitions": "[editContent]"
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+							"data-uid": "src/App.tsx:26:11",
+							"data-prohibitions": "[editContent]",
+							path: "/taxa",
+							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TaxaSala, {
+								"data-uid": "src/App.tsx:26:40",
 								"data-prohibitions": "[editContent]"
 							})
 						})
@@ -29910,4 +30484,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 }));
 //#endregion
 
-//# sourceMappingURL=index-BU3ePBm3.js.map
+//# sourceMappingURL=index-DirOuNZc.js.map
