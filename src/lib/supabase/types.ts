@@ -1,383 +1,387 @@
 // AVOID UPDATING THIS FILE DIRECTLY. It is automatically generated.
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: '13.0.4'
+    PostgrestVersion: "14.4"
   }
   public: {
     Tables: {
-      'banco de dados': {
-        Row: {
-          created_at: string
-          id: number
-        }
-        Insert: {
-          created_at?: string
-          id?: number
-        }
-        Update: {
-          created_at?: string
-          id?: number
-        }
-        Relationships: []
-      }
-      clientes: {
-        Row: {
-          created_at: string | null
-          crm_id: string | null
-          dados: Json | null
-          email: string | null
-          follow_up: boolean | null
-          humano: boolean | null
-          nome: string | null
-          numero: string
-          ultima_msg: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          crm_id?: string | null
-          dados?: Json | null
-          email?: string | null
-          follow_up?: boolean | null
-          humano?: boolean | null
-          nome?: string | null
-          numero: string
-          ultima_msg?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          crm_id?: string | null
-          dados?: Json | null
-          email?: string | null
-          follow_up?: boolean | null
-          humano?: boolean | null
-          nome?: string | null
-          numero?: string
-          ultima_msg?: string | null
-        }
-        Relationships: []
-      }
-      despesas: {
-        Row: {
-          categoria: string | null
-          created_at: string
-          data: string
-          descricao: string
-          id: number
-          tipo: Database['public']['Enums']['tipo_despesa']
-          valor: number
-        }
-        Insert: {
-          categoria?: string | null
-          created_at?: string
-          data: string
-          descricao: string
-          id?: never
-          tipo: Database['public']['Enums']['tipo_despesa']
-          valor: number
-        }
-        Update: {
-          categoria?: string | null
-          created_at?: string
-          data?: string
-          descricao?: string
-          id?: never
-          tipo?: Database['public']['Enums']['tipo_despesa']
-          valor?: number
-        }
-        Relationships: []
-      }
-      documents: {
-        Row: {
-          content: string | null
-          embedding: string | null
-          id: number
-          metadata: Json | null
-        }
-        Insert: {
-          content?: string | null
-          embedding?: string | null
-          id?: number
-          metadata?: Json | null
-        }
-        Update: {
-          content?: string | null
-          embedding?: string | null
-          id?: number
-          metadata?: Json | null
-        }
-        Relationships: []
-      }
-      n8n_chat: {
-        Row: {
-          id: number
-          message: Json
-          session_id: string
-        }
-        Insert: {
-          id?: number
-          message: Json
-          session_id: string
-        }
-        Update: {
-          id?: number
-          message?: Json
-          session_id?: string
-        }
-        Relationships: []
-      }
-      ocupacao_salas: {
-        Row: {
-          created_at: string
-          data_fim: string
-          data_inicio: string
-          id: number
-          paciente_id: string | null
-          sala_id: number | null
-          valor_cobrado: number
-        }
-        Insert: {
-          created_at?: string
-          data_fim: string
-          data_inicio: string
-          id?: never
-          paciente_id?: string | null
-          sala_id?: number | null
-          valor_cobrado: number
-        }
-        Update: {
-          created_at?: string
-          data_fim?: string
-          data_inicio?: string
-          id?: never
-          paciente_id?: string | null
-          sala_id?: number | null
-          valor_cobrado?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'ocupacao_salas_paciente_id_fkey'
-            columns: ['paciente_id']
-            isOneToOne: false
-            referencedRelation: 'pacientes'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'ocupacao_salas_sala_id_fkey'
-            columns: ['sala_id']
-            isOneToOne: false
-            referencedRelation: 'salas'
-            referencedColumns: ['id']
-          },
-        ]
-      }
-      pacientes: {
-        Row: {
-          cpf: string | null
-          created_at: string
-          data_nascimento: string | null
-          email: string | null
-          id: string
-          nome: string
-          telefone: string | null
-        }
-        Insert: {
-          cpf?: string | null
-          created_at?: string
-          data_nascimento?: string | null
-          email?: string | null
-          id?: string
-          nome: string
-          telefone?: string | null
-        }
-        Update: {
-          cpf?: string | null
-          created_at?: string
-          data_nascimento?: string | null
-          email?: string | null
-          id?: string
-          nome?: string
-          telefone?: string | null
-        }
-        Relationships: []
-      }
-      produtos_servicos: {
-        Row: {
-          categoria: string | null
-          created_at: string
-          custo: number | null
-          descricao: string | null
-          id: number
-          nome: string
-          preco_venda: number | null
-        }
-        Insert: {
-          categoria?: string | null
-          created_at?: string
-          custo?: number | null
-          descricao?: string | null
-          id?: never
-          nome: string
-          preco_venda?: number | null
-        }
-        Update: {
-          categoria?: string | null
-          created_at?: string
-          custo?: number | null
-          descricao?: string | null
-          id?: never
-          nome?: string
-          preco_venda?: number | null
-        }
-        Relationships: []
-      }
-      registros_diarios: {
-        Row: {
-          bilheteria: number | null
-          created_at: string
-          data: string
-          faturamento_total: number | null
-          id: number
-          total_consultas: number | null
-          total_servicos: number | null
-        }
-        Insert: {
-          bilheteria?: number | null
-          created_at?: string
-          data: string
-          faturamento_total?: number | null
-          id?: never
-          total_consultas?: number | null
-          total_servicos?: number | null
-        }
-        Update: {
-          bilheteria?: number | null
-          created_at?: string
-          data?: string
-          faturamento_total?: number | null
-          id?: never
-          total_consultas?: number | null
-          total_servicos?: number | null
-        }
-        Relationships: []
-      }
-      salas: {
-        Row: {
-          created_at: string
-          id: number
-          nome: string
-          taxa_dia: number | null
-          taxa_hora: number | null
-        }
-        Insert: {
-          created_at?: string
-          id?: never
-          nome: string
-          taxa_dia?: number | null
-          taxa_hora?: number | null
-        }
-        Update: {
-          created_at?: string
-          id?: never
-          nome?: string
-          taxa_dia?: number | null
-          taxa_hora?: number | null
-        }
-        Relationships: []
-      }
-      transacoes: {
-        Row: {
-          created_at: string
-          data: string
-          descricao: string | null
-          id: number
-          paciente_id: string | null
-          produto_id: number | null
-          tipo: Database['public']['Enums']['tipo_transacao']
-          valor: number
-        }
-        Insert: {
-          created_at?: string
-          data?: string
-          descricao?: string | null
-          id?: never
-          paciente_id?: string | null
-          produto_id?: number | null
-          tipo: Database['public']['Enums']['tipo_transacao']
-          valor: number
-        }
-        Update: {
-          created_at?: string
-          data?: string
-          descricao?: string | null
-          id?: never
-          paciente_id?: string | null
-          produto_id?: number | null
-          tipo?: Database['public']['Enums']['tipo_transacao']
-          valor?: number
-        }
-        Relationships: [
-          {
-            foreignKeyName: 'transacoes_paciente_id_fkey'
-            columns: ['paciente_id']
-            isOneToOne: false
-            referencedRelation: 'pacientes'
-            referencedColumns: ['id']
-          },
-          {
-            foreignKeyName: 'transacoes_produto_id_fkey'
-            columns: ['produto_id']
-            isOneToOne: false
-            referencedRelation: 'produtos_servicos'
-            referencedColumns: ['id']
-          },
-        ]
-      }
-      usuarios: {
+      access_control: {
         Row: {
           created_at: string
           email: string
+          gestante_id: string | null
           id: string
-          nome: string
           role: string
         }
         Insert: {
           created_at?: string
           email: string
-          id: string
-          nome: string
+          gestante_id?: string | null
+          id?: string
           role: string
         }
         Update: {
           created_at?: string
           email?: string
+          gestante_id?: string | null
           id?: string
+          role?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "access_control_gestante_id_fkey"
+            columns: ["gestante_id"]
+            isOneToOne: false
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      consultas: {
+        Row: {
+          arquivo_pdf_url: string | null
+          created_at: string
+          data_consulta: string | null
+          gestante_id: string | null
+          id: string
+          medica_nome: string | null
+          observacoes: string | null
+          proxima_consulta_agendada: string | null
+        }
+        Insert: {
+          arquivo_pdf_url?: string | null
+          created_at?: string
+          data_consulta?: string | null
+          gestante_id?: string | null
+          id?: string
+          medica_nome?: string | null
+          observacoes?: string | null
+          proxima_consulta_agendada?: string | null
+        }
+        Update: {
+          arquivo_pdf_url?: string | null
+          created_at?: string
+          data_consulta?: string | null
+          gestante_id?: string | null
+          id?: string
+          medica_nome?: string | null
+          observacoes?: string | null
+          proxima_consulta_agendada?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "consultas_gestante_id_fkey"
+            columns: ["gestante_id"]
+            isOneToOne: false
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exames_laboratoriais: {
+        Row: {
+          arquivo_pdf_url: string | null
+          created_at: string
+          data_exame: string | null
+          gestante_id: string | null
+          id: string
+          resultado_resumo: string | null
+          tipo_exame: string | null
+        }
+        Insert: {
+          arquivo_pdf_url?: string | null
+          created_at?: string
+          data_exame?: string | null
+          gestante_id?: string | null
+          id?: string
+          resultado_resumo?: string | null
+          tipo_exame?: string | null
+        }
+        Update: {
+          arquivo_pdf_url?: string | null
+          created_at?: string
+          data_exame?: string | null
+          gestante_id?: string | null
+          id?: string
+          resultado_resumo?: string | null
+          tipo_exame?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exames_laboratoriais_gestante_id_fkey"
+            columns: ["gestante_id"]
+            isOneToOne: false
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      fotos_timeline: {
+        Row: {
+          created_at: string
+          data_foto: string | null
+          descricao: string | null
+          foto_url: string | null
+          gestante_id: string | null
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          data_foto?: string | null
+          descricao?: string | null
+          foto_url?: string | null
+          gestante_id?: string | null
+          id?: string
+        }
+        Update: {
+          created_at?: string
+          data_foto?: string | null
+          descricao?: string | null
+          foto_url?: string | null
+          gestante_id?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "fotos_timeline_gestante_id_fkey"
+            columns: ["gestante_id"]
+            isOneToOne: false
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      gestantes: {
+        Row: {
+          alergias: string | null
+          created_at: string
+          data_nascimento: string | null
+          data_ultima_menstruacao: string | null
+          foto_perfil_url: string | null
+          id: string
+          medicamentos_em_uso: string | null
+          nome: string
+          tipo_sanguineo: string | null
+          user_id: string | null
+        }
+        Insert: {
+          alergias?: string | null
+          created_at?: string
+          data_nascimento?: string | null
+          data_ultima_menstruacao?: string | null
+          foto_perfil_url?: string | null
+          id?: string
+          medicamentos_em_uso?: string | null
+          nome: string
+          tipo_sanguineo?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          alergias?: string | null
+          created_at?: string
+          data_nascimento?: string | null
+          data_ultima_menstruacao?: string | null
+          foto_perfil_url?: string | null
+          id?: string
+          medicamentos_em_uso?: string | null
           nome?: string
+          tipo_sanguineo?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
+      medicamentos: {
+        Row: {
+          created_at: string
+          data_inicio: string | null
+          dosagem: string | null
+          gestante_id: string | null
+          id: string
+          nome_medicamento: string | null
+        }
+        Insert: {
+          created_at?: string
+          data_inicio?: string | null
+          dosagem?: string | null
+          gestante_id?: string | null
+          id?: string
+          nome_medicamento?: string | null
+        }
+        Update: {
+          created_at?: string
+          data_inicio?: string | null
+          dosagem?: string | null
+          gestante_id?: string | null
+          id?: string
+          nome_medicamento?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medicamentos_gestante_id_fkey"
+            columns: ["gestante_id"]
+            isOneToOne: false
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          email: string
+          full_name: string | null
+          id: string
+          role: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          email: string
+          full_name?: string | null
+          id: string
+          role?: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          email?: string
+          full_name?: string | null
+          id?: string
           role?: string
         }
         Relationships: []
+      }
+      sintomas_observacoes: {
+        Row: {
+          created_at: string
+          data_registro: string | null
+          descricao: string | null
+          gestante_id: string | null
+          id: string
+          tipo_sintoma: string | null
+        }
+        Insert: {
+          created_at?: string
+          data_registro?: string | null
+          descricao?: string | null
+          gestante_id?: string | null
+          id?: string
+          tipo_sintoma?: string | null
+        }
+        Update: {
+          created_at?: string
+          data_registro?: string | null
+          descricao?: string | null
+          gestante_id?: string | null
+          id?: string
+          tipo_sintoma?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sintomas_observacoes_gestante_id_fkey"
+            columns: ["gestante_id"]
+            isOneToOne: false
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      suplementos: {
+        Row: {
+          created_at: string
+          data_inicio: string | null
+          dosagem: string | null
+          gestante_id: string | null
+          id: string
+          nome_suplemento: string
+          observacoes: string | null
+        }
+        Insert: {
+          created_at?: string
+          data_inicio?: string | null
+          dosagem?: string | null
+          gestante_id?: string | null
+          id?: string
+          nome_suplemento: string
+          observacoes?: string | null
+        }
+        Update: {
+          created_at?: string
+          data_inicio?: string | null
+          dosagem?: string | null
+          gestante_id?: string | null
+          id?: string
+          nome_suplemento?: string
+          observacoes?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "suplementos_gestante_id_fkey"
+            columns: ["gestante_id"]
+            isOneToOne: false
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      ultrassons: {
+        Row: {
+          arquivo_pdf_url: string | null
+          created_at: string
+          data_ultrassom: string | null
+          gestante_id: string | null
+          id: string
+          observacoes_medica: string | null
+          semana_gestacional: number | null
+        }
+        Insert: {
+          arquivo_pdf_url?: string | null
+          created_at?: string
+          data_ultrassom?: string | null
+          gestante_id?: string | null
+          id?: string
+          observacoes_medica?: string | null
+          semana_gestacional?: number | null
+        }
+        Update: {
+          arquivo_pdf_url?: string | null
+          created_at?: string
+          data_ultrassom?: string | null
+          gestante_id?: string | null
+          id?: string
+          observacoes_medica?: string | null
+          semana_gestacional?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "ultrassons_gestante_id_fkey"
+            columns: ["gestante_id"]
+            isOneToOne: false
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      match_documents: {
-        Args: { filter?: Json; match_count?: number; query_embedding: string }
-        Returns: {
-          content: string
-          id: number
-          metadata: Json
-          similarity: number
-        }[]
-      }
+      [_ in never]: never
     }
     Enums: {
-      tipo_despesa: 'fixa' | 'variável'
-      tipo_transacao: 'entrada' | 'saída'
+      [_ in never]: never
     }
     CompositeTypes: {
       [_ in never]: never
@@ -385,31 +389,33 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
-    ? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -418,23 +424,23 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -443,23 +449,23 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -468,46 +474,44 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema['Enums']
+    | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
-    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema['CompositeTypes']
+    | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
-    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
   public: {
-    Enums: {
-      tipo_despesa: ['fixa', 'variável'],
-      tipo_transacao: ['entrada', 'saída'],
-    },
+    Enums: {},
   },
 } as const
+
 
 // ====== DATABASE EXTENDED CONTEXT (auto-generated) ======
 // This section contains actual PostgreSQL column types, constraints, RLS policies,
@@ -519,200 +523,220 @@ export const Constants = {
 // --- COLUMN TYPES (actual PostgreSQL types) ---
 // Use this to know the real database type when writing migrations.
 // "string" in TypeScript types above may be uuid, text, varchar, timestamptz, etc.
-// Table: banco de dados
-//   id: bigint (not null)
-//   created_at: timestamp with time zone (not null, default: now())
-// Table: clientes
-//   numero: character varying (not null)
-//   nome: character varying (nullable)
-//   email: character varying (nullable)
-//   dados: jsonb (nullable)
-//   humano: boolean (nullable, default: false)
-//   crm_id: character varying (nullable)
-//   created_at: timestamp with time zone (nullable, default: now())
-//   ultima_msg: text (nullable)
-//   follow_up: boolean (nullable)
-// Table: despesas
-//   id: bigint (not null)
-//   tipo: tipo_despesa (not null)
-//   descricao: text (not null)
-//   valor: numeric (not null)
-//   data: date (not null)
-//   categoria: text (nullable)
-//   created_at: timestamp with time zone (not null, default: now())
-// Table: documents
-//   id: bigint (not null, default: nextval('documents_id_seq'::regclass))
-//   content: text (nullable)
-//   metadata: jsonb (nullable)
-//   embedding: vector (nullable)
-// Table: n8n_chat
-//   id: integer (not null, default: nextval('n8n_chat_id_seq'::regclass))
-//   session_id: character varying (not null)
-//   message: jsonb (not null)
-// Table: ocupacao_salas
-//   id: bigint (not null)
-//   sala_id: bigint (nullable)
-//   paciente_id: uuid (nullable)
-//   data_inicio: timestamp with time zone (not null)
-//   data_fim: timestamp with time zone (not null)
-//   valor_cobrado: numeric (not null)
-//   created_at: timestamp with time zone (not null, default: now())
-// Table: pacientes
+// Table: access_control
 //   id: uuid (not null, default: gen_random_uuid())
-//   nome: text (not null)
-//   cpf: text (nullable)
-//   telefone: text (nullable)
-//   email: text (nullable)
-//   data_nascimento: date (nullable)
-//   created_at: timestamp with time zone (not null, default: now())
-// Table: produtos_servicos
-//   id: bigint (not null)
-//   nome: text (not null)
-//   descricao: text (nullable)
-//   custo: numeric (nullable, default: 0)
-//   preco_venda: numeric (nullable, default: 0)
-//   categoria: text (nullable)
-//   created_at: timestamp with time zone (not null, default: now())
-// Table: registros_diarios
-//   id: bigint (not null)
-//   data: date (not null)
-//   faturamento_total: numeric (nullable, default: 0)
-//   total_consultas: integer (nullable, default: 0)
-//   total_servicos: integer (nullable, default: 0)
-//   bilheteria: numeric (nullable, default: 0)
-//   created_at: timestamp with time zone (not null, default: now())
-// Table: salas
-//   id: bigint (not null)
-//   nome: text (not null)
-//   taxa_hora: numeric (nullable, default: 0)
-//   taxa_dia: numeric (nullable, default: 0)
-//   created_at: timestamp with time zone (not null, default: now())
-// Table: transacoes
-//   id: bigint (not null)
-//   tipo: tipo_transacao (not null)
-//   descricao: text (nullable)
-//   valor: numeric (not null)
-//   data: timestamp with time zone (not null, default: now())
-//   paciente_id: uuid (nullable)
-//   produto_id: bigint (nullable)
-//   created_at: timestamp with time zone (not null, default: now())
-// Table: usuarios
-//   id: uuid (not null)
-//   nome: text (not null)
+//   gestante_id: uuid (nullable)
 //   email: text (not null)
 //   role: text (not null)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: consultas
+//   id: uuid (not null, default: gen_random_uuid())
+//   gestante_id: uuid (nullable)
+//   data_consulta: date (nullable)
+//   medica_nome: text (nullable)
+//   observacoes: text (nullable)
+//   arquivo_pdf_url: text (nullable)
+//   proxima_consulta_agendada: timestamp without time zone (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: exames_laboratoriais
+//   id: uuid (not null, default: gen_random_uuid())
+//   gestante_id: uuid (nullable)
+//   data_exame: date (nullable)
+//   tipo_exame: text (nullable)
+//   resultado_resumo: text (nullable)
+//   arquivo_pdf_url: text (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: fotos_timeline
+//   id: uuid (not null, default: gen_random_uuid())
+//   gestante_id: uuid (nullable)
+//   data_foto: date (nullable)
+//   descricao: text (nullable)
+//   foto_url: text (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: gestantes
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (nullable)
+//   nome: text (not null)
+//   data_nascimento: date (nullable)
+//   tipo_sanguineo: text (nullable)
+//   alergias: text (nullable)
+//   medicamentos_em_uso: text (nullable)
+//   data_ultima_menstruacao: date (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
+//   foto_perfil_url: text (nullable)
+// Table: medicamentos
+//   id: uuid (not null, default: gen_random_uuid())
+//   gestante_id: uuid (nullable)
+//   data_inicio: date (nullable)
+//   nome_medicamento: text (nullable)
+//   dosagem: text (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: profiles
+//   id: uuid (not null)
+//   email: text (not null)
+//   role: text (not null, default: 'gestante'::text)
+//   full_name: text (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
+//   avatar_url: text (nullable)
+// Table: sintomas_observacoes
+//   id: uuid (not null, default: gen_random_uuid())
+//   gestante_id: uuid (nullable)
+//   data_registro: date (nullable)
+//   tipo_sintoma: text (nullable)
+//   descricao: text (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: suplementos
+//   id: uuid (not null, default: gen_random_uuid())
+//   gestante_id: uuid (nullable)
+//   nome_suplemento: text (not null)
+//   dosagem: text (nullable)
+//   data_inicio: date (nullable)
+//   observacoes: text (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: ultrassons
+//   id: uuid (not null, default: gen_random_uuid())
+//   gestante_id: uuid (nullable)
+//   data_ultrassom: date (nullable)
+//   observacoes_medica: text (nullable)
+//   arquivo_pdf_url: text (nullable)
+//   semana_gestacional: integer (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
 
 // --- CONSTRAINTS ---
-// Table: banco de dados
-//   PRIMARY KEY banco de dados_pkey: PRIMARY KEY (id)
-// Table: clientes
-//   PRIMARY KEY clientes_pkey: PRIMARY KEY (numero)
-// Table: despesas
-//   PRIMARY KEY despesas_pkey: PRIMARY KEY (id)
-// Table: documents
-//   PRIMARY KEY documents_pkey: PRIMARY KEY (id)
-// Table: n8n_chat
-//   PRIMARY KEY n8n_chat_pkey: PRIMARY KEY (id)
-// Table: ocupacao_salas
-//   FOREIGN KEY ocupacao_salas_paciente_id_fkey: FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE SET NULL
-//   PRIMARY KEY ocupacao_salas_pkey: PRIMARY KEY (id)
-//   FOREIGN KEY ocupacao_salas_sala_id_fkey: FOREIGN KEY (sala_id) REFERENCES salas(id) ON DELETE CASCADE
-// Table: pacientes
-//   UNIQUE pacientes_cpf_key: UNIQUE (cpf)
-//   PRIMARY KEY pacientes_pkey: PRIMARY KEY (id)
-// Table: produtos_servicos
-//   PRIMARY KEY produtos_servicos_pkey: PRIMARY KEY (id)
-// Table: registros_diarios
-//   UNIQUE registros_diarios_data_key: UNIQUE (data)
-//   PRIMARY KEY registros_diarios_pkey: PRIMARY KEY (id)
-// Table: salas
-//   PRIMARY KEY salas_pkey: PRIMARY KEY (id)
-// Table: transacoes
-//   FOREIGN KEY transacoes_paciente_id_fkey: FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE SET NULL
-//   PRIMARY KEY transacoes_pkey: PRIMARY KEY (id)
-//   FOREIGN KEY transacoes_produto_id_fkey: FOREIGN KEY (produto_id) REFERENCES produtos_servicos(id) ON DELETE SET NULL
-// Table: usuarios
-//   UNIQUE usuarios_email_key: UNIQUE (email)
-//   FOREIGN KEY usuarios_id_fkey: FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
-//   PRIMARY KEY usuarios_pkey: PRIMARY KEY (id)
+// Table: access_control
+//   UNIQUE access_control_gestante_id_email_key: UNIQUE (gestante_id, email)
+//   FOREIGN KEY access_control_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
+//   PRIMARY KEY access_control_pkey: PRIMARY KEY (id)
+//   CHECK access_control_role_check: CHECK ((role = ANY (ARRAY['medica'::text, 'familiar'::text])))
+// Table: consultas
+//   FOREIGN KEY consultas_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
+//   PRIMARY KEY consultas_pkey: PRIMARY KEY (id)
+// Table: exames_laboratoriais
+//   FOREIGN KEY exames_laboratoriais_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
+//   PRIMARY KEY exames_laboratoriais_pkey: PRIMARY KEY (id)
+// Table: fotos_timeline
+//   FOREIGN KEY fotos_timeline_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
+//   PRIMARY KEY fotos_timeline_pkey: PRIMARY KEY (id)
+// Table: gestantes
+//   PRIMARY KEY gestantes_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY gestantes_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
+//   UNIQUE gestantes_user_id_key: UNIQUE (user_id)
+// Table: medicamentos
+//   FOREIGN KEY medicamentos_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
+//   PRIMARY KEY medicamentos_pkey: PRIMARY KEY (id)
+// Table: profiles
+//   FOREIGN KEY profiles_id_fkey: FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
+//   PRIMARY KEY profiles_pkey: PRIMARY KEY (id)
+//   CHECK profiles_role_check: CHECK ((role = ANY (ARRAY['gestante'::text, 'medica'::text, 'familiar'::text, 'admin'::text])))
+// Table: sintomas_observacoes
+//   FOREIGN KEY sintomas_observacoes_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
+//   PRIMARY KEY sintomas_observacoes_pkey: PRIMARY KEY (id)
+// Table: suplementos
+//   FOREIGN KEY suplementos_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
+//   PRIMARY KEY suplementos_pkey: PRIMARY KEY (id)
+// Table: ultrassons
+//   FOREIGN KEY ultrassons_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
+//   PRIMARY KEY ultrassons_pkey: PRIMARY KEY (id)
 
 // --- ROW LEVEL SECURITY POLICIES ---
-// Table: banco de dados
-//   Policy "Allow authenticated users full access" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: clientes
-//   Policy "Allow authenticated users full access" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: despesas
-//   Policy "Allow authenticated users full access" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: documents
-//   Policy "Allow authenticated users full access" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: n8n_chat
-//   Policy "Allow authenticated users full access" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: ocupacao_salas
-//   Policy "Allow authenticated users full access on ocupacao_salas" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: pacientes
-//   Policy "Allow authenticated users full access" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: produtos_servicos
-//   Policy "Allow authenticated users full access" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: registros_diarios
-//   Policy "Allow authenticated users full access" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: salas
-//   Policy "Allow authenticated users full access on salas" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: transacoes
-//   Policy "Allow authenticated users full access" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
-// Table: usuarios
-//   Policy "Allow authenticated users full access" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
+// Table: access_control
+//   Policy "Gestante manage access" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: ((EXISTS ( SELECT 1    FROM gestantes g   WHERE ((g.id = access_control.gestante_id) AND (g.user_id = auth.uid())))) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
+//   Policy "Invited view access" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: (email = (auth.jwt() ->> 'email'::text))
+// Table: consultas
+//   Policy "Gestante ALL consultas" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: ((EXISTS ( SELECT 1    FROM gestantes g   WHERE ((g.id = consultas.gestante_id) AND (g.user_id = auth.uid())))) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
+//   Policy "Invited SELECT consultas" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = consultas.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)))))
+//   Policy "Medica INSERT consultas" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = consultas.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
+//   Policy "Medica UPDATE consultas" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = consultas.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
+// Table: exames_laboratoriais
+//   Policy "Gestante ALL exames_laboratoriais" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: ((EXISTS ( SELECT 1    FROM gestantes g   WHERE ((g.id = exames_laboratoriais.gestante_id) AND (g.user_id = auth.uid())))) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
+//   Policy "Invited SELECT exames_laboratoriais" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = exames_laboratoriais.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)))))
+//   Policy "Medica INSERT exames_laboratoriais" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = exames_laboratoriais.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
+//   Policy "Medica UPDATE exames_laboratoriais" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = exames_laboratoriais.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
+// Table: fotos_timeline
+//   Policy "Gestante ALL fotos" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: ((EXISTS ( SELECT 1    FROM gestantes g   WHERE ((g.id = fotos_timeline.gestante_id) AND (g.user_id = auth.uid())))) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
+//   Policy "Invited SELECT fotos" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = fotos_timeline.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)))))
+// Table: gestantes
+//   Policy "Gestante access own" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: ((user_id = auth.uid()) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
+//   Policy "Invited view gestante" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = ac.id) AND (ac.email = (auth.jwt() ->> 'email'::text)))))
+// Table: medicamentos
+//   Policy "Gestante ALL medicamentos" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: ((EXISTS ( SELECT 1    FROM gestantes g   WHERE ((g.id = medicamentos.gestante_id) AND (g.user_id = auth.uid())))) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
+//   Policy "Invited SELECT medicamentos" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = medicamentos.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)))))
+//   Policy "Medica INSERT medicamentos" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = medicamentos.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
+//   Policy "Medica UPDATE medicamentos" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = medicamentos.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
+// Table: profiles
+//   Policy "Users update own profile" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: ((auth.uid() = id) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
+//   Policy "Users view own profile" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: ((auth.uid() = id) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
+// Table: sintomas_observacoes
+//   Policy "Gestante ALL sintomas_observacoes" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: ((EXISTS ( SELECT 1    FROM gestantes g   WHERE ((g.id = sintomas_observacoes.gestante_id) AND (g.user_id = auth.uid())))) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
+//   Policy "Invited SELECT sintomas_observacoes" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = sintomas_observacoes.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)))))
+//   Policy "Medica INSERT sintomas_observacoes" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = sintomas_observacoes.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
+//   Policy "Medica UPDATE sintomas_observacoes" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = sintomas_observacoes.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
+// Table: suplementos
+//   Policy "Gestante ALL suplementos" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: ((EXISTS ( SELECT 1    FROM gestantes g   WHERE ((g.id = suplementos.gestante_id) AND (g.user_id = auth.uid())))) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
+//   Policy "Invited SELECT suplementos" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = suplementos.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)))))
+//   Policy "Medica INSERT suplementos" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = suplementos.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
+//   Policy "Medica UPDATE suplementos" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = suplementos.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
+// Table: ultrassons
+//   Policy "Gestante ALL ultrassons" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: ((EXISTS ( SELECT 1    FROM gestantes g   WHERE ((g.id = ultrassons.gestante_id) AND (g.user_id = auth.uid())))) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
+//   Policy "Invited SELECT ultrassons" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = ultrassons.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)))))
+//   Policy "Medica INSERT ultrassons" (INSERT, PERMISSIVE) roles={authenticated}
+//     WITH CHECK: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = ultrassons.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
+//   Policy "Medica UPDATE ultrassons" (UPDATE, PERMISSIVE) roles={authenticated}
+//     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = ultrassons.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
 
 // --- DATABASE FUNCTIONS ---
-// FUNCTION match_documents(vector, integer, jsonb)
-//   CREATE OR REPLACE FUNCTION public.match_documents(query_embedding vector, match_count integer DEFAULT NULL::integer, filter jsonb DEFAULT '{}'::jsonb)
-//    RETURNS TABLE(id bigint, content text, metadata jsonb, similarity double precision)
+// FUNCTION handle_new_user()
+//   CREATE OR REPLACE FUNCTION public.handle_new_user()
+//    RETURNS trigger
 //    LANGUAGE plpgsql
+//    SECURITY DEFINER
 //   AS $function$
-//   #variable_conflict use_column
-//   begin
-//     return query
-//     select
-//       id,
-//       content,
-//       metadata,
-//       1 - (documents.embedding <=> query_embedding) as similarity
-//     from documents
-//     where metadata @> filter
-//     order by documents.embedding <=> query_embedding
-//     limit match_count;
-//   end;
+//   BEGIN
+//     INSERT INTO public.profiles (id, email, full_name, role)
+//     VALUES (
+//       NEW.id,
+//       NEW.email,
+//       NEW.raw_user_meta_data->>'nome',
+//       'gestante'
+//     );
+//     RETURN NEW;
+//   END;
 //   $function$
-//
+//   
 
 // --- INDEXES ---
-// Table: pacientes
-//   CREATE UNIQUE INDEX pacientes_cpf_key ON public.pacientes USING btree (cpf)
-// Table: registros_diarios
-//   CREATE UNIQUE INDEX registros_diarios_data_key ON public.registros_diarios USING btree (data)
-// Table: usuarios
-//   CREATE UNIQUE INDEX usuarios_email_key ON public.usuarios USING btree (email)
+// Table: access_control
+//   CREATE UNIQUE INDEX access_control_gestante_id_email_key ON public.access_control USING btree (gestante_id, email)
+// Table: gestantes
+//   CREATE UNIQUE INDEX gestantes_user_id_key ON public.gestantes USING btree (user_id)
+
