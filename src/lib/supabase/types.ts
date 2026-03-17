@@ -129,6 +129,51 @@ export type Database = {
         }
         Relationships: []
       }
+      ocupacao_salas: {
+        Row: {
+          created_at: string
+          data_fim: string
+          data_inicio: string
+          id: number
+          paciente_id: string | null
+          sala_id: number | null
+          valor_cobrado: number
+        }
+        Insert: {
+          created_at?: string
+          data_fim: string
+          data_inicio: string
+          id?: never
+          paciente_id?: string | null
+          sala_id?: number | null
+          valor_cobrado: number
+        }
+        Update: {
+          created_at?: string
+          data_fim?: string
+          data_inicio?: string
+          id?: never
+          paciente_id?: string | null
+          sala_id?: number | null
+          valor_cobrado?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'ocupacao_salas_paciente_id_fkey'
+            columns: ['paciente_id']
+            isOneToOne: false
+            referencedRelation: 'pacientes'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'ocupacao_salas_sala_id_fkey'
+            columns: ['sala_id']
+            isOneToOne: false
+            referencedRelation: 'salas'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       pacientes: {
         Row: {
           cpf: string | null
@@ -216,6 +261,30 @@ export type Database = {
           id?: never
           total_consultas?: number | null
           total_servicos?: number | null
+        }
+        Relationships: []
+      }
+      salas: {
+        Row: {
+          created_at: string
+          id: number
+          nome: string
+          taxa_dia: number | null
+          taxa_hora: number | null
+        }
+        Insert: {
+          created_at?: string
+          id?: never
+          nome: string
+          taxa_dia?: number | null
+          taxa_hora?: number | null
+        }
+        Update: {
+          created_at?: string
+          id?: never
+          nome?: string
+          taxa_dia?: number | null
+          taxa_hora?: number | null
         }
         Relationships: []
       }
@@ -480,6 +549,14 @@ export const Constants = {
 //   id: integer (not null, default: nextval('n8n_chat_id_seq'::regclass))
 //   session_id: character varying (not null)
 //   message: jsonb (not null)
+// Table: ocupacao_salas
+//   id: bigint (not null)
+//   sala_id: bigint (nullable)
+//   paciente_id: uuid (nullable)
+//   data_inicio: timestamp with time zone (not null)
+//   data_fim: timestamp with time zone (not null)
+//   valor_cobrado: numeric (not null)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: pacientes
 //   id: uuid (not null, default: gen_random_uuid())
 //   nome: text (not null)
@@ -503,6 +580,12 @@ export const Constants = {
 //   total_consultas: integer (nullable, default: 0)
 //   total_servicos: integer (nullable, default: 0)
 //   bilheteria: numeric (nullable, default: 0)
+//   created_at: timestamp with time zone (not null, default: now())
+// Table: salas
+//   id: bigint (not null)
+//   nome: text (not null)
+//   taxa_hora: numeric (nullable, default: 0)
+//   taxa_dia: numeric (nullable, default: 0)
 //   created_at: timestamp with time zone (not null, default: now())
 // Table: transacoes
 //   id: bigint (not null)
@@ -531,6 +614,10 @@ export const Constants = {
 //   PRIMARY KEY documents_pkey: PRIMARY KEY (id)
 // Table: n8n_chat
 //   PRIMARY KEY n8n_chat_pkey: PRIMARY KEY (id)
+// Table: ocupacao_salas
+//   FOREIGN KEY ocupacao_salas_paciente_id_fkey: FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE SET NULL
+//   PRIMARY KEY ocupacao_salas_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY ocupacao_salas_sala_id_fkey: FOREIGN KEY (sala_id) REFERENCES salas(id) ON DELETE CASCADE
 // Table: pacientes
 //   UNIQUE pacientes_cpf_key: UNIQUE (cpf)
 //   PRIMARY KEY pacientes_pkey: PRIMARY KEY (id)
@@ -539,6 +626,8 @@ export const Constants = {
 // Table: registros_diarios
 //   UNIQUE registros_diarios_data_key: UNIQUE (data)
 //   PRIMARY KEY registros_diarios_pkey: PRIMARY KEY (id)
+// Table: salas
+//   PRIMARY KEY salas_pkey: PRIMARY KEY (id)
 // Table: transacoes
 //   FOREIGN KEY transacoes_paciente_id_fkey: FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE SET NULL
 //   PRIMARY KEY transacoes_pkey: PRIMARY KEY (id)
@@ -569,6 +658,10 @@ export const Constants = {
 //   Policy "Allow authenticated users full access" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
+// Table: ocupacao_salas
+//   Policy "Allow authenticated users full access on ocupacao_salas" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: pacientes
 //   Policy "Allow authenticated users full access" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -579,6 +672,10 @@ export const Constants = {
 //     WITH CHECK: true
 // Table: registros_diarios
 //   Policy "Allow authenticated users full access" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: salas
+//   Policy "Allow authenticated users full access on salas" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
 // Table: transacoes
