@@ -4,25 +4,17 @@ import { AppSidebar } from './AppSidebar'
 
 export default function Layout() {
   return (
-    <div
-      style={
-        {
-          '--sidebar-background': '222 47% 11%', // Dark background
-          '--sidebar-foreground': '210 40% 98%',
-          '--sidebar-border': '222 47% 11%', // Hide border
-          '--sidebar-accent': '216 34% 17%',
-          '--sidebar-accent-foreground': '210 40% 98%',
-        } as React.CSSProperties
-      }
-    >
+    <div className="min-h-screen bg-background text-foreground flex w-full">
       <SidebarProvider>
         <AppSidebar />
-        <SidebarInset className="bg-[#f8fafc] min-h-screen">
-          <header className="flex h-14 shrink-0 items-center gap-2 border-b bg-white px-4 lg:hidden">
-            <SidebarTrigger />
-            <span className="font-semibold text-sm">Clínica Canever Financeiro</span>
+        <SidebarInset className="bg-transparent flex-1">
+          <header className="flex h-16 shrink-0 items-center gap-3 border-b border-border/40 bg-background/80 backdrop-blur-sm px-4 lg:hidden sticky top-0 z-10">
+            <SidebarTrigger className="text-primary hover:text-primary/80" />
+            <span className="font-bold text-sm tracking-widest uppercase text-foreground">
+              Canever Financeiro
+            </span>
           </header>
-          <main className="flex-1 w-full mx-auto pb-12">
+          <main className="w-full mx-auto pb-12">
             <Outlet />
           </main>
         </SidebarInset>

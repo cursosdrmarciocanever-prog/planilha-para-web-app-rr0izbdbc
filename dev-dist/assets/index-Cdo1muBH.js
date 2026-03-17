@@ -19237,6 +19237,10 @@ var Info = createLucideIcon("info", [
 		key: "e9boi3"
 	}]
 ]);
+var Infinity$1 = createLucideIcon("infinity", [["path", {
+	d: "M6 16c5 0 7-8 12-8a4 4 0 0 1 0 8c-5 0-7-8-12-8a4 4 0 1 0 0 8",
+	key: "18ogeb"
+}]]);
 var LayoutDashboard = createLucideIcon("layout-dashboard", [
 	["rect", {
 		width: "7",
@@ -24455,21 +24459,21 @@ function useIsMobile() {
 }
 //#endregion
 //#region src/components/ui/button.tsx
-var buttonVariants = cva("inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-md text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0", {
+var buttonVariants = cva("inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-medium ring-offset-background transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0", {
 	variants: {
 		variant: {
-			default: "bg-primary text-primary-foreground hover:bg-primary/90",
-			destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90",
-			outline: "border border-input bg-transparent text-foreground hover:bg-accent hover:text-accent-foreground",
-			secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80",
+			default: "bg-primary text-primary-foreground hover:bg-primary/90 shadow-sm",
+			destructive: "bg-destructive text-destructive-foreground hover:bg-destructive/90 shadow-sm",
+			outline: "border-2 border-foreground bg-transparent text-foreground hover:bg-foreground hover:text-background shadow-sm",
+			secondary: "bg-secondary text-secondary-foreground hover:bg-secondary/80 shadow-sm",
 			ghost: "text-foreground hover:bg-accent hover:text-accent-foreground",
-			link: "text-foreground underline-offset-4 hover:underline"
+			link: "text-primary underline-offset-4 hover:underline"
 		},
 		size: {
-			default: "h-10 px-4 py-2",
-			sm: "h-9 rounded-md px-3",
-			lg: "h-11 rounded-md px-8",
-			icon: "h-10 w-10"
+			default: "h-11 px-6 py-2",
+			sm: "h-9 px-4",
+			lg: "h-12 px-8 text-base",
+			icon: "h-11 w-11"
 		}
 	},
 	defaultVariants: {
@@ -26713,7 +26717,7 @@ var navItems = [
 		icon: LayoutDashboard
 	},
 	{
-		label: "diário",
+		label: "Diário",
 		path: "/diario",
 		icon: Calendar
 	},
@@ -26741,45 +26745,39 @@ var navItems = [
 function AppSidebar() {
 	const location = useLocation();
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Sidebar, {
-		"data-uid": "src/components/AppSidebar.tsx:38:5",
+		"data-uid": "src/components/AppSidebar.tsx:39:5",
 		"data-prohibitions": "[editContent]",
-		className: "border-r-0 bg-[#0b1121]",
+		className: "border-r border-border bg-sidebar",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarHeader, {
-				"data-uid": "src/components/AppSidebar.tsx:39:7",
+				"data-uid": "src/components/AppSidebar.tsx:40:7",
 				"data-prohibitions": "[]",
 				className: "pt-8 pb-4",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/components/AppSidebar.tsx:40:9",
+					"data-uid": "src/components/AppSidebar.tsx:41:9",
 					"data-prohibitions": "[]",
 					className: "flex flex-col items-center justify-center",
 					children: [
-						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/components/AppSidebar.tsx:41:11",
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							"data-uid": "src/components/AppSidebar.tsx:42:11",
 							"data-prohibitions": "[]",
-							className: "flex items-center justify-center mb-2",
-							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								"data-uid": "src/components/AppSidebar.tsx:42:13",
-								"data-prohibitions": "[]",
-								className: "text-4xl font-light tracking-tighter text-[#3b5bdb]",
-								children: "C"
-							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+							className: "flex items-center justify-center mb-1 text-primary",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Infinity$1, {
 								"data-uid": "src/components/AppSidebar.tsx:43:13",
-								"data-prohibitions": "[]",
-								className: "text-4xl font-semibold tracking-tighter text-slate-200 -ml-1",
-								children: "C"
-							})]
+								"data-prohibitions": "[editContent]",
+								className: "w-12 h-12 stroke-[1.5]"
+							})
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
 							"data-uid": "src/components/AppSidebar.tsx:45:11",
 							"data-prohibitions": "[]",
-							className: "text-sm text-center font-semibold tracking-widest text-slate-200 uppercase mt-1",
+							className: "text-[13px] text-center font-bold tracking-[0.15em] text-foreground uppercase mt-2",
 							children: "Clínica Canever"
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 							"data-uid": "src/components/AppSidebar.tsx:48:11",
 							"data-prohibitions": "[]",
-							className: "text-[10px] tracking-[0.2em] text-[#3b5bdb] font-medium uppercase mt-1",
+							className: "text-[10px] tracking-[0.2em] text-primary font-medium uppercase mt-1",
 							children: "Financeiro"
 						})
 					]
@@ -26803,7 +26801,7 @@ function AppSidebar() {
 								"data-prohibitions": "[editContent]",
 								asChild: true,
 								isActive,
-								className: cn$1("h-12 rounded-xl px-4 justify-start text-[15px] transition-all duration-200", isActive ? "bg-[#3b5bdb] hover:bg-[#364fc7] text-white shadow-md" : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"),
+								className: cn$1("h-11 rounded-full px-5 justify-start text-[14px] transition-all duration-200", isActive ? "bg-primary hover:bg-primary/90 text-primary-foreground shadow-sm font-medium" : "text-muted-foreground hover:bg-accent hover:text-foreground font-medium"),
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
 									"data-uid": "src/components/AppSidebar.tsx:70:19",
 									"data-prohibitions": "[editContent]",
@@ -26811,11 +26809,10 @@ function AppSidebar() {
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(item.icon, {
 										"data-uid": "src/components/AppSidebar.tsx:71:21",
 										"data-prohibitions": "[editContent]",
-										className: "w-5 h-5 mr-3 shrink-0"
+										className: "w-4 h-4 mr-3 shrink-0"
 									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 										"data-uid": "src/components/AppSidebar.tsx:72:21",
 										"data-prohibitions": "[editContent]",
-										className: "font-medium",
 										children: item.label
 									})]
 								})
@@ -26831,7 +26828,7 @@ function AppSidebar() {
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					"data-uid": "src/components/AppSidebar.tsx:82:9",
 					"data-prohibitions": "[]",
-					className: "bg-[#151e32] p-4 rounded-2xl flex flex-col gap-4 border border-slate-800/50",
+					className: "bg-secondary/50 p-4 rounded-2xl flex flex-col gap-4 border border-border/50",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 						"data-uid": "src/components/AppSidebar.tsx:83:11",
 						"data-prohibitions": "[]",
@@ -26839,11 +26836,11 @@ function AppSidebar() {
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Avatar, {
 							"data-uid": "src/components/AppSidebar.tsx:84:13",
 							"data-prohibitions": "[]",
-							className: "h-10 w-10 bg-[#3b5bdb] rounded-xl shrink-0",
+							className: "h-10 w-10 bg-primary/20 text-primary rounded-full shrink-0 border border-primary/20",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AvatarFallback, {
 								"data-uid": "src/components/AppSidebar.tsx:85:15",
 								"data-prohibitions": "[]",
-								className: "bg-[#3b5bdb] text-white rounded-xl",
+								className: "bg-transparent text-primary",
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(User, {
 									"data-uid": "src/components/AppSidebar.tsx:86:17",
 									"data-prohibitions": "[editContent]",
@@ -26857,22 +26854,22 @@ function AppSidebar() {
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 								"data-uid": "src/components/AppSidebar.tsx:90:15",
 								"data-prohibitions": "[]",
-								className: "text-sm font-semibold text-slate-200 truncate",
-								children: "MARCIO RENATÓ M..."
+								className: "text-sm font-semibold text-foreground truncate",
+								children: "Márcio Renato"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								"data-uid": "src/components/AppSidebar.tsx:93:15",
+								"data-uid": "src/components/AppSidebar.tsx:91:15",
 								"data-prohibitions": "[]",
-								className: "text-[10px] font-medium uppercase tracking-wider text-slate-500 truncate mt-0.5",
-								children: "CLÍNICA CANEVER"
+								className: "text-[10px] font-semibold uppercase tracking-wider text-muted-foreground truncate mt-0.5",
+								children: "Administrador"
 							})]
 						})]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-						"data-uid": "src/components/AppSidebar.tsx:98:11",
+						"data-uid": "src/components/AppSidebar.tsx:96:11",
 						"data-prohibitions": "[]",
 						variant: "ghost",
-						className: "w-full justify-start text-slate-400 hover:text-white hover:bg-slate-800 px-2 h-9",
+						className: "w-full justify-start text-muted-foreground hover:text-foreground hover:bg-background px-4 h-10 rounded-full",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LogOut, {
-							"data-uid": "src/components/AppSidebar.tsx:102:13",
+							"data-uid": "src/components/AppSidebar.tsx:100:13",
 							"data-prohibitions": "[editContent]",
 							className: "w-4 h-4 mr-2"
 						}), "Sair"]
@@ -26888,42 +26885,37 @@ function Layout() {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 		"data-uid": "src/components/Layout.tsx:7:5",
 		"data-prohibitions": "[]",
-		style: {
-			"--sidebar-background": "222 47% 11%",
-			"--sidebar-foreground": "210 40% 98%",
-			"--sidebar-border": "222 47% 11%",
-			"--sidebar-accent": "216 34% 17%",
-			"--sidebar-accent-foreground": "210 40% 98%"
-		},
+		className: "min-h-screen bg-background text-foreground flex w-full",
 		children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SidebarProvider, {
-			"data-uid": "src/components/Layout.tsx:18:7",
+			"data-uid": "src/components/Layout.tsx:8:7",
 			"data-prohibitions": "[]",
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(AppSidebar, {
-				"data-uid": "src/components/Layout.tsx:19:9",
+				"data-uid": "src/components/Layout.tsx:9:9",
 				"data-prohibitions": "[editContent]"
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(SidebarInset, {
-				"data-uid": "src/components/Layout.tsx:20:9",
+				"data-uid": "src/components/Layout.tsx:10:9",
 				"data-prohibitions": "[]",
-				className: "bg-[#f8fafc] min-h-screen",
+				className: "bg-transparent flex-1",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("header", {
-					"data-uid": "src/components/Layout.tsx:21:11",
+					"data-uid": "src/components/Layout.tsx:11:11",
 					"data-prohibitions": "[]",
-					className: "flex h-14 shrink-0 items-center gap-2 border-b bg-white px-4 lg:hidden",
+					className: "flex h-16 shrink-0 items-center gap-3 border-b border-border/40 bg-background/80 backdrop-blur-sm px-4 lg:hidden sticky top-0 z-10",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarTrigger, {
-						"data-uid": "src/components/Layout.tsx:22:13",
-						"data-prohibitions": "[editContent]"
+						"data-uid": "src/components/Layout.tsx:12:13",
+						"data-prohibitions": "[editContent]",
+						className: "text-primary hover:text-primary/80"
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-						"data-uid": "src/components/Layout.tsx:23:13",
+						"data-uid": "src/components/Layout.tsx:13:13",
 						"data-prohibitions": "[]",
-						className: "font-semibold text-sm",
-						children: "Clínica Canever Financeiro"
+						className: "font-bold text-sm tracking-widest uppercase text-foreground",
+						children: "Canever Financeiro"
 					})]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("main", {
-					"data-uid": "src/components/Layout.tsx:25:11",
+					"data-uid": "src/components/Layout.tsx:17:11",
 					"data-prohibitions": "[]",
-					className: "flex-1 w-full mx-auto pb-12",
+					className: "w-full mx-auto pb-12",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Outlet, {
-						"data-uid": "src/components/Layout.tsx:26:13",
+						"data-uid": "src/components/Layout.tsx:18:13",
 						"data-prohibitions": "[editContent]"
 					})
 				})]
@@ -28540,12 +28532,12 @@ function Index() {
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
 						"data-uid": "src/pages/Index.tsx:29:11",
 						"data-prohibitions": "[]",
-						className: "text-4xl font-bold text-slate-900 tracking-tight",
+						className: "text-4xl font-bold text-foreground tracking-tight",
 						children: "Painel"
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 						"data-uid": "src/pages/Index.tsx:30:11",
 						"data-prohibitions": "[]",
-						className: "text-slate-500 mt-2 text-lg",
+						className: "text-muted-foreground mt-2 text-lg",
 						children: "Visão geral do seu desempenho"
 					})]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -28555,12 +28547,12 @@ function Index() {
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 						"data-uid": "src/pages/Index.tsx:34:11",
 						"data-prohibitions": "[]",
-						className: "flex items-center bg-white border border-slate-200 rounded-lg shadow-sm p-1",
+						className: "flex items-center bg-card border border-border rounded-full shadow-sm p-1.5 pl-4",
 						children: [
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calendar, {
 								"data-uid": "src/pages/Index.tsx:35:13",
 								"data-prohibitions": "[editContent]",
-								className: "w-4 h-4 ml-3 text-slate-400 shrink-0"
+								className: "w-4 h-4 text-muted-foreground shrink-0"
 							}),
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 								"data-uid": "src/pages/Index.tsx:36:13",
@@ -28574,7 +28566,7 @@ function Index() {
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
 										"data-uid": "src/pages/Index.tsx:38:17",
 										"data-prohibitions": "[]",
-										className: "border-0 shadow-none focus:ring-0 focus:ring-offset-0 bg-transparent",
+										className: "border-0 shadow-none focus:ring-0 focus:ring-offset-0 bg-transparent h-8",
 										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
 											"data-uid": "src/pages/Index.tsx:39:19",
 											"data-prohibitions": "[editContent]",
@@ -28615,7 +28607,7 @@ function Index() {
 							/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 								"data-uid": "src/pages/Index.tsx:49:13",
 								"data-prohibitions": "[]",
-								className: "w-24 border-none shadow-none border-l border-slate-100 pl-1",
+								className: "w-24 border-none shadow-none border-l border-border pl-1",
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Select, {
 									"data-uid": "src/pages/Index.tsx:50:15",
 									"data-prohibitions": "[]",
@@ -28624,7 +28616,7 @@ function Index() {
 									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectTrigger, {
 										"data-uid": "src/pages/Index.tsx:51:17",
 										"data-prohibitions": "[]",
-										className: "border-0 shadow-none focus:ring-0 focus:ring-offset-0 bg-transparent",
+										className: "border-0 shadow-none focus:ring-0 focus:ring-offset-0 bg-transparent h-8",
 										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SelectValue, {
 											"data-uid": "src/pages/Index.tsx:52:19",
 											"data-prohibitions": "[editContent]",
@@ -28653,7 +28645,7 @@ function Index() {
 								variant: "ghost",
 								size: "icon",
 								onClick: handleClear,
-								className: "h-8 w-8 text-slate-400 hover:text-slate-600 rounded-md",
+								className: "h-8 w-8 text-muted-foreground hover:text-foreground rounded-full ml-1",
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, {
 									"data-uid": "src/pages/Index.tsx:66:15",
 									"data-prohibitions": "[editContent]",
@@ -28664,7 +28656,8 @@ function Index() {
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
 						"data-uid": "src/pages/Index.tsx:69:11",
 						"data-prohibitions": "[]",
-						className: "bg-[#3b5bdb] hover:bg-[#364fc7] text-white gap-2 shadow-sm rounded-lg h-10 px-6",
+						variant: "outline",
+						className: "gap-2",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Download, {
 							"data-uid": "src/pages/Index.tsx:70:13",
 							"data-prohibitions": "[editContent]",
@@ -28680,13 +28673,13 @@ function Index() {
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
 					"data-uid": "src/pages/Index.tsx:77:9",
 					"data-prohibitions": "[]",
-					className: "text-sm font-medium text-slate-600",
+					className: "text-sm font-medium text-muted-foreground",
 					children: "Exibindo dados de:"
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Badge, {
 					"data-uid": "src/pages/Index.tsx:78:9",
 					"data-prohibitions": "[editContent]",
 					variant: "secondary",
-					className: "bg-blue-50 text-[#3b5bdb] hover:bg-blue-100 px-4 py-1.5 rounded-full font-semibold border border-blue-100/50",
+					className: "bg-primary/10 text-primary hover:bg-primary/20 px-4 py-1.5 font-semibold border border-primary/20",
 					children: [
 						selectedMonth,
 						" de ",
@@ -28705,25 +28698,25 @@ function Index() {
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
 						"data-uid": "src/pages/Index.tsx:89:11",
 						"data-prohibitions": "[]",
-						className: "text-xs font-bold text-slate-500 uppercase tracking-widest",
+						className: "text-xs font-bold text-muted-foreground uppercase tracking-widest",
 						children: "Principais Indicadores"
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(ToggleGroup, {
 						"data-uid": "src/pages/Index.tsx:92:11",
 						"data-prohibitions": "[]",
 						type: "single",
 						defaultValue: "todos",
-						className: "bg-white border border-slate-200 p-1 rounded-xl shadow-sm",
+						className: "bg-card border border-border p-1 rounded-full shadow-sm",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(ToggleGroupItem, {
 							"data-uid": "src/pages/Index.tsx:97:13",
 							"data-prohibitions": "[]",
 							value: "todos",
-							className: "data-[state=on]:bg-slate-100 data-[state=on]:text-slate-900 rounded-lg px-6 text-sm h-8 font-medium text-slate-500",
+							className: "data-[state=on]:bg-secondary data-[state=on]:text-foreground rounded-full px-6 text-sm h-9 font-medium text-muted-foreground",
 							children: "Todos"
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(ToggleGroupItem, {
 							"data-uid": "src/pages/Index.tsx:103:13",
 							"data-prohibitions": "[]",
 							value: "consultas",
-							className: "data-[state=on]:bg-slate-100 data-[state=on]:text-slate-900 rounded-lg px-6 text-sm h-8 font-medium text-slate-500",
+							className: "data-[state=on]:bg-secondary data-[state=on]:text-foreground rounded-full px-6 text-sm h-9 font-medium text-muted-foreground",
 							children: "Consultas"
 						})]
 					})]
@@ -28735,7 +28728,7 @@ function Index() {
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
 							"data-uid": "src/pages/Index.tsx:113:11",
 							"data-prohibitions": "[]",
-							className: "shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border-slate-100 rounded-2xl overflow-hidden hover:border-blue-100 transition-colors",
+							className: "shadow-sm border-border/60 rounded-2xl overflow-hidden hover:border-primary/50 transition-colors bg-card",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
 								"data-uid": "src/pages/Index.tsx:114:13",
 								"data-prohibitions": "[]",
@@ -28748,12 +28741,12 @@ function Index() {
 										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 											"data-uid": "src/pages/Index.tsx:116:17",
 											"data-prohibitions": "[]",
-											className: "text-xs font-bold text-slate-500 uppercase tracking-widest",
+											className: "text-xs font-bold text-muted-foreground uppercase tracking-widest",
 											children: "Faturamento Total"
 										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 											"data-uid": "src/pages/Index.tsx:119:17",
 											"data-prohibitions": "[]",
-											className: "bg-blue-50 p-2.5 rounded-xl text-[#3b5bdb]",
+											className: "bg-primary/10 p-2.5 rounded-xl text-primary",
 											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DollarSign, {
 												"data-uid": "src/pages/Index.tsx:120:19",
 												"data-prohibitions": "[editContent]",
@@ -28764,13 +28757,13 @@ function Index() {
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
 										"data-uid": "src/pages/Index.tsx:123:15",
 										"data-prohibitions": "[]",
-										className: "text-4xl font-bold text-slate-900 mb-2",
+										className: "text-4xl font-bold text-foreground mb-2",
 										children: "R$ 0,00"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 										"data-uid": "src/pages/Index.tsx:124:15",
 										"data-prohibitions": "[]",
-										className: "text-sm font-medium text-slate-400",
+										className: "text-sm font-medium text-muted-foreground",
 										children: "Controle do mês"
 									})
 								]
@@ -28779,7 +28772,7 @@ function Index() {
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
 							"data-uid": "src/pages/Index.tsx:128:11",
 							"data-prohibitions": "[]",
-							className: "shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border-slate-100 rounded-2xl overflow-hidden hover:border-blue-100 transition-colors",
+							className: "shadow-sm border-border/60 rounded-2xl overflow-hidden hover:border-primary/50 transition-colors bg-card",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
 								"data-uid": "src/pages/Index.tsx:129:13",
 								"data-prohibitions": "[]",
@@ -28792,12 +28785,12 @@ function Index() {
 										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 											"data-uid": "src/pages/Index.tsx:131:17",
 											"data-prohibitions": "[]",
-											className: "text-xs font-bold text-slate-500 uppercase tracking-widest",
+											className: "text-xs font-bold text-muted-foreground uppercase tracking-widest",
 											children: "Total de Pacientes"
 										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 											"data-uid": "src/pages/Index.tsx:134:17",
 											"data-prohibitions": "[]",
-											className: "bg-blue-50 p-2.5 rounded-xl text-[#3b5bdb]",
+											className: "bg-primary/10 p-2.5 rounded-xl text-primary",
 											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Users, {
 												"data-uid": "src/pages/Index.tsx:135:19",
 												"data-prohibitions": "[editContent]",
@@ -28808,13 +28801,13 @@ function Index() {
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
 										"data-uid": "src/pages/Index.tsx:138:15",
 										"data-prohibitions": "[]",
-										className: "text-4xl font-bold text-slate-900 mb-2",
+										className: "text-4xl font-bold text-foreground mb-2",
 										children: "0"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 										"data-uid": "src/pages/Index.tsx:139:15",
 										"data-prohibitions": "[]",
-										className: "text-sm font-medium text-slate-400",
+										className: "text-sm font-medium text-muted-foreground",
 										children: "Consultas + procedimentos"
 									})
 								]
@@ -28823,7 +28816,7 @@ function Index() {
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
 							"data-uid": "src/pages/Index.tsx:143:11",
 							"data-prohibitions": "[]",
-							className: "shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border-slate-100 rounded-2xl overflow-hidden hover:border-blue-100 transition-colors",
+							className: "shadow-sm border-border/60 rounded-2xl overflow-hidden hover:border-primary/50 transition-colors bg-card",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
 								"data-uid": "src/pages/Index.tsx:144:13",
 								"data-prohibitions": "[]",
@@ -28836,12 +28829,12 @@ function Index() {
 										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 											"data-uid": "src/pages/Index.tsx:146:17",
 											"data-prohibitions": "[]",
-											className: "text-xs font-bold text-slate-500 uppercase tracking-widest",
+											className: "text-xs font-bold text-muted-foreground uppercase tracking-widest",
 											children: "Bilheteria"
 										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 											"data-uid": "src/pages/Index.tsx:149:17",
 											"data-prohibitions": "[]",
-											className: "bg-blue-50 p-2.5 rounded-xl text-[#3b5bdb]",
+											className: "bg-primary/10 p-2.5 rounded-xl text-primary",
 											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Target, {
 												"data-uid": "src/pages/Index.tsx:150:19",
 												"data-prohibitions": "[editContent]",
@@ -28852,13 +28845,13 @@ function Index() {
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
 										"data-uid": "src/pages/Index.tsx:153:15",
 										"data-prohibitions": "[]",
-										className: "text-4xl font-bold text-slate-900 mb-2",
+										className: "text-4xl font-bold text-foreground mb-2",
 										children: "R$ 0,00"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 										"data-uid": "src/pages/Index.tsx:154:15",
 										"data-prohibitions": "[]",
-										className: "text-sm font-medium text-slate-400",
+										className: "text-sm font-medium text-muted-foreground",
 										children: "Por causa"
 									})
 								]
@@ -28867,7 +28860,7 @@ function Index() {
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
 							"data-uid": "src/pages/Index.tsx:158:11",
 							"data-prohibitions": "[]",
-							className: "shadow-[0_2px_10px_-3px_rgba(6,81,237,0.1)] border-slate-100 rounded-2xl overflow-hidden hover:border-blue-100 transition-colors",
+							className: "shadow-sm border-border/60 rounded-2xl overflow-hidden hover:border-primary/50 transition-colors bg-card",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
 								"data-uid": "src/pages/Index.tsx:159:13",
 								"data-prohibitions": "[]",
@@ -28880,12 +28873,12 @@ function Index() {
 										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 											"data-uid": "src/pages/Index.tsx:161:17",
 											"data-prohibitions": "[]",
-											className: "text-xs font-bold text-slate-500 uppercase tracking-widest",
+											className: "text-xs font-bold text-muted-foreground uppercase tracking-widest",
 											children: "Margem de Lucro"
 										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 											"data-uid": "src/pages/Index.tsx:164:17",
 											"data-prohibitions": "[]",
-											className: "bg-blue-50 p-2.5 rounded-xl text-[#3b5bdb]",
+											className: "bg-primary/10 p-2.5 rounded-xl text-primary",
 											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TrendingUp, {
 												"data-uid": "src/pages/Index.tsx:165:19",
 												"data-prohibitions": "[editContent]",
@@ -28896,13 +28889,13 @@ function Index() {
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
 										"data-uid": "src/pages/Index.tsx:168:15",
 										"data-prohibitions": "[]",
-										className: "text-4xl font-bold text-slate-900 mb-2",
+										className: "text-4xl font-bold text-foreground mb-2",
 										children: "0,0%"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 										"data-uid": "src/pages/Index.tsx:169:15",
 										"data-prohibitions": "[]",
-										className: "text-sm font-medium text-slate-400",
+										className: "text-sm font-medium text-muted-foreground",
 										children: "R$ 0,00"
 									})
 								]
@@ -28917,7 +28910,7 @@ function Index() {
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
 					"data-uid": "src/pages/Index.tsx:177:9",
 					"data-prohibitions": "[]",
-					className: "text-xs font-bold text-slate-500 uppercase tracking-widest mb-6",
+					className: "text-xs font-bold text-muted-foreground uppercase tracking-widest mb-6",
 					children: "Evolução no Período"
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 					"data-uid": "src/pages/Index.tsx:180:9",
@@ -28926,7 +28919,7 @@ function Index() {
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
 						"data-uid": "src/pages/Index.tsx:181:11",
 						"data-prohibitions": "[editContent]",
-						className: "shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] border-slate-100 rounded-2xl",
+						className: "shadow-sm border-border/60 rounded-2xl bg-card",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
 							"data-uid": "src/pages/Index.tsx:182:13",
 							"data-prohibitions": "[editContent]",
@@ -28934,12 +28927,12 @@ function Index() {
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, {
 								"data-uid": "src/pages/Index.tsx:183:15",
 								"data-prohibitions": "[]",
-								className: "text-lg font-bold text-slate-700",
+								className: "text-lg font-bold text-foreground",
 								children: "Faturamento por dia"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
 								"data-uid": "src/pages/Index.tsx:186:15",
 								"data-prohibitions": "[editContent]",
-								className: "text-sm font-medium text-slate-400 mt-1",
+								className: "text-sm font-medium text-muted-foreground mt-1",
 								children: [
 									selectedMonth,
 									" de ",
@@ -28953,18 +28946,18 @@ function Index() {
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 								"data-uid": "src/pages/Index.tsx:191:15",
 								"data-prohibitions": "[]",
-								className: "h-[300px] w-full bg-slate-50/50 border border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center text-slate-400",
+								className: "h-[300px] w-full bg-secondary/30 border border-dashed border-border rounded-xl flex flex-col items-center justify-center text-muted-foreground",
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 									"data-uid": "src/pages/Index.tsx:192:17",
 									"data-prohibitions": "[]",
-									className: "w-16 h-1 rounded-full bg-slate-200 mb-4 mt-auto"
+									className: "w-16 h-1 rounded-full bg-border mb-4 mt-auto"
 								})
 							})
 						})]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
 						"data-uid": "src/pages/Index.tsx:197:11",
 						"data-prohibitions": "[editContent]",
-						className: "shadow-[0_2px_10px_-3px_rgba(6,81,237,0.05)] border-slate-100 rounded-2xl",
+						className: "shadow-sm border-border/60 rounded-2xl bg-card",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardHeader, {
 							"data-uid": "src/pages/Index.tsx:198:13",
 							"data-prohibitions": "[editContent]",
@@ -28972,12 +28965,12 @@ function Index() {
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(CardTitle, {
 								"data-uid": "src/pages/Index.tsx:199:15",
 								"data-prohibitions": "[]",
-								className: "text-lg font-bold text-slate-700",
+								className: "text-lg font-bold text-foreground",
 								children: "Pacientes por dia"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("p", {
 								"data-uid": "src/pages/Index.tsx:200:15",
 								"data-prohibitions": "[editContent]",
-								className: "text-sm font-medium text-slate-400 mt-1",
+								className: "text-sm font-medium text-muted-foreground mt-1",
 								children: [
 									selectedMonth,
 									" de ",
@@ -28991,11 +28984,11 @@ function Index() {
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 								"data-uid": "src/pages/Index.tsx:205:15",
 								"data-prohibitions": "[]",
-								className: "h-[300px] w-full bg-slate-50/50 border border-dashed border-slate-200 rounded-xl flex flex-col items-center justify-center text-slate-400",
+								className: "h-[300px] w-full bg-secondary/30 border border-dashed border-border rounded-xl flex flex-col items-center justify-center text-muted-foreground",
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 									"data-uid": "src/pages/Index.tsx:206:17",
 									"data-prohibitions": "[]",
-									className: "w-16 h-1 rounded-full bg-slate-200 mb-4 mt-auto"
+									className: "w-16 h-1 rounded-full bg-border mb-4 mt-auto"
 								})
 							})
 						})]
@@ -29759,7 +29752,7 @@ function Precisao() {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 		"data-uid": "src/pages/Precisao.tsx:7:5",
 		"data-prohibitions": "[editContent]",
-		className: "p-6 md:p-10 animate-fade-in flex flex-col min-h-[calc(100vh-3.5rem)] lg:min-h-screen",
+		className: "p-6 md:p-10 animate-fade-in flex flex-col min-h-[calc(100vh-4rem)] lg:min-h-screen",
 		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 			"data-uid": "src/pages/Precisao.tsx:9:7",
 			"data-prohibitions": "[]",
@@ -29770,50 +29763,51 @@ function Precisao() {
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
 					"data-uid": "src/pages/Precisao.tsx:11:11",
 					"data-prohibitions": "[]",
-					className: "text-3xl font-bold text-slate-900 tracking-tight",
-					children: "Precificação de Serviços"
+					className: "text-4xl font-bold text-foreground tracking-tight",
+					children: "Precificação"
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-					"data-uid": "src/pages/Precisao.tsx:14:11",
+					"data-uid": "src/pages/Precisao.tsx:12:11",
 					"data-prohibitions": "[]",
-					className: "text-slate-500 mt-1 text-[15px]",
+					className: "text-muted-foreground mt-2 text-lg",
 					children: "Gerencie custos, margens e preços dos seus serviços"
 				})]
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				"data-uid": "src/pages/Precisao.tsx:18:9",
+				"data-uid": "src/pages/Precisao.tsx:16:9",
 				"data-prohibitions": "[]",
 				className: "flex flex-wrap items-center gap-3 w-full md:w-auto",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-					"data-uid": "src/pages/Precisao.tsx:19:11",
+					"data-uid": "src/pages/Precisao.tsx:17:11",
 					"data-prohibitions": "[]",
-					className: "flex-1 md:flex-none bg-[#a5dbb7] hover:bg-[#88c99e] text-white font-medium gap-2 shadow-sm rounded-lg h-10 px-4",
+					variant: "outline",
+					className: "flex-1 md:flex-none gap-2",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileDown, {
-						"data-uid": "src/pages/Precisao.tsx:20:13",
+						"data-uid": "src/pages/Precisao.tsx:18:13",
 						"data-prohibitions": "[editContent]",
 						className: "w-4 h-4"
 					}), " Gerar PDF"]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-					"data-uid": "src/pages/Precisao.tsx:22:11",
+					"data-uid": "src/pages/Precisao.tsx:20:11",
 					"data-prohibitions": "[]",
-					className: "flex-1 md:flex-none bg-[#3b5bdb] hover:bg-[#364fc7] text-white font-medium gap-2 shadow-sm rounded-lg h-10 px-4",
+					className: "flex-1 md:flex-none gap-2",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, {
-						"data-uid": "src/pages/Precisao.tsx:23:13",
+						"data-uid": "src/pages/Precisao.tsx:21:13",
 						"data-prohibitions": "[editContent]",
 						className: "w-4 h-4"
-					}), " Novo"]
+					}), " Novo Serviço"]
 				})]
 			})]
 		}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
-			"data-uid": "src/pages/Precisao.tsx:29:7",
+			"data-uid": "src/pages/Precisao.tsx:27:7",
 			"data-prohibitions": "[editContent]",
-			className: "shadow-sm border-slate-200/60 rounded-xl bg-white flex-1 flex flex-col",
+			className: "shadow-sm border-border/60 rounded-2xl bg-card flex-1 flex flex-col",
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				"data-uid": "src/pages/Precisao.tsx:30:9",
+				"data-uid": "src/pages/Precisao.tsx:28:9",
 				"data-prohibitions": "[]",
-				className: "p-6",
+				className: "p-6 border-b border-border/40",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
-					"data-uid": "src/pages/Precisao.tsx:31:11",
+					"data-uid": "src/pages/Precisao.tsx:29:11",
 					"data-prohibitions": "[]",
-					className: "text-[16px] font-semibold text-[#8d5b4c]",
+					className: "text-[16px] font-bold text-foreground uppercase tracking-widest",
 					children: "Serviços e Produtos"
 				})
 			}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
@@ -29821,23 +29815,38 @@ function Precisao() {
 				"data-prohibitions": "[]",
 				className: "flex-1 flex flex-col items-center justify-center pb-20",
 				children: [
-					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(DollarSign, {
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 						"data-uid": "src/pages/Precisao.tsx:36:11",
-						"data-prohibitions": "[editContent]",
-						className: "w-20 h-20 text-slate-300 mb-6",
-						strokeWidth: 1
+						"data-prohibitions": "[]",
+						className: "bg-primary/5 p-6 rounded-full mb-6",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(DollarSign, {
+							"data-uid": "src/pages/Precisao.tsx:37:13",
+							"data-prohibitions": "[editContent]",
+							className: "w-16 h-16 text-primary/40",
+							strokeWidth: 1.5
+						})
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
-						"data-uid": "src/pages/Precisao.tsx:37:11",
+						"data-uid": "src/pages/Precisao.tsx:39:11",
 						"data-prohibitions": "[]",
-						className: "text-xl font-semibold text-slate-800 mb-2",
-						children: "nenhum serviço cadastrado"
+						className: "text-2xl font-bold text-foreground mb-3",
+						children: "Nenhum serviço cadastrado"
 					}),
 					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-						"data-uid": "src/pages/Precisao.tsx:38:11",
+						"data-uid": "src/pages/Precisao.tsx:40:11",
 						"data-prohibitions": "[]",
-						className: "text-slate-500 text-[15px]",
-						children: "Adicione seus serviços para calcular preços e margens"
+						className: "text-muted-foreground text-[16px] max-w-sm text-center",
+						children: "Adicione seus serviços e produtos para começar a calcular preços e margens de forma inteligente."
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+						"data-uid": "src/pages/Precisao.tsx:44:11",
+						"data-prohibitions": "[]",
+						className: "mt-8 gap-2",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, {
+							"data-uid": "src/pages/Precisao.tsx:45:13",
+							"data-prohibitions": "[editContent]",
+							className: "w-4 h-4"
+						}), " Cadastrar Primeiro Serviço"]
 					})
 				]
 			})]
@@ -30001,28 +30010,28 @@ function TaxaSala() {
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
 					"data-uid": "src/pages/TaxaSala.tsx:67:9",
 					"data-prohibitions": "[]",
-					className: "text-2xl font-bold text-slate-900 tracking-tight mb-1",
-					children: "Registro de taxa de sala"
+					className: "text-3xl font-bold text-foreground tracking-tight mb-2",
+					children: "Registro de Taxa de Sala"
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
 					"data-uid": "src/pages/TaxaSala.tsx:70:9",
 					"data-prohibitions": "[]",
-					className: "text-slate-500 text-[15px]",
-					children: "Preencha as despesas operacionais fixas e cadastradas nas salas. Os valores são salvos automaticamente."
+					className: "text-muted-foreground text-[16px]",
+					children: "Preencha as despesas operacionais fixas e cadastre as salas. Os valores são salvos automaticamente."
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
 				"data-uid": "src/pages/TaxaSala.tsx:76:7",
 				"data-prohibitions": "[editContent]",
-				className: "bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden",
+				className: "bg-card rounded-2xl shadow-sm border border-border/80 overflow-hidden",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 					"data-uid": "src/pages/TaxaSala.tsx:77:9",
 					"data-prohibitions": "[]",
-					className: "bg-[#3b5bdb] px-6 py-3.5",
+					className: "bg-primary/10 px-6 py-4 border-b border-primary/20",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
 						"data-uid": "src/pages/TaxaSala.tsx:78:11",
 						"data-prohibitions": "[]",
-						className: "text-white font-semibold text-[13px] tracking-wide",
-						children: "DESPESAS ESPER FIXAS"
+						className: "text-primary font-bold text-[13px] tracking-widest uppercase",
+						children: "Despesas Operacionais Fixas"
 					})
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
 					"data-uid": "src/pages/TaxaSala.tsx:82:9",
@@ -30038,63 +30047,63 @@ function TaxaSala() {
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
 								"data-uid": "src/pages/TaxaSala.tsx:85:15",
 								"data-prohibitions": "[]",
-								className: "hover:bg-transparent border-b-slate-100",
+								className: "hover:bg-transparent border-b-border",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
 									"data-uid": "src/pages/TaxaSala.tsx:86:17",
 									"data-prohibitions": "[]",
-									className: "text-slate-600 font-medium h-12 px-6",
+									className: "text-muted-foreground font-medium h-12 px-6",
 									children: "Categoria"
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-									"data-uid": "src/pages/TaxaSala.tsx:87:17",
+									"data-uid": "src/pages/TaxaSala.tsx:89:17",
 									"data-prohibitions": "[]",
-									className: "text-slate-600 font-medium h-12 px-6 text-right w-48",
+									className: "text-muted-foreground font-medium h-12 px-6 text-right w-48",
 									children: "Valor (R$)"
 								})]
 							})
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableBody, {
-							"data-uid": "src/pages/TaxaSala.tsx:92:13",
+							"data-uid": "src/pages/TaxaSala.tsx:94:13",
 							"data-prohibitions": "[editContent]",
 							children: [expenseCategories.map((category) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
-								"data-uid": "src/pages/TaxaSala.tsx:94:17",
+								"data-uid": "src/pages/TaxaSala.tsx:96:17",
 								"data-prohibitions": "[editContent]",
-								className: "hover:bg-slate-50/50 border-b-slate-100",
+								className: "hover:bg-secondary/30 border-b-border/50",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-									"data-uid": "src/pages/TaxaSala.tsx:95:19",
+									"data-uid": "src/pages/TaxaSala.tsx:97:19",
 									"data-prohibitions": "[editContent]",
-									className: "py-3 px-6 text-[14px] font-medium text-slate-700",
+									className: "py-3 px-6 text-[14px] font-medium text-foreground",
 									children: category
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-									"data-uid": "src/pages/TaxaSala.tsx:98:19",
+									"data-uid": "src/pages/TaxaSala.tsx:100:19",
 									"data-prohibitions": "[]",
 									className: "py-2 px-6 text-right",
 									children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-										"data-uid": "src/pages/TaxaSala.tsx:99:21",
+										"data-uid": "src/pages/TaxaSala.tsx:101:21",
 										"data-prohibitions": "[]",
 										className: "flex justify-end",
 										children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
-											"data-uid": "src/pages/TaxaSala.tsx:100:23",
+											"data-uid": "src/pages/TaxaSala.tsx:102:23",
 											"data-prohibitions": "[editContent]",
 											type: "number",
 											min: "0",
-											className: "h-9 w-32 px-3 text-right border-slate-200 text-[14px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none focus-visible:ring-1 focus-visible:ring-[#3b5bdb] focus-visible:border-[#3b5bdb]",
+											className: "h-10 w-32 px-3 text-right border-border bg-background text-[14px] [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none focus-visible:ring-1 focus-visible:ring-primary focus-visible:border-primary",
 											value: expenses[category] ?? "0",
 											onChange: (e) => handleExpenseChange(category, e.target.value)
 										})
 									})
 								})]
 							}, category)), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
-								"data-uid": "src/pages/TaxaSala.tsx:111:15",
+								"data-uid": "src/pages/TaxaSala.tsx:113:15",
 								"data-prohibitions": "[editContent]",
-								className: "hover:bg-transparent bg-slate-50/40",
+								className: "hover:bg-transparent bg-secondary/50 border-t border-border",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-									"data-uid": "src/pages/TaxaSala.tsx:112:17",
+									"data-uid": "src/pages/TaxaSala.tsx:114:17",
 									"data-prohibitions": "[]",
-									className: "py-4 px-6 text-[15px] font-bold text-slate-900",
+									className: "py-5 px-6 text-[15px] font-bold text-foreground uppercase tracking-wider",
 									children: "Total"
 								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-									"data-uid": "src/pages/TaxaSala.tsx:115:17",
+									"data-uid": "src/pages/TaxaSala.tsx:117:17",
 									"data-prohibitions": "[editContent]",
-									className: "py-4 px-6 text-right font-bold text-slate-900 text-[15px]",
+									className: "py-5 px-6 text-right font-bold text-primary text-[16px]",
 									children: formatCurrency(totalExpenses)
 								})]
 							})]
@@ -30103,114 +30112,119 @@ function TaxaSala() {
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				"data-uid": "src/pages/TaxaSala.tsx:124:7",
+				"data-uid": "src/pages/TaxaSala.tsx:126:7",
 				"data-prohibitions": "[]",
-				className: "bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden",
+				className: "bg-card rounded-2xl shadow-sm border border-border/80 overflow-hidden",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/pages/TaxaSala.tsx:125:9",
+					"data-uid": "src/pages/TaxaSala.tsx:127:9",
 					"data-prohibitions": "[]",
-					className: "px-6 py-4 border-b border-slate-100 flex items-center gap-2.5",
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Building2, {
-						"data-uid": "src/pages/TaxaSala.tsx:126:11",
-						"data-prohibitions": "[editContent]",
-						className: "w-5 h-5 text-[#3b5bdb]"
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
-						"data-uid": "src/pages/TaxaSala.tsx:127:11",
+					className: "px-6 py-5 border-b border-border flex items-center gap-3",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						"data-uid": "src/pages/TaxaSala.tsx:128:11",
 						"data-prohibitions": "[]",
-						className: "text-[15px] font-semibold text-slate-900",
-						children: "Salas"
+						className: "bg-primary/10 p-2 rounded-lg",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Building2, {
+							"data-uid": "src/pages/TaxaSala.tsx:129:13",
+							"data-prohibitions": "[editContent]",
+							className: "w-5 h-5 text-primary"
+						})
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+						"data-uid": "src/pages/TaxaSala.tsx:131:11",
+						"data-prohibitions": "[]",
+						className: "text-[16px] font-bold text-foreground",
+						children: "Salas Cadastradas"
 					})]
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, {
-					"data-uid": "src/pages/TaxaSala.tsx:129:9",
+					"data-uid": "src/pages/TaxaSala.tsx:133:9",
 					"data-prohibitions": "[]",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, {
-						"data-uid": "src/pages/TaxaSala.tsx:130:11",
+						"data-uid": "src/pages/TaxaSala.tsx:134:11",
 						"data-prohibitions": "[]",
-						className: "bg-slate-50/50",
+						className: "bg-secondary/30",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
-							"data-uid": "src/pages/TaxaSala.tsx:131:13",
+							"data-uid": "src/pages/TaxaSala.tsx:135:13",
 							"data-prohibitions": "[]",
-							className: "hover:bg-transparent border-b-slate-100",
+							className: "hover:bg-transparent border-b-border",
 							children: [
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-									"data-uid": "src/pages/TaxaSala.tsx:132:15",
+									"data-uid": "src/pages/TaxaSala.tsx:136:15",
 									"data-prohibitions": "[]",
-									className: "text-slate-600 font-medium h-11 px-6",
+									className: "text-muted-foreground font-medium h-11 px-6",
 									children: "Nome da sala"
 								}),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-									"data-uid": "src/pages/TaxaSala.tsx:133:15",
+									"data-uid": "src/pages/TaxaSala.tsx:139:15",
 									"data-prohibitions": "[]",
-									className: "text-slate-600 font-medium h-11 px-6",
-									children: "Horas/ ;"
+									className: "text-muted-foreground font-medium h-11 px-6",
+									children: "Horas/Mês"
 								}),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-									"data-uid": "src/pages/TaxaSala.tsx:134:15",
+									"data-uid": "src/pages/TaxaSala.tsx:142:15",
 									"data-prohibitions": "[]",
-									className: "text-slate-600 font-medium h-11 px-6",
+									className: "text-muted-foreground font-medium h-11 px-6",
 									children: "Dias trab."
 								}),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-									"data-uid": "src/pages/TaxaSala.tsx:135:15",
+									"data-uid": "src/pages/TaxaSala.tsx:145:15",
 									"data-prohibitions": "[]",
-									className: "text-slate-600 font-medium h-11 px-6 text-right",
+									className: "text-muted-foreground font-medium h-11 px-6 text-right",
 									children: "Ações"
 								})
 							]
 						})
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableBody, {
-						"data-uid": "src/pages/TaxaSala.tsx:140:11",
+						"data-uid": "src/pages/TaxaSala.tsx:150:11",
 						"data-prohibitions": "[]",
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
-							"data-uid": "src/pages/TaxaSala.tsx:141:13",
+							"data-uid": "src/pages/TaxaSala.tsx:151:13",
 							"data-prohibitions": "[]",
-							className: "hover:bg-slate-50/50",
+							className: "hover:bg-secondary/30",
 							children: [
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-									"data-uid": "src/pages/TaxaSala.tsx:142:15",
+									"data-uid": "src/pages/TaxaSala.tsx:152:15",
 									"data-prohibitions": "[]",
-									className: "py-3.5 px-6 text-[14px] text-slate-700",
-									children: "sala dr marcio"
+									className: "py-4 px-6 text-[14px] font-medium text-foreground",
+									children: "Sala Dr. Márcio"
 								}),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-									"data-uid": "src/pages/TaxaSala.tsx:145:15",
+									"data-uid": "src/pages/TaxaSala.tsx:155:15",
 									"data-prohibitions": "[]",
-									className: "py-3.5 px-6 text-[14px] text-slate-700",
+									className: "py-4 px-6 text-[14px] text-muted-foreground",
 									children: "176"
 								}),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-									"data-uid": "src/pages/TaxaSala.tsx:146:15",
+									"data-uid": "src/pages/TaxaSala.tsx:156:15",
 									"data-prohibitions": "[]",
-									className: "py-3.5 px-6 text-[14px] text-slate-700",
+									className: "py-4 px-6 text-[14px] text-muted-foreground",
 									children: "22"
 								}),
 								/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-									"data-uid": "src/pages/TaxaSala.tsx:147:15",
+									"data-uid": "src/pages/TaxaSala.tsx:157:15",
 									"data-prohibitions": "[]",
-									className: "py-3.5 px-6 text-right",
+									className: "py-4 px-6 text-right",
 									children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-										"data-uid": "src/pages/TaxaSala.tsx:148:17",
+										"data-uid": "src/pages/TaxaSala.tsx:158:17",
 										"data-prohibitions": "[]",
 										className: "flex items-center justify-end gap-1",
 										children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-											"data-uid": "src/pages/TaxaSala.tsx:149:19",
+											"data-uid": "src/pages/TaxaSala.tsx:159:19",
 											"data-prohibitions": "[]",
 											variant: "ghost",
 											size: "icon",
-											className: "h-8 w-8 text-slate-400 hover:text-[#3b5bdb]",
+											className: "h-8 w-8 text-muted-foreground hover:text-primary rounded-full",
 											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Pencil, {
-												"data-uid": "src/pages/TaxaSala.tsx:154:21",
+												"data-uid": "src/pages/TaxaSala.tsx:164:21",
 												"data-prohibitions": "[editContent]",
 												className: "w-4 h-4"
 											})
 										}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Button, {
-											"data-uid": "src/pages/TaxaSala.tsx:156:19",
+											"data-uid": "src/pages/TaxaSala.tsx:166:19",
 											"data-prohibitions": "[]",
 											variant: "ghost",
 											size: "icon",
-											className: "h-8 w-8 text-slate-400 hover:text-red-500",
+											className: "h-8 w-8 text-muted-foreground hover:text-destructive rounded-full",
 											children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Trash2, {
-												"data-uid": "src/pages/TaxaSala.tsx:161:21",
+												"data-uid": "src/pages/TaxaSala.tsx:171:21",
 												"data-prohibitions": "[editContent]",
 												className: "w-4 h-4"
 											})
@@ -30223,44 +30237,44 @@ function TaxaSala() {
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-				"data-uid": "src/pages/TaxaSala.tsx:170:7",
+				"data-uid": "src/pages/TaxaSala.tsx:180:7",
 				"data-prohibitions": "[editContent]",
 				className: "mt-4",
 				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
-					"data-uid": "src/pages/TaxaSala.tsx:171:9",
+					"data-uid": "src/pages/TaxaSala.tsx:181:9",
 					"data-prohibitions": "[]",
-					className: "text-xl font-bold text-slate-900 mb-5",
-					children: "Visão de custos"
+					className: "text-2xl font-bold text-foreground mb-6",
+					children: "Visão de Custos"
 				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					"data-uid": "src/pages/TaxaSala.tsx:172:9",
+					"data-uid": "src/pages/TaxaSala.tsx:182:9",
 					"data-prohibitions": "[editContent]",
 					className: "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5",
 					children: kpiCards.map((kpi, idx) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
-						"data-uid": "src/pages/TaxaSala.tsx:174:13",
+						"data-uid": "src/pages/TaxaSala.tsx:184:13",
 						"data-prohibitions": "[editContent]",
-						className: cn$1("shadow-sm border-slate-200/80 rounded-xl transition-all", kpi.highlight ? "border-[#3b5bdb] bg-blue-50/30" : "bg-white"),
+						className: cn$1("shadow-sm border-border/60 rounded-2xl transition-all", kpi.highlight ? "border-primary/50 bg-primary/5" : "bg-card"),
 						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
-							"data-uid": "src/pages/TaxaSala.tsx:181:15",
+							"data-uid": "src/pages/TaxaSala.tsx:191:15",
 							"data-prohibitions": "[editContent]",
 							className: "p-6",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-								"data-uid": "src/pages/TaxaSala.tsx:182:17",
+								"data-uid": "src/pages/TaxaSala.tsx:192:17",
 								"data-prohibitions": "[editContent]",
-								className: "flex items-center gap-1.5 mb-3",
+								className: "flex items-center gap-2 mb-3",
 								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-									"data-uid": "src/pages/TaxaSala.tsx:183:19",
+									"data-uid": "src/pages/TaxaSala.tsx:193:19",
 									"data-prohibitions": "[editContent]",
-									className: cn$1("text-[11px] font-bold uppercase tracking-wider", kpi.highlight ? "text-[#3b5bdb]" : "text-slate-500"),
+									className: cn$1("text-[11px] font-bold uppercase tracking-widest", kpi.highlight ? "text-primary" : "text-muted-foreground"),
 									children: kpi.label
 								}), kpi.highlight && /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Info, {
-									"data-uid": "src/pages/TaxaSala.tsx:191:37",
+									"data-uid": "src/pages/TaxaSala.tsx:201:37",
 									"data-prohibitions": "[editContent]",
-									className: "w-3.5 h-3.5 text-[#3b5bdb]"
+									className: "w-4 h-4 text-primary opacity-80"
 								})]
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
-								"data-uid": "src/pages/TaxaSala.tsx:193:17",
+								"data-uid": "src/pages/TaxaSala.tsx:203:17",
 								"data-prohibitions": "[editContent]",
-								className: cn$1("text-[26px] font-bold tracking-tight", kpi.highlight ? "text-[#3b5bdb]" : "text-slate-900"),
+								className: cn$1("text-[28px] font-bold tracking-tight", kpi.highlight ? "text-primary" : "text-foreground"),
 								children: formatCurrency(kpi.value)
 							})]
 						})
@@ -30268,69 +30282,69 @@ function TaxaSala() {
 				})]
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-				"data-uid": "src/pages/TaxaSala.tsx:207:7",
+				"data-uid": "src/pages/TaxaSala.tsx:217:7",
 				"data-prohibitions": "[]",
-				className: "mt-6 flex justify-center pb-8",
+				className: "mt-8 flex justify-center pb-12",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
-					"data-uid": "src/pages/TaxaSala.tsx:208:9",
+					"data-uid": "src/pages/TaxaSala.tsx:218:9",
 					"data-prohibitions": "[]",
-					className: "bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden w-full max-w-2xl",
+					className: "bg-card rounded-2xl shadow-sm border border-border/80 overflow-hidden w-full max-w-2xl",
 					children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Table, {
-						"data-uid": "src/pages/TaxaSala.tsx:209:11",
+						"data-uid": "src/pages/TaxaSala.tsx:219:11",
 						"data-prohibitions": "[]",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHeader, {
-							"data-uid": "src/pages/TaxaSala.tsx:210:13",
+							"data-uid": "src/pages/TaxaSala.tsx:220:13",
 							"data-prohibitions": "[]",
-							className: "bg-slate-50/50",
+							className: "bg-secondary/30",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
-								"data-uid": "src/pages/TaxaSala.tsx:211:15",
+								"data-uid": "src/pages/TaxaSala.tsx:221:15",
 								"data-prohibitions": "[]",
-								className: "hover:bg-transparent border-b-slate-100",
+								className: "hover:bg-transparent border-b-border",
 								children: [
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/TaxaSala.tsx:212:17",
+										"data-uid": "src/pages/TaxaSala.tsx:222:17",
 										"data-prohibitions": "[]",
-										className: "text-slate-600 font-semibold h-11 px-6 text-center text-[13px]",
+										className: "text-muted-foreground font-semibold h-12 px-6 text-center text-[13px] uppercase tracking-wider",
 										children: "Salas disponíveis"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/TaxaSala.tsx:215:17",
+										"data-uid": "src/pages/TaxaSala.tsx:225:17",
 										"data-prohibitions": "[]",
-										className: "text-slate-600 font-semibold h-11 px-6 text-center text-[13px]",
+										className: "text-muted-foreground font-semibold h-12 px-6 text-center text-[13px] uppercase tracking-wider",
 										children: "Horário disponível"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableHead, {
-										"data-uid": "src/pages/TaxaSala.tsx:218:17",
+										"data-uid": "src/pages/TaxaSala.tsx:228:17",
 										"data-prohibitions": "[]",
-										className: "text-slate-600 font-semibold h-11 px-6 text-center text-[13px]",
-										children: "Total de dias disponíveis"
+										className: "text-muted-foreground font-semibold h-12 px-6 text-center text-[13px] uppercase tracking-wider",
+										children: "Dias disponíveis"
 									})
 								]
 							})
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableBody, {
-							"data-uid": "src/pages/TaxaSala.tsx:223:13",
+							"data-uid": "src/pages/TaxaSala.tsx:233:13",
 							"data-prohibitions": "[]",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TableRow, {
-								"data-uid": "src/pages/TaxaSala.tsx:224:15",
+								"data-uid": "src/pages/TaxaSala.tsx:234:15",
 								"data-prohibitions": "[]",
 								className: "hover:bg-transparent",
 								children: [
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-										"data-uid": "src/pages/TaxaSala.tsx:225:17",
+										"data-uid": "src/pages/TaxaSala.tsx:235:17",
 										"data-prohibitions": "[]",
-										className: "py-4 px-6 text-center font-bold text-slate-800 text-[15px]",
+										className: "py-5 px-6 text-center font-bold text-foreground text-[18px]",
 										children: "1"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-										"data-uid": "src/pages/TaxaSala.tsx:228:17",
+										"data-uid": "src/pages/TaxaSala.tsx:238:17",
 										"data-prohibitions": "[]",
-										className: "py-4 px-6 text-center font-bold text-slate-800 text-[15px]",
+										className: "py-5 px-6 text-center font-bold text-foreground text-[18px]",
 										children: "176"
 									}),
 									/* @__PURE__ */ (0, import_jsx_runtime.jsx)(TableCell, {
-										"data-uid": "src/pages/TaxaSala.tsx:231:17",
+										"data-uid": "src/pages/TaxaSala.tsx:241:17",
 										"data-prohibitions": "[]",
-										className: "py-4 px-6 text-center font-bold text-slate-800 text-[15px]",
+										className: "py-5 px-6 text-center font-bold text-foreground text-[18px]",
 										children: "22"
 									})
 								]
@@ -30442,4 +30456,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 }));
 //#endregion
 
-//# sourceMappingURL=index-BNynK_Lh.js.map
+//# sourceMappingURL=index-Cdo1muBH.js.map
