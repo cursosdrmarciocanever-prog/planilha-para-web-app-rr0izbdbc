@@ -18109,7 +18109,7 @@ function handleAndDispatchCustomEvent$1(name, handler, detail, { discrete }) {
 	if (discrete) dispatchDiscreteCustomEvent(target, event);
 	else target.dispatchEvent(event);
 }
-var Root$7 = DismissableLayer;
+var Root$8 = DismissableLayer;
 var Branch = DismissableLayerBranch;
 //#endregion
 //#region ../../cache/modules/planilha-para-web-app-dd61d/node_modules/.pnpm/@radix-ui+react-use-layout-effect@1.1.1_@types+react@19.2.14_react@19.2.4/node_modules/@radix-ui/react-use-layout-effect/dist/index.mjs
@@ -18297,7 +18297,7 @@ var VISUALLY_HIDDEN_STYLES = Object.freeze({
 	whiteSpace: "nowrap",
 	wordWrap: "normal"
 });
-var NAME$3 = "VisuallyHidden";
+var NAME$4 = "VisuallyHidden";
 var VisuallyHidden = import_react.forwardRef((props, forwardedRef) => {
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.span, {
 		...props,
@@ -18308,8 +18308,8 @@ var VisuallyHidden = import_react.forwardRef((props, forwardedRef) => {
 		}
 	});
 });
-VisuallyHidden.displayName = NAME$3;
-var Root$6 = VisuallyHidden;
+VisuallyHidden.displayName = NAME$4;
+var Root$7 = VisuallyHidden;
 //#endregion
 //#region ../../cache/modules/planilha-para-web-app-dd61d/node_modules/.pnpm/@radix-ui+react-toast@1.2.15_@types+react-dom@19.2.3_@types+react@19.2.14__@types+react_4581e89c6ba13e4159ce65546c8b2a16/node_modules/@radix-ui/react-toast/dist/index.mjs
 var PROVIDER_NAME$1 = "ToastProvider";
@@ -18609,7 +18609,7 @@ var ToastImpl = import_react.forwardRef((props, forwardedRef) => {
 		onClose: handleClose,
 		children: import_react_dom.createPortal(/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Collection$2.ItemSlot, {
 			scope: __scopeToast,
-			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$7, {
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$8, {
 				asChild: true,
 				onEscapeKeyDown: composeEventHandlers(onEscapeKeyDown, () => {
 					if (!context.isFocusedToastEscapeKeyDownRef.current) handleClose();
@@ -19161,6 +19161,24 @@ var Download = createLucideIcon("download", [
 		key: "brsn70"
 	}]
 ]);
+var FileDown = createLucideIcon("file-down", [
+	["path", {
+		d: "M6 22a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h8a2.4 2.4 0 0 1 1.704.706l3.588 3.588A2.4 2.4 0 0 1 20 8v12a2 2 0 0 1-2 2z",
+		key: "1oefj6"
+	}],
+	["path", {
+		d: "M14 2v5a1 1 0 0 0 1 1h5",
+		key: "wfsgrz"
+	}],
+	["path", {
+		d: "M12 18v-6",
+		key: "17g6i2"
+	}],
+	["path", {
+		d: "m9 15 3 3 3-3",
+		key: "1npd3o"
+	}]
+]);
 var LayoutDashboard = createLucideIcon("layout-dashboard", [
 	["rect", {
 		width: "7",
@@ -19219,6 +19237,13 @@ var PanelLeft = createLucideIcon("panel-left", [["rect", {
 }], ["path", {
 	d: "M9 3v18",
 	key: "fh3hqa"
+}]]);
+var Plus = createLucideIcon("plus", [["path", {
+	d: "M5 12h14",
+	key: "1ays0h"
+}], ["path", {
+	d: "M12 5v14",
+	key: "s699le"
 }]]);
 var Target = createLucideIcon("target", [
 	["circle", {
@@ -23443,7 +23468,7 @@ var arrow = (options, deps) => {
 };
 //#endregion
 //#region ../../cache/modules/planilha-para-web-app-dd61d/node_modules/.pnpm/@radix-ui+react-arrow@1.1.7_@types+react-dom@19.2.3_@types+react@19.2.14__@types+react@_e05f2c19a58a99fddf374207b5e3778c/node_modules/@radix-ui/react-arrow/dist/index.mjs
-var NAME$2 = "Arrow";
+var NAME$3 = "Arrow";
 var Arrow$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { children, width = 10, height = 5, ...arrowProps } = props;
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.svg, {
@@ -23456,8 +23481,8 @@ var Arrow$1 = import_react.forwardRef((props, forwardedRef) => {
 		children: props.asChild ? children : /* @__PURE__ */ (0, import_jsx_runtime.jsx)("polygon", { points: "0,0 30,0 15,10" })
 	});
 });
-Arrow$1.displayName = NAME$2;
-var Root$5 = Arrow$1;
+Arrow$1.displayName = NAME$3;
+var Root$6 = Arrow$1;
 //#endregion
 //#region ../../cache/modules/planilha-para-web-app-dd61d/node_modules/.pnpm/@radix-ui+react-use-size@1.1.1_@types+react@19.2.14_react@19.2.4/node_modules/@radix-ui/react-use-size/dist/index.mjs
 function useSize(element) {
@@ -23678,7 +23703,7 @@ var PopperArrow = import_react.forwardRef(function PopperArrow2(props, forwarded
 			}[contentContext.placedSide],
 			visibility: contentContext.shouldHideArrow ? "hidden" : void 0
 		},
-		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$5, {
+		children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$6, {
 			...arrowProps,
 			ref: forwardedRef,
 			style: {
@@ -24062,7 +24087,7 @@ var TooltipContentImpl = import_react.forwardRef((props, forwardedRef) => {
 			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Slottable, { children }), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(VisuallyHiddenContentContextProvider, {
 				scope: __scopeTooltip,
 				isInside: true,
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$6, {
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$7, {
 					id: context.contentId,
 					role: "tooltip",
 					children: ariaLabel || children
@@ -24431,7 +24456,7 @@ var Primitive = [
 }, {});
 //#endregion
 //#region ../../cache/modules/planilha-para-web-app-dd61d/node_modules/.pnpm/@radix-ui+react-separator@1.1.8_@types+react-dom@19.2.3_@types+react@19.2.14__@types+re_aa2d5d85a81bb702303f0548763b9797/node_modules/@radix-ui/react-separator/dist/index.mjs
-var NAME$1 = "Separator";
+var NAME$2 = "Separator";
 var DEFAULT_ORIENTATION = "horizontal";
 var ORIENTATIONS = ["horizontal", "vertical"];
 var Separator$2 = import_react.forwardRef((props, forwardedRef) => {
@@ -24449,14 +24474,14 @@ var Separator$2 = import_react.forwardRef((props, forwardedRef) => {
 		ref: forwardedRef
 	});
 });
-Separator$2.displayName = NAME$1;
+Separator$2.displayName = NAME$2;
 function isValidOrientation(orientation) {
 	return ORIENTATIONS.includes(orientation);
 }
-var Root$4 = Separator$2;
+var Root$5 = Separator$2;
 //#endregion
 //#region src/components/ui/separator.tsx
-var Separator$1 = import_react.forwardRef(({ className, orientation = "horizontal", decorative = true, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$4, {
+var Separator$1 = import_react.forwardRef(({ className, orientation = "horizontal", decorative = true, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$5, {
 	"data-uid": "src/components/ui/separator.tsx:11:3",
 	"data-prohibitions": "[editContent]",
 	ref,
@@ -24465,7 +24490,7 @@ var Separator$1 = import_react.forwardRef(({ className, orientation = "horizonta
 	className: cn$1("shrink-0 bg-border", orientation === "horizontal" ? "h-[1px] w-full" : "h-full w-[1px]", className),
 	...props
 }));
-Separator$1.displayName = Root$4.displayName;
+Separator$1.displayName = Root$5.displayName;
 //#endregion
 //#region ../../cache/modules/planilha-para-web-app-dd61d/node_modules/.pnpm/@radix-ui+react-focus-scope@1.1.7_@types+react-dom@19.2.3_@types+react@19.2.14__@types+_f62f3af4ca2ba305a7aecf04c8534604/node_modules/@radix-ui/react-focus-scope/dist/index.mjs
 var AUTOFOCUS_ON_MOUNT = "focusScope.autoFocusOnMount";
@@ -25769,7 +25794,7 @@ var DescriptionWarning = ({ contentRef, descriptionId }) => {
 	]);
 	return null;
 };
-var Root$3 = Dialog;
+var Root$4 = Dialog;
 var Portal$1 = DialogPortal;
 var Overlay = DialogOverlay;
 var Content = DialogContent;
@@ -25778,7 +25803,7 @@ var Description = DialogDescription;
 var Close = DialogClose;
 //#endregion
 //#region src/components/ui/sheet.tsx
-var Sheet = Root$3;
+var Sheet = Root$4;
 var SheetPortal = Portal$1;
 var SheetOverlay = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Overlay, {
 	"data-uid": "src/components/ui/sheet.tsx:21:3",
@@ -26563,19 +26588,19 @@ function useImageLoadingStatus(src, { referrerPolicy, crossOrigin }) {
 	]);
 	return loadingStatus;
 }
-var Root$2 = Avatar$1;
+var Root$3 = Avatar$1;
 var Image = AvatarImage$1;
 var Fallback = AvatarFallback$1;
 //#endregion
 //#region src/components/ui/avatar.tsx
-var Avatar = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$2, {
+var Avatar = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$3, {
 	"data-uid": "src/components/ui/avatar.tsx:11:3",
 	"data-prohibitions": "[editContent]",
 	ref,
 	className: cn$1("relative flex h-10 w-10 shrink-0 overflow-hidden rounded-full", className),
 	...props
 }));
-Avatar.displayName = Root$2.displayName;
+Avatar.displayName = Root$3.displayName;
 var AvatarImage = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Image, {
 	"data-uid": "src/components/ui/avatar.tsx:23:3",
 	"data-prohibitions": "[editContent]",
@@ -26597,77 +26622,85 @@ AvatarFallback.displayName = Fallback.displayName;
 var navItems = [
 	{
 		label: "Painel",
-		icon: LayoutDashboard,
-		active: true
+		path: "/",
+		icon: LayoutDashboard
 	},
 	{
 		label: "diário",
+		path: "/diario",
 		icon: Calendar
 	},
 	{
 		label: "Raio-X Financeiro",
+		path: "/raio-x",
 		icon: TrendingUp
 	},
 	{
 		label: "Custo Funcionário",
+		path: "/custo",
 		icon: Users
 	},
 	{
 		label: "Precisão",
+		path: "/precisao",
 		icon: Target
 	},
 	{
 		label: "Taxa de Sala",
+		path: "/taxa",
 		icon: Building
 	},
 	{
 		label: "Plano Assinar",
+		path: "/plano",
 		icon: CreditCard
 	},
 	{
 		label: "Meu perfil",
+		path: "/perfil",
 		icon: CircleUser
 	}
 ];
 function AppSidebar() {
+	const location = useLocation();
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Sidebar, {
-		"data-uid": "src/components/AppSidebar.tsx:40:5",
+		"data-uid": "src/components/AppSidebar.tsx:42:5",
 		"data-prohibitions": "[editContent]",
 		className: "border-r-0 bg-[#0b1121]",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarHeader, {
-				"data-uid": "src/components/AppSidebar.tsx:41:7",
+				"data-uid": "src/components/AppSidebar.tsx:43:7",
 				"data-prohibitions": "[]",
 				className: "pt-8 pb-4",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/components/AppSidebar.tsx:42:9",
+					"data-uid": "src/components/AppSidebar.tsx:44:9",
 					"data-prohibitions": "[]",
 					className: "flex flex-col items-center justify-center",
 					children: [
 						/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/components/AppSidebar.tsx:43:11",
+							"data-uid": "src/components/AppSidebar.tsx:45:11",
 							"data-prohibitions": "[]",
 							className: "flex items-center justify-center mb-2",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								"data-uid": "src/components/AppSidebar.tsx:44:13",
+								"data-uid": "src/components/AppSidebar.tsx:46:13",
 								"data-prohibitions": "[]",
 								className: "text-4xl font-light tracking-tighter text-[#3b5bdb]",
 								children: "G"
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								"data-uid": "src/components/AppSidebar.tsx:45:13",
+								"data-uid": "src/components/AppSidebar.tsx:47:13",
 								"data-prohibitions": "[]",
 								className: "text-4xl font-semibold tracking-tighter text-slate-200 -ml-1",
 								children: "M"
 							})]
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
-							"data-uid": "src/components/AppSidebar.tsx:47:11",
+							"data-uid": "src/components/AppSidebar.tsx:49:11",
 							"data-prohibitions": "[]",
 							className: "text-lg font-light tracking-widest text-slate-200 uppercase mt-1",
 							children: "Método GM"
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
-							"data-uid": "src/components/AppSidebar.tsx:50:11",
+							"data-uid": "src/components/AppSidebar.tsx:52:11",
 							"data-prohibitions": "[]",
 							className: "text-[9px] tracking-[0.2em] text-slate-500 uppercase mt-1",
 							children: "Growth Médico"
@@ -26676,91 +26709,93 @@ function AppSidebar() {
 				})
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarContent, {
-				"data-uid": "src/components/AppSidebar.tsx:54:7",
+				"data-uid": "src/components/AppSidebar.tsx:56:7",
 				"data-prohibitions": "[editContent]",
 				className: "px-3 pt-6",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenu, {
-					"data-uid": "src/components/AppSidebar.tsx:55:9",
+					"data-uid": "src/components/AppSidebar.tsx:57:9",
 					"data-prohibitions": "[editContent]",
 					className: "gap-2",
-					children: navItems.map((item) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenuItem, {
-						"data-uid": "src/components/AppSidebar.tsx:57:13",
-						"data-prohibitions": "[editContent]",
-						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenuButton, {
-							"data-uid": "src/components/AppSidebar.tsx:58:15",
+					children: navItems.map((item) => {
+						const isActive = location.pathname === item.path;
+						return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenuItem, {
+							"data-uid": "src/components/AppSidebar.tsx:61:15",
 							"data-prohibitions": "[editContent]",
-							asChild: true,
-							isActive: item.active,
-							className: cn$1("h-12 rounded-xl px-4 justify-start text-[15px] transition-all duration-200", item.active ? "bg-[#3b5bdb] hover:bg-[#364fc7] text-white shadow-md" : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"),
-							children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
-								"data-uid": "src/components/AppSidebar.tsx:68:17",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarMenuButton, {
+								"data-uid": "src/components/AppSidebar.tsx:62:17",
 								"data-prohibitions": "[editContent]",
-								to: "#",
-								onClick: (e) => !item.active ? e.preventDefault() : null,
-								children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(item.icon, {
-									"data-uid": "src/components/AppSidebar.tsx:69:19",
+								asChild: true,
+								isActive,
+								className: cn$1("h-12 rounded-xl px-4 justify-start text-[15px] transition-all duration-200", isActive ? "bg-[#3b5bdb] hover:bg-[#364fc7] text-white shadow-md" : "text-slate-400 hover:bg-slate-800/50 hover:text-slate-200"),
+								children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Link, {
+									"data-uid": "src/components/AppSidebar.tsx:72:19",
 									"data-prohibitions": "[editContent]",
-									className: "w-5 h-5 mr-3 shrink-0"
-								}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-									"data-uid": "src/components/AppSidebar.tsx:70:19",
-									"data-prohibitions": "[editContent]",
-									className: "font-medium",
-									children: item.label
-								})]
+									to: item.path,
+									children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(item.icon, {
+										"data-uid": "src/components/AppSidebar.tsx:73:21",
+										"data-prohibitions": "[editContent]",
+										className: "w-5 h-5 mr-3 shrink-0"
+									}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+										"data-uid": "src/components/AppSidebar.tsx:74:21",
+										"data-prohibitions": "[editContent]",
+										className: "font-medium",
+										children: item.label
+									})]
+								})
 							})
-						})
-					}, item.label))
+						}, item.label);
+					})
 				})
 			}),
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(SidebarFooter, {
-				"data-uid": "src/components/AppSidebar.tsx:78:7",
+				"data-uid": "src/components/AppSidebar.tsx:83:7",
 				"data-prohibitions": "[]",
 				className: "p-4 pb-6",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-					"data-uid": "src/components/AppSidebar.tsx:79:9",
+					"data-uid": "src/components/AppSidebar.tsx:84:9",
 					"data-prohibitions": "[]",
 					className: "bg-[#151e32] p-4 rounded-2xl flex flex-col gap-4 border border-slate-800/50",
 					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-						"data-uid": "src/components/AppSidebar.tsx:80:11",
+						"data-uid": "src/components/AppSidebar.tsx:85:11",
 						"data-prohibitions": "[]",
 						className: "flex items-center gap-3",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Avatar, {
-							"data-uid": "src/components/AppSidebar.tsx:81:13",
+							"data-uid": "src/components/AppSidebar.tsx:86:13",
 							"data-prohibitions": "[]",
 							className: "h-10 w-10 bg-[#3b5bdb] rounded-xl shrink-0",
 							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(AvatarFallback, {
-								"data-uid": "src/components/AppSidebar.tsx:82:15",
+								"data-uid": "src/components/AppSidebar.tsx:87:15",
 								"data-prohibitions": "[]",
 								className: "bg-[#3b5bdb] text-white rounded-xl",
 								children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(User, {
-									"data-uid": "src/components/AppSidebar.tsx:83:17",
+									"data-uid": "src/components/AppSidebar.tsx:88:17",
 									"data-prohibitions": "[editContent]",
 									className: "w-5 h-5"
 								})
 							})
 						}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
-							"data-uid": "src/components/AppSidebar.tsx:86:13",
+							"data-uid": "src/components/AppSidebar.tsx:91:13",
 							"data-prohibitions": "[]",
 							className: "flex flex-col overflow-hidden",
 							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								"data-uid": "src/components/AppSidebar.tsx:87:15",
+								"data-uid": "src/components/AppSidebar.tsx:92:15",
 								"data-prohibitions": "[]",
 								className: "text-sm font-semibold text-slate-200 truncate",
 								children: "MARCIO RENATÓ M..."
 							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
-								"data-uid": "src/components/AppSidebar.tsx:90:15",
+								"data-uid": "src/components/AppSidebar.tsx:95:15",
 								"data-prohibitions": "[]",
 								className: "text-[10px] font-medium uppercase tracking-wider text-slate-500 truncate mt-0.5",
 								children: "CLÍNICA CANEVER"
 							})]
 						})]
 					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
-						"data-uid": "src/components/AppSidebar.tsx:95:11",
+						"data-uid": "src/components/AppSidebar.tsx:100:11",
 						"data-prohibitions": "[]",
 						variant: "ghost",
 						className: "w-full justify-start text-slate-400 hover:text-white hover:bg-slate-800 px-2 h-9",
 						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(LogOut, {
-							"data-uid": "src/components/AppSidebar.tsx:99:13",
+							"data-uid": "src/components/AppSidebar.tsx:104:13",
 							"data-prohibitions": "[editContent]",
 							className: "w-4 h-4 mr-2"
 						}), "Sair"]
@@ -27859,7 +27894,7 @@ var Icon = SelectIcon;
 var Portal = SelectPortal;
 var Content2 = SelectContent$1;
 var Viewport = SelectViewport;
-var Label = SelectLabel$1;
+var Label$2 = SelectLabel$1;
 var Item$1 = SelectItem$1;
 var ItemText = SelectItemText;
 var ItemIndicator = SelectItemIndicator;
@@ -27943,14 +27978,14 @@ var SelectContent = import_react.forwardRef(({ className, children, position = "
 	})
 }));
 SelectContent.displayName = Content2.displayName;
-var SelectLabel = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
+var SelectLabel = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label$2, {
 	"data-uid": "src/components/ui/select.tsx:98:3",
 	"data-prohibitions": "[editContent]",
 	ref,
 	className: cn$1("py-1.5 pl-8 pr-2 text-sm font-semibold", className),
 	...props
 }));
-SelectLabel.displayName = Label.displayName;
+SelectLabel.displayName = Label$2.displayName;
 var SelectItem = import_react.forwardRef(({ className, children, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Item$1, {
 	"data-uid": "src/components/ui/select.tsx:110:3",
 	"data-prohibitions": "[editContent]",
@@ -28167,18 +28202,18 @@ function focusFirst(candidates, preventScroll = false) {
 function wrapArray(array, startIndex) {
 	return array.map((_, index) => array[(startIndex + index) % array.length]);
 }
-var Root$1 = RovingFocusGroup;
+var Root$2 = RovingFocusGroup;
 var Item = RovingFocusGroupItem;
 //#endregion
 //#region ../../cache/modules/planilha-para-web-app-dd61d/node_modules/.pnpm/@radix-ui+react-toggle@1.1.10_@types+react-dom@19.2.3_@types+react@19.2.14__@types+reac_63d136f11f5f79b42c1373b9162ffc86/node_modules/@radix-ui/react-toggle/dist/index.mjs
-var NAME = "Toggle";
+var NAME$1 = "Toggle";
 var Toggle$1 = import_react.forwardRef((props, forwardedRef) => {
 	const { pressed: pressedProp, defaultPressed, onPressedChange, ...buttonProps } = props;
 	const [pressed, setPressed] = useControllableState({
 		prop: pressedProp,
 		onChange: onPressedChange,
 		defaultProp: defaultPressed ?? false,
-		caller: NAME
+		caller: NAME$1
 	});
 	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive$1.button, {
 		type: "button",
@@ -28192,8 +28227,8 @@ var Toggle$1 = import_react.forwardRef((props, forwardedRef) => {
 		})
 	});
 });
-Toggle$1.displayName = NAME;
-var Root = Toggle$1;
+Toggle$1.displayName = NAME$1;
+var Root$1 = Toggle$1;
 //#endregion
 //#region ../../cache/modules/planilha-para-web-app-dd61d/node_modules/.pnpm/@radix-ui+react-toggle-group@1.1.11_@types+react-dom@19.2.3_@types+react@19.2.14__@type_0c124bdbaa351e80a671757a596f81ce/node_modules/@radix-ui/react-toggle-group/dist/index.mjs
 var TOGGLE_GROUP_NAME = "ToggleGroup";
@@ -28270,7 +28305,7 @@ var ToggleGroupImpl = import_react.forwardRef((props, forwardedRef) => {
 		scope: __scopeToggleGroup,
 		rovingFocus,
 		disabled,
-		children: rovingFocus ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$1, {
+		children: rovingFocus ? /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$2, {
 			asChild: true,
 			...rovingFocusGroupScope,
 			orientation,
@@ -28354,7 +28389,7 @@ var toggleVariants = cva("inline-flex items-center justify-center rounded-md tex
 		size: "default"
 	}
 });
-var Toggle = import_react.forwardRef(({ className, variant, size, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root, {
+var Toggle = import_react.forwardRef(({ className, variant, size, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root$1, {
 	"data-uid": "src/components/ui/toggle.tsx:33:3",
 	"data-prohibitions": "[editContent]",
 	ref,
@@ -28365,7 +28400,7 @@ var Toggle = import_react.forwardRef(({ className, variant, size, ...props }, re
 	})),
 	...props
 }));
-Toggle.displayName = Root.displayName;
+Toggle.displayName = Root$1.displayName;
 //#endregion
 //#region src/components/ui/toggle-group.tsx
 var ToggleGroupContext = import_react.createContext({
@@ -28894,45 +28929,439 @@ function Index() {
 	});
 }
 //#endregion
+//#region ../../cache/modules/planilha-para-web-app-dd61d/node_modules/.pnpm/@radix-ui+react-label@2.1.8_@types+react-dom@19.2.3_@types+react@19.2.14__@types+react@_55fa612a976b7bdfbf4dcdd93d861aab/node_modules/@radix-ui/react-label/dist/index.mjs
+var NAME = "Label";
+var Label$1 = import_react.forwardRef((props, forwardedRef) => {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Primitive.label, {
+		...props,
+		ref: forwardedRef,
+		onMouseDown: (event) => {
+			if (event.target.closest("button, input, select, textarea")) return;
+			props.onMouseDown?.(event);
+			if (!event.defaultPrevented && event.detail > 1) event.preventDefault();
+		}
+	});
+});
+Label$1.displayName = NAME;
+var Root = Label$1;
+//#endregion
+//#region src/components/ui/label.tsx
+var labelVariants = cva("text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70");
+var Label = import_react.forwardRef(({ className, ...props }, ref) => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Root, {
+	"data-uid": "src/components/ui/label.tsx:16:3",
+	"data-prohibitions": "[editContent]",
+	ref,
+	className: cn$1(labelVariants(), className),
+	...props
+}));
+Label.displayName = Root.displayName;
+//#endregion
+//#region src/pages/Diario.tsx
+function Diario() {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		"data-uid": "src/pages/Diario.tsx:9:5",
+		"data-prohibitions": "[editContent]",
+		className: "p-6 md:p-10 animate-fade-in",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/Diario.tsx:11:7",
+				"data-prohibitions": "[]",
+				className: "flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					"data-uid": "src/pages/Diario.tsx:12:9",
+					"data-prohibitions": "[]",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+						"data-uid": "src/pages/Diario.tsx:13:11",
+						"data-prohibitions": "[]",
+						className: "text-3xl font-bold text-slate-900 tracking-tight",
+						children: "Controle Diário de Metas"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						"data-uid": "src/pages/Diario.tsx:16:11",
+						"data-prohibitions": "[]",
+						className: "text-slate-500 mt-1",
+						children: "Acompanhe sua agenda e pacientes diários"
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					"data-uid": "src/pages/Diario.tsx:18:9",
+					"data-prohibitions": "[]",
+					className: "flex flex-wrap items-center gap-3 w-full md:w-auto",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+						"data-uid": "src/pages/Diario.tsx:19:11",
+						"data-prohibitions": "[]",
+						className: "flex-1 md:flex-none bg-[#a5dbb7] hover:bg-[#88c99e] text-white font-medium gap-2 shadow-sm rounded-lg h-10 px-4",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileDown, {
+							"data-uid": "src/pages/Diario.tsx:20:13",
+							"data-prohibitions": "[editContent]",
+							className: "w-4 h-4"
+						}), " Gerar PDF"]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+						"data-uid": "src/pages/Diario.tsx:22:11",
+						"data-prohibitions": "[]",
+						className: "flex-1 md:flex-none bg-[#3b5bdb] hover:bg-[#364fc7] text-white font-medium gap-2 shadow-sm rounded-lg h-10 px-4",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, {
+							"data-uid": "src/pages/Diario.tsx:23:13",
+							"data-prohibitions": "[editContent]",
+							className: "w-4 h-4"
+						}), " Novo Registro"]
+					})]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/Diario.tsx:29:7",
+				"data-prohibitions": "[]",
+				className: "bg-white p-5 rounded-xl border border-slate-200 mb-8 flex flex-col md:flex-row items-end gap-5 shadow-sm",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						"data-uid": "src/pages/Diario.tsx:30:9",
+						"data-prohibitions": "[]",
+						className: "flex-1 w-full",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							"data-uid": "src/pages/Diario.tsx:31:11",
+							"data-prohibitions": "[]",
+							className: "flex items-center gap-2 mb-2",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calendar, {
+								"data-uid": "src/pages/Diario.tsx:32:13",
+								"data-prohibitions": "[editContent]",
+								className: "w-4 h-4 text-slate-500"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
+								"data-uid": "src/pages/Diario.tsx:33:13",
+								"data-prohibitions": "[]",
+								className: "text-sm font-medium text-slate-700",
+								children: "Data Inicial"
+							})]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+							"data-uid": "src/pages/Diario.tsx:35:11",
+							"data-prohibitions": "[editContent]",
+							placeholder: "Dia/Mês/Ano",
+							className: "h-10 border-slate-200 text-slate-600 focus-visible:ring-slate-200"
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						"data-uid": "src/pages/Diario.tsx:40:9",
+						"data-prohibitions": "[]",
+						className: "flex-1 w-full",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							"data-uid": "src/pages/Diario.tsx:41:11",
+							"data-prohibitions": "[]",
+							className: "flex items-center gap-2 mb-2",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calendar, {
+								"data-uid": "src/pages/Diario.tsx:42:13",
+								"data-prohibitions": "[editContent]",
+								className: "w-4 h-4 text-slate-500"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
+								"data-uid": "src/pages/Diario.tsx:43:13",
+								"data-prohibitions": "[]",
+								className: "text-sm font-medium text-slate-700",
+								children: "Dados finais"
+							})]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+							"data-uid": "src/pages/Diario.tsx:45:11",
+							"data-prohibitions": "[editContent]",
+							placeholder: "Dia/Mês/Ano",
+							className: "h-10 border-slate-200 text-slate-600 focus-visible:ring-slate-200"
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+						"data-uid": "src/pages/Diario.tsx:50:9",
+						"data-prohibitions": "[]",
+						variant: "outline",
+						className: "h-10 px-6 text-slate-600 border-slate-200 hover:bg-slate-50 w-full md:w-auto font-medium",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, {
+							"data-uid": "src/pages/Diario.tsx:54:11",
+							"data-prohibitions": "[editContent]",
+							className: "w-4 h-4 mr-2 text-slate-400"
+						}), " Limpar Filtro"]
+					})
+				]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/Diario.tsx:59:7",
+				"data-prohibitions": "[]",
+				className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+						"data-uid": "src/pages/Diario.tsx:60:9",
+						"data-prohibitions": "[]",
+						className: "shadow-sm border-slate-200/60 rounded-xl",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+							"data-uid": "src/pages/Diario.tsx:61:11",
+							"data-prohibitions": "[]",
+							className: "p-6",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									"data-uid": "src/pages/Diario.tsx:62:13",
+									"data-prohibitions": "[]",
+									className: "text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4",
+									children: "Faturamento Total"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+									"data-uid": "src/pages/Diario.tsx:65:13",
+									"data-prohibitions": "[]",
+									className: "text-3xl font-bold text-slate-900 mb-2",
+									children: "R$ 0,00"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									"data-uid": "src/pages/Diario.tsx:66:13",
+									"data-prohibitions": "[]",
+									className: "text-[13px] text-slate-500 font-medium",
+									children: "Consultas + procedimentos"
+								})
+							]
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+						"data-uid": "src/pages/Diario.tsx:70:9",
+						"data-prohibitions": "[]",
+						className: "shadow-sm border-slate-200/60 rounded-xl",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+							"data-uid": "src/pages/Diario.tsx:71:11",
+							"data-prohibitions": "[]",
+							className: "p-6",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									"data-uid": "src/pages/Diario.tsx:72:13",
+									"data-prohibitions": "[]",
+									className: "text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4",
+									children: "Consultas"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h3", {
+									"data-uid": "src/pages/Diario.tsx:75:13",
+									"data-prohibitions": "[]",
+									className: "text-[22px] leading-tight font-bold text-slate-900 mb-2",
+									children: [
+										"0 atendimentos · ",
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {
+											"data-uid": "src/pages/Diario.tsx:76:32",
+											"data-prohibitions": "[editContent]",
+											className: "hidden xl:block"
+										}),
+										"R$ 0,00"
+									]
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									"data-uid": "src/pages/Diario.tsx:79:13",
+									"data-prohibitions": "[]",
+									className: "text-[13px] text-slate-500 font-medium",
+									children: "Pacientes em consulta e receita gerada"
+								})
+							]
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+						"data-uid": "src/pages/Diario.tsx:85:9",
+						"data-prohibitions": "[]",
+						className: "shadow-sm border-slate-200/60 rounded-xl",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+							"data-uid": "src/pages/Diario.tsx:86:11",
+							"data-prohibitions": "[]",
+							className: "p-6",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									"data-uid": "src/pages/Diario.tsx:87:13",
+									"data-prohibitions": "[]",
+									className: "text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4",
+									children: "S"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h3", {
+									"data-uid": "src/pages/Diario.tsx:88:13",
+									"data-prohibitions": "[]",
+									className: "text-[22px] leading-tight font-bold text-slate-900 mb-2",
+									children: [
+										"0 atendimentos · ",
+										/* @__PURE__ */ (0, import_jsx_runtime.jsx)("br", {
+											"data-uid": "src/pages/Diario.tsx:89:32",
+											"data-prohibitions": "[editContent]",
+											className: "hidden xl:block"
+										}),
+										"R$ 0,00"
+									]
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									"data-uid": "src/pages/Diario.tsx:92:13",
+									"data-prohibitions": "[]",
+									className: "text-[13px] text-slate-500 font-medium",
+									children: "Procedimentos realizados e receita gerada"
+								})
+							]
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+						"data-uid": "src/pages/Diario.tsx:98:9",
+						"data-prohibitions": "[]",
+						className: "shadow-sm border-slate-200/60 rounded-xl flex flex-col justify-between",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+							"data-uid": "src/pages/Diario.tsx:99:11",
+							"data-prohibitions": "[]",
+							className: "p-6 h-full flex flex-col",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									"data-uid": "src/pages/Diario.tsx:100:13",
+									"data-prohibitions": "[]",
+									className: "text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4",
+									children: "Bilheteria"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+									"data-uid": "src/pages/Diario.tsx:103:13",
+									"data-prohibitions": "[]",
+									className: "space-y-1.5 mb-4 flex-1",
+									children: [
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+											"data-uid": "src/pages/Diario.tsx:104:15",
+											"data-prohibitions": "[]",
+											className: "flex items-center text-[14px]",
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												"data-uid": "src/pages/Diario.tsx:105:17",
+												"data-prohibitions": "[]",
+												className: "text-slate-500 font-medium w-28",
+												children: "Geral:"
+											}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												"data-uid": "src/pages/Diario.tsx:106:17",
+												"data-prohibitions": "[]",
+												className: "font-semibold text-slate-900",
+												children: "R$ 0,00"
+											})]
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+											"data-uid": "src/pages/Diario.tsx:108:15",
+											"data-prohibitions": "[]",
+											className: "flex items-center text-[14px]",
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												"data-uid": "src/pages/Diario.tsx:109:17",
+												"data-prohibitions": "[]",
+												className: "text-slate-500 font-medium w-28",
+												children: "Consultas:"
+											}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												"data-uid": "src/pages/Diario.tsx:110:17",
+												"data-prohibitions": "[]",
+												className: "font-semibold text-slate-900",
+												children: "R$ 0,00"
+											})]
+										}),
+										/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+											"data-uid": "src/pages/Diario.tsx:112:15",
+											"data-prohibitions": "[]",
+											className: "flex items-center text-[14px]",
+											children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												"data-uid": "src/pages/Diario.tsx:113:17",
+												"data-prohibitions": "[]",
+												className: "text-slate-500 font-medium w-28",
+												children: "Procedimentos:"
+											}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("span", {
+												"data-uid": "src/pages/Diario.tsx:114:17",
+												"data-prohibitions": "[]",
+												className: "font-semibold text-slate-900",
+												children: "R$ 0,00"
+											})]
+										})
+									]
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									"data-uid": "src/pages/Diario.tsx:117:13",
+									"data-prohibitions": "[]",
+									className: "text-[13px] text-slate-500 font-medium mt-auto",
+									children: "0 dias · R$ 0,00 /dia"
+								})
+							]
+						})
+					})
+				]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+				"data-uid": "src/pages/Diario.tsx:123:7",
+				"data-prohibitions": "[]",
+				className: "shadow-sm border-slate-200/60 rounded-xl min-h-[400px] flex flex-col bg-white",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+					"data-uid": "src/pages/Diario.tsx:124:9",
+					"data-prohibitions": "[]",
+					className: "p-6 pb-0",
+					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+						"data-uid": "src/pages/Diario.tsx:125:11",
+						"data-prohibitions": "[]",
+						className: "text-lg font-bold text-slate-800",
+						children: "Registros Diários"
+					})
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					"data-uid": "src/pages/Diario.tsx:127:9",
+					"data-prohibitions": "[]",
+					className: "flex-1 flex flex-col items-center justify-center pt-8 pb-16",
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							"data-uid": "src/pages/Diario.tsx:128:11",
+							"data-prohibitions": "[]",
+							className: "mb-6 text-slate-400",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(TrendingUp, {
+								"data-uid": "src/pages/Diario.tsx:129:13",
+								"data-prohibitions": "[editContent]",
+								className: "w-16 h-16",
+								strokeWidth: 1.5
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+							"data-uid": "src/pages/Diario.tsx:131:11",
+							"data-prohibitions": "[]",
+							className: "text-xl font-semibold text-slate-900 mb-2",
+							children: "Nenhum registro encontrado"
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+							"data-uid": "src/pages/Diario.tsx:132:11",
+							"data-prohibitions": "[]",
+							className: "text-slate-500",
+							children: "Comece adicionando seu primeiro registro diário"
+						})
+					]
+				})]
+			})
+		]
+	});
+}
+//#endregion
 //#region src/App.tsx
 var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
-	"data-uid": "src/App.tsx:10:3",
+	"data-uid": "src/App.tsx:11:3",
 	"data-prohibitions": "[]",
 	future: {
 		v7_startTransition: false,
 		v7_relativeSplatPath: false
 	},
 	children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TooltipProvider, {
-		"data-uid": "src/App.tsx:11:5",
+		"data-uid": "src/App.tsx:12:5",
 		"data-prohibitions": "[]",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster$2, {
-				"data-uid": "src/App.tsx:12:7",
-				"data-prohibitions": "[editContent]"
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster, {
 				"data-uid": "src/App.tsx:13:7",
 				"data-prohibitions": "[editContent]"
 			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Routes, {
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster, {
 				"data-uid": "src/App.tsx:14:7",
+				"data-prohibitions": "[editContent]"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Routes, {
+				"data-uid": "src/App.tsx:15:7",
 				"data-prohibitions": "[]",
-				children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-					"data-uid": "src/App.tsx:15:9",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Route, {
+					"data-uid": "src/App.tsx:16:9",
 					"data-prohibitions": "[]",
 					element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Layout, {
-						"data-uid": "src/App.tsx:15:25",
+						"data-uid": "src/App.tsx:16:25",
 						"data-prohibitions": "[editContent]"
 					}),
-					children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-						"data-uid": "src/App.tsx:16:11",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+						"data-uid": "src/App.tsx:17:11",
 						"data-prohibitions": "[editContent]",
 						path: "/",
 						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Index, {
-							"data-uid": "src/App.tsx:16:36",
+							"data-uid": "src/App.tsx:17:36",
 							"data-prohibitions": "[editContent]"
 						})
-					})
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+						"data-uid": "src/App.tsx:18:11",
+						"data-prohibitions": "[editContent]",
+						path: "/diario",
+						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Diario, {
+							"data-uid": "src/App.tsx:18:42",
+							"data-prohibitions": "[editContent]"
+						})
+					})]
 				})
 			})
 		]
@@ -28946,4 +29375,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 }));
 //#endregion
 
-//# sourceMappingURL=index--tolazS7.js.map
+//# sourceMappingURL=index-CZlrI_ew.js.map

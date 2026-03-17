@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useLocation } from 'react-router-dom'
 import {
   LayoutDashboard,
   Calendar,
@@ -25,17 +25,19 @@ import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 
 const navItems = [
-  { label: 'Painel', icon: LayoutDashboard, active: true },
-  { label: 'diário', icon: Calendar },
-  { label: 'Raio-X Financeiro', icon: TrendingUp },
-  { label: 'Custo Funcionário', icon: Users },
-  { label: 'Precisão', icon: Target },
-  { label: 'Taxa de Sala', icon: Building },
-  { label: 'Plano Assinar', icon: CreditCard },
-  { label: 'Meu perfil', icon: UserCircle },
+  { label: 'Painel', path: '/', icon: LayoutDashboard },
+  { label: 'diário', path: '/diario', icon: Calendar },
+  { label: 'Raio-X Financeiro', path: '/raio-x', icon: TrendingUp },
+  { label: 'Custo Funcionário', path: '/custo', icon: Users },
+  { label: 'Precisão', path: '/precisao', icon: Target },
+  { label: 'Taxa de Sala', path: '/taxa', icon: Building },
+  { label: 'Plano Assinar', path: '/plano', icon: CreditCard },
+  { label: 'Meu perfil', path: '/perfil', icon: UserCircle },
 ]
 
 export function AppSidebar() {
+  const location = useLocation()
+
   return (
     <Sidebar className="border-r-0 bg-[#0b1121]">
       <SidebarHeader className="pt-8 pb-4">
@@ -53,25 +55,28 @@ export function AppSidebar() {
 
       <SidebarContent className="px-3 pt-6">
         <SidebarMenu className="gap-2">
-          {navItems.map((item) => (
-            <SidebarMenuItem key={item.label}>
-              <SidebarMenuButton
-                asChild
-                isActive={item.active}
-                className={cn(
-                  'h-12 rounded-xl px-4 justify-start text-[15px] transition-all duration-200',
-                  item.active
-                    ? 'bg-[#3b5bdb] hover:bg-[#364fc7] text-white shadow-md'
-                    : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200',
-                )}
-              >
-                <Link to="#" onClick={(e) => (!item.active ? e.preventDefault() : null)}>
-                  <item.icon className="w-5 h-5 mr-3 shrink-0" />
-                  <span className="font-medium">{item.label}</span>
-                </Link>
-              </SidebarMenuButton>
-            </SidebarMenuItem>
-          ))}
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.path
+            return (
+              <SidebarMenuItem key={item.label}>
+                <SidebarMenuButton
+                  asChild
+                  isActive={isActive}
+                  className={cn(
+                    'h-12 rounded-xl px-4 justify-start text-[15px] transition-all duration-200',
+                    isActive
+                      ? 'bg-[#3b5bdb] hover:bg-[#364fc7] text-white shadow-md'
+                      : 'text-slate-400 hover:bg-slate-800/50 hover:text-slate-200',
+                  )}
+                >
+                  <Link to={item.path}>
+                    <item.icon className="w-5 h-5 mr-3 shrink-0" />
+                    <span className="font-medium">{item.label}</span>
+                  </Link>
+                </SidebarMenuButton>
+              </SidebarMenuItem>
+            )
+          })}
         </SidebarMenu>
       </SidebarContent>
 
