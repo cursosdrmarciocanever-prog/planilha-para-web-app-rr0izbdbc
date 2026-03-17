@@ -137,12 +137,14 @@ export default function Diario() {
         <Card className="shadow-sm border-slate-200/60 rounded-xl">
           <CardContent className="p-6">
             <p className="text-[11px] font-bold text-slate-500 uppercase tracking-wider mb-4">
-              Serviços
+              SERVIÇOS
             </p>
             <h3 className="text-[22px] font-bold text-slate-900 mb-2">
               {totals.servicos} procedimentos
             </h3>
-            <p className="text-[13px] text-slate-500 font-medium">Total de serviços realizados</p>
+            <p className="text-[13px] text-slate-500 font-medium">
+              Procedimentos realizados e receita gerada
+            </p>
           </CardContent>
         </Card>
         <Card className="shadow-sm border-slate-200/60 rounded-xl">
