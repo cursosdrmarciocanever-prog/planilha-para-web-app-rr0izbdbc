@@ -1,4 +1,4 @@
-import { Link, useLocation } from 'react-router-dom'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import {
   LayoutDashboard,
   Calendar,
@@ -22,6 +22,7 @@ import {
 import { Avatar, AvatarFallback } from '@/components/ui/avatar'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
+import { useAuth } from '@/hooks/use-auth'
 
 const navItems = [
   { label: 'Painel', path: '/', icon: LayoutDashboard },
@@ -34,6 +35,29 @@ const navItems = [
 
 export function AppSidebar() {
   const location = useLocation()
+  const navigate = useNavigate()
+  const { profile, signOut } = useAuth()
+
+  const handleSignOut = async () => {
+    await signOut()
+    navigate('/login')
+  }
+
+  const getUserInitials = (name?: string) => {
+    if (!name) return ''
+    const parts = name.split(' ')
+    if (parts.length >= 2) {
+      return `${parts[0][0]}${parts[1][0]}`.toUpperCase()
+    }
+    return name.substring(0, 2).toUpperCase()
+  }
+
+  const formatRole = (role?: string) => {
+    if (!role) return 'Visitante'
+    if (role === 'admin') return 'Administrador'
+    if (role === 'financeiro') return 'Financeiro'
+    return role.charAt(0).toUpperCase() + role.slice(1)
+  }
 
   return (
     <Sidebar className="border-r border-border bg-sidebar">
@@ -82,19 +106,22 @@ export function AppSidebar() {
         <div className="bg-secondary/50 p-4 rounded-2xl flex flex-col gap-4 border border-border/50">
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10 bg-primary/20 text-primary rounded-full shrink-0 border border-primary/20">
-              <AvatarFallback className="bg-transparent text-primary">
-                <User className="w-5 h-5" />
+              <AvatarFallback className="bg-transparent text-primary text-sm font-bold">
+                {profile?.nome ? getUserInitials(profile.nome) : <User className="w-5 h-5" />}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col overflow-hidden">
-              <span className="text-sm font-semibold text-foreground truncate">Márcio Renato</span>
+              <span className="text-sm font-semibold text-foreground truncate">
+                {profile?.nome || 'Usuário'}
+              </span>
               <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground truncate mt-0.5">
-                Administrador
+                {formatRole(profile?.role)}
               </span>
             </div>
           </div>
           <Button
             variant="ghost"
+            onClick={handleSignOut}
             className="w-full justify-start text-muted-foreground hover:text-foreground hover:bg-background px-4 h-10 rounded-full"
           >
             <LogOut className="w-4 h-4 mr-2" />
