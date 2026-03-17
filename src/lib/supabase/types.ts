@@ -549,7 +549,23 @@ export const Constants = {
 //   PRIMARY KEY usuarios_pkey: PRIMARY KEY (id)
 
 // --- ROW LEVEL SECURITY POLICIES ---
+// Table: banco de dados
+//   Policy "Allow authenticated users full access" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: clientes
+//   Policy "Allow authenticated users full access" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: despesas
+//   Policy "Allow authenticated users full access" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: documents
+//   Policy "Allow authenticated users full access" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: n8n_chat
 //   Policy "Allow authenticated users full access" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
@@ -573,16 +589,6 @@ export const Constants = {
 //   Policy "Allow authenticated users full access" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
-
-// --- WARNING: TABLES WITH RLS ENABLED BUT NO POLICIES ---
-// These tables have Row Level Security enabled but NO policies defined.
-// This means ALL queries (SELECT, INSERT, UPDATE, DELETE) will return ZERO rows
-// for non-superuser roles (including the anon and authenticated roles used by the app).
-// You MUST create RLS policies for these tables to allow data access.
-//   - banco de dados
-//   - clientes
-//   - documents
-//   - n8n_chat
 
 // --- DATABASE FUNCTIONS ---
 // FUNCTION match_documents(vector, integer, jsonb)
