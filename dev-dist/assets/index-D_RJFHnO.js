@@ -19071,6 +19071,58 @@ var Building = createLucideIcon("building", [
 		key: "1uxh74"
 	}]
 ]);
+var Calculator = createLucideIcon("calculator", [
+	["rect", {
+		width: "16",
+		height: "20",
+		x: "4",
+		y: "2",
+		rx: "2",
+		key: "1nb95v"
+	}],
+	["line", {
+		x1: "8",
+		x2: "16",
+		y1: "6",
+		y2: "6",
+		key: "x4nwl0"
+	}],
+	["line", {
+		x1: "16",
+		x2: "16",
+		y1: "14",
+		y2: "18",
+		key: "wjye3r"
+	}],
+	["path", {
+		d: "M16 10h.01",
+		key: "1m94wz"
+	}],
+	["path", {
+		d: "M12 10h.01",
+		key: "1nrarc"
+	}],
+	["path", {
+		d: "M8 10h.01",
+		key: "19clt8"
+	}],
+	["path", {
+		d: "M12 14h.01",
+		key: "1etili"
+	}],
+	["path", {
+		d: "M8 14h.01",
+		key: "6423bh"
+	}],
+	["path", {
+		d: "M12 18h.01",
+		key: "mhygvu"
+	}],
+	["path", {
+		d: "M8 18h.01",
+		key: "lrp35t"
+	}]
+]);
 var Calendar = createLucideIcon("calendar", [
 	["path", {
 		d: "M8 2v4",
@@ -29599,61 +29651,148 @@ function RaioX() {
 	});
 }
 //#endregion
+//#region src/pages/Custo.tsx
+function Custo() {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		"data-uid": "src/pages/Custo.tsx:6:5",
+		"data-prohibitions": "[editContent]",
+		className: "p-6 md:p-10 animate-fade-in",
+		children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+			"data-uid": "src/pages/Custo.tsx:8:7",
+			"data-prohibitions": "[]",
+			className: "flex flex-col md:flex-row justify-between items-start md:items-start mb-8 gap-4",
+			children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/Custo.tsx:9:9",
+				"data-prohibitions": "[]",
+				className: "flex-1",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("h1", {
+					"data-uid": "src/pages/Custo.tsx:10:11",
+					"data-prohibitions": "[]",
+					className: "text-[28px] font-bold text-slate-900 tracking-tight flex items-center gap-3 mb-2",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calculator, {
+						"data-uid": "src/pages/Custo.tsx:11:13",
+						"data-prohibitions": "[editContent]",
+						className: "w-8 h-8 text-[#3b5bdb]"
+					}), "Custo Funcionário"]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+					"data-uid": "src/pages/Custo.tsx:14:11",
+					"data-prohibitions": "[]",
+					className: "text-slate-600 text-[15px]",
+					children: "Cadastre funcionários e veja o custo mensal e por hora de cada um (encargos: FGTS, INSS, férias, 13º e aviso prévio)."
+				})]
+			}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				"data-uid": "src/pages/Custo.tsx:19:9",
+				"data-prohibitions": "[]",
+				className: "shrink-0 mt-2 md:mt-0",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+					"data-uid": "src/pages/Custo.tsx:20:11",
+					"data-prohibitions": "[]",
+					className: "bg-[#3b5bdb] hover:bg-[#364fc7] text-white font-medium shadow-sm rounded-lg px-6 h-[42px] text-[15px]",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, {
+						"data-uid": "src/pages/Custo.tsx:21:13",
+						"data-prohibitions": "[editContent]",
+						className: "w-4 h-4 mr-2",
+						strokeWidth: 2.5
+					}), "porta"]
+				})
+			})]
+		}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+			"data-uid": "src/pages/Custo.tsx:28:7",
+			"data-prohibitions": "[]",
+			className: "bg-white border border-slate-200 rounded-xl min-h-[500px] flex flex-col items-center justify-center shadow-sm p-8",
+			children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/Custo.tsx:29:9",
+				"data-prohibitions": "[]",
+				className: "flex flex-col items-center max-w-md text-center",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calculator, {
+						"data-uid": "src/pages/Custo.tsx:30:11",
+						"data-prohibitions": "[editContent]",
+						className: "w-16 h-16 text-slate-300 mb-6",
+						strokeWidth: 1.5
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+						"data-uid": "src/pages/Custo.tsx:31:11",
+						"data-prohibitions": "[]",
+						className: "text-xl font-bold text-slate-700 mb-2",
+						children: "Nenhum funcionário cadastrado"
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						"data-uid": "src/pages/Custo.tsx:32:11",
+						"data-prohibitions": "[]",
+						className: "text-slate-500 text-[15px]",
+						children: "Clique em \"Adicionar funcionário\" para cadastrar o primeiro."
+					})
+				]
+			})
+		})]
+	});
+}
+//#endregion
 //#region src/App.tsx
 var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
-	"data-uid": "src/App.tsx:12:3",
+	"data-uid": "src/App.tsx:13:3",
 	"data-prohibitions": "[]",
 	future: {
 		v7_startTransition: false,
 		v7_relativeSplatPath: false
 	},
 	children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TooltipProvider, {
-		"data-uid": "src/App.tsx:13:5",
+		"data-uid": "src/App.tsx:14:5",
 		"data-prohibitions": "[]",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster$2, {
-				"data-uid": "src/App.tsx:14:7",
-				"data-prohibitions": "[editContent]"
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster, {
 				"data-uid": "src/App.tsx:15:7",
 				"data-prohibitions": "[editContent]"
 			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Routes, {
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster, {
 				"data-uid": "src/App.tsx:16:7",
+				"data-prohibitions": "[editContent]"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Routes, {
+				"data-uid": "src/App.tsx:17:7",
 				"data-prohibitions": "[]",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Route, {
-					"data-uid": "src/App.tsx:17:9",
+					"data-uid": "src/App.tsx:18:9",
 					"data-prohibitions": "[]",
 					element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Layout, {
-						"data-uid": "src/App.tsx:17:25",
+						"data-uid": "src/App.tsx:18:25",
 						"data-prohibitions": "[editContent]"
 					}),
 					children: [
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-							"data-uid": "src/App.tsx:18:11",
+							"data-uid": "src/App.tsx:19:11",
 							"data-prohibitions": "[editContent]",
 							path: "/",
 							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Index, {
-								"data-uid": "src/App.tsx:18:36",
-								"data-prohibitions": "[editContent]"
-							})
-						}),
-						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-							"data-uid": "src/App.tsx:19:11",
-							"data-prohibitions": "[editContent]",
-							path: "/diario",
-							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Diario, {
-								"data-uid": "src/App.tsx:19:42",
+								"data-uid": "src/App.tsx:19:36",
 								"data-prohibitions": "[editContent]"
 							})
 						}),
 						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
 							"data-uid": "src/App.tsx:20:11",
 							"data-prohibitions": "[editContent]",
+							path: "/diario",
+							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Diario, {
+								"data-uid": "src/App.tsx:20:42",
+								"data-prohibitions": "[editContent]"
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+							"data-uid": "src/App.tsx:21:11",
+							"data-prohibitions": "[editContent]",
 							path: "/raio-x",
 							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RaioX, {
-								"data-uid": "src/App.tsx:20:42",
+								"data-uid": "src/App.tsx:21:42",
+								"data-prohibitions": "[editContent]"
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+							"data-uid": "src/App.tsx:22:11",
+							"data-prohibitions": "[editContent]",
+							path: "/custo",
+							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Custo, {
+								"data-uid": "src/App.tsx:22:41",
 								"data-prohibitions": "[editContent]"
 							})
 						})
@@ -29671,4 +29810,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 }));
 //#endregion
 
-//# sourceMappingURL=index-CyYGrP8G.js.map
+//# sourceMappingURL=index-D_RJFHnO.js.map
