@@ -29315,53 +29315,349 @@ function Diario() {
 	});
 }
 //#endregion
+//#region src/pages/RaioX.tsx
+function RaioX() {
+	return /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+		"data-uid": "src/pages/RaioX.tsx:9:5",
+		"data-prohibitions": "[editContent]",
+		className: "p-6 md:p-10 animate-fade-in",
+		children: [
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/RaioX.tsx:11:7",
+				"data-prohibitions": "[]",
+				className: "flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4",
+				children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					"data-uid": "src/pages/RaioX.tsx:12:9",
+					"data-prohibitions": "[]",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h1", {
+						"data-uid": "src/pages/RaioX.tsx:13:11",
+						"data-prohibitions": "[]",
+						className: "text-3xl font-bold text-slate-900 tracking-tight",
+						children: "Raio-X Financeiro"
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+						"data-uid": "src/pages/RaioX.tsx:14:11",
+						"data-prohibitions": "[]",
+						className: "text-slate-500 mt-1",
+						children: "Análise completa da saúde financeira"
+					})]
+				}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+					"data-uid": "src/pages/RaioX.tsx:16:9",
+					"data-prohibitions": "[]",
+					className: "flex flex-wrap items-center gap-3 w-full md:w-auto",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+						"data-uid": "src/pages/RaioX.tsx:17:11",
+						"data-prohibitions": "[]",
+						className: "flex-1 md:flex-none bg-[#a5dbb7] hover:bg-[#88c99e] text-white font-medium gap-2 shadow-sm rounded-lg h-10 px-4",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(FileDown, {
+							"data-uid": "src/pages/RaioX.tsx:18:13",
+							"data-prohibitions": "[editContent]",
+							className: "w-4 h-4"
+						}), " Gerar PDF"]
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+						"data-uid": "src/pages/RaioX.tsx:20:11",
+						"data-prohibitions": "[]",
+						className: "flex-1 md:flex-none bg-[#3b5bdb] hover:bg-[#364fc7] text-white font-medium gap-2 shadow-sm rounded-lg h-10 px-4",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Plus, {
+							"data-uid": "src/pages/RaioX.tsx:21:13",
+							"data-prohibitions": "[editContent]",
+							className: "w-4 h-4"
+						}), " Novo Mês"]
+					})]
+				})]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/RaioX.tsx:27:7",
+				"data-prohibitions": "[]",
+				className: "bg-white p-5 rounded-xl border border-slate-200 mb-8 flex flex-col md:flex-row items-end gap-5 shadow-sm",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						"data-uid": "src/pages/RaioX.tsx:28:9",
+						"data-prohibitions": "[]",
+						className: "flex-1 w-full",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							"data-uid": "src/pages/RaioX.tsx:29:11",
+							"data-prohibitions": "[]",
+							className: "flex items-center gap-2 mb-2",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calendar, {
+								"data-uid": "src/pages/RaioX.tsx:30:13",
+								"data-prohibitions": "[editContent]",
+								className: "w-4 h-4 text-slate-500"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
+								"data-uid": "src/pages/RaioX.tsx:31:13",
+								"data-prohibitions": "[]",
+								className: "text-sm font-medium text-slate-700",
+								children: "Data Inicial"
+							})]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+							"data-uid": "src/pages/RaioX.tsx:33:11",
+							"data-prohibitions": "[editContent]",
+							placeholder: "Dia/Mês/Ano",
+							className: "h-10 border-slate-200 text-slate-600 focus-visible:ring-slate-200"
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+						"data-uid": "src/pages/RaioX.tsx:38:9",
+						"data-prohibitions": "[]",
+						className: "flex-1 w-full",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+							"data-uid": "src/pages/RaioX.tsx:39:11",
+							"data-prohibitions": "[]",
+							className: "flex items-center gap-2 mb-2",
+							children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Calendar, {
+								"data-uid": "src/pages/RaioX.tsx:40:13",
+								"data-prohibitions": "[editContent]",
+								className: "w-4 h-4 text-slate-500"
+							}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Label, {
+								"data-uid": "src/pages/RaioX.tsx:41:13",
+								"data-prohibitions": "[]",
+								className: "text-sm font-medium text-slate-700",
+								children: "Dados finais"
+							})]
+						}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Input, {
+							"data-uid": "src/pages/RaioX.tsx:43:11",
+							"data-prohibitions": "[editContent]",
+							placeholder: "Dia/Mês/Ano",
+							className: "h-10 border-slate-200 text-slate-600 focus-visible:ring-slate-200"
+						})]
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Button, {
+						"data-uid": "src/pages/RaioX.tsx:48:9",
+						"data-prohibitions": "[]",
+						variant: "outline",
+						className: "h-10 px-6 text-slate-600 border-slate-200 hover:bg-slate-50 w-full md:w-auto font-medium",
+						children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(X, {
+							"data-uid": "src/pages/RaioX.tsx:52:11",
+							"data-prohibitions": "[editContent]",
+							className: "w-4 h-4 mr-2 text-slate-400"
+						}), " Limpar Filtro"]
+					})
+				]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsxs)("div", {
+				"data-uid": "src/pages/RaioX.tsx:57:7",
+				"data-prohibitions": "[]",
+				className: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8",
+				children: [
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+						"data-uid": "src/pages/RaioX.tsx:58:9",
+						"data-prohibitions": "[]",
+						className: "shadow-sm border-slate-200/60 rounded-xl",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+							"data-uid": "src/pages/RaioX.tsx:59:11",
+							"data-prohibitions": "[]",
+							className: "p-6",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									"data-uid": "src/pages/RaioX.tsx:60:13",
+									"data-prohibitions": "[]",
+									className: "text-[12px] font-bold text-slate-500 uppercase tracking-wider mb-4",
+									children: "Faturamento Total"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+									"data-uid": "src/pages/RaioX.tsx:63:13",
+									"data-prohibitions": "[]",
+									className: "text-3xl font-bold text-slate-900 mb-2",
+									children: "R$ 0,00"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									"data-uid": "src/pages/RaioX.tsx:64:13",
+									"data-prohibitions": "[]",
+									className: "text-[13px] text-slate-500 font-medium",
+									children: "Receita acumulada"
+								})
+							]
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+						"data-uid": "src/pages/RaioX.tsx:68:9",
+						"data-prohibitions": "[]",
+						className: "shadow-sm border-slate-200/60 rounded-xl",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+							"data-uid": "src/pages/RaioX.tsx:69:11",
+							"data-prohibitions": "[]",
+							className: "p-6",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									"data-uid": "src/pages/RaioX.tsx:70:13",
+									"data-prohibitions": "[]",
+									className: "text-[12px] font-bold text-slate-500 uppercase tracking-wider mb-4",
+									children: "Custos Totais"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+									"data-uid": "src/pages/RaioX.tsx:73:13",
+									"data-prohibitions": "[]",
+									className: "text-3xl font-bold text-[#e03131] mb-2",
+									children: "R$ 0,00"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									"data-uid": "src/pages/RaioX.tsx:74:13",
+									"data-prohibitions": "[]",
+									className: "text-[13px] text-slate-500 font-medium",
+									children: "Despesas"
+								})
+							]
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+						"data-uid": "src/pages/RaioX.tsx:78:9",
+						"data-prohibitions": "[]",
+						className: "shadow-sm border-slate-200/60 rounded-xl",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+							"data-uid": "src/pages/RaioX.tsx:79:11",
+							"data-prohibitions": "[]",
+							className: "p-6",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									"data-uid": "src/pages/RaioX.tsx:80:13",
+									"data-prohibitions": "[]",
+									className: "text-[12px] font-bold text-slate-500 uppercase tracking-wider mb-4",
+									children: "Lucro Sogra"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+									"data-uid": "src/pages/RaioX.tsx:83:13",
+									"data-prohibitions": "[]",
+									className: "text-3xl font-bold text-[#2b8a3e] mb-2",
+									children: "R$ 0,00"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									"data-uid": "src/pages/RaioX.tsx:84:13",
+									"data-prohibitions": "[]",
+									className: "text-[13px] text-slate-500 font-medium",
+									children: "Resultado"
+								})
+							]
+						})
+					}),
+					/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Card, {
+						"data-uid": "src/pages/RaioX.tsx:88:9",
+						"data-prohibitions": "[]",
+						className: "shadow-sm border-slate-200/60 rounded-xl",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(CardContent, {
+							"data-uid": "src/pages/RaioX.tsx:89:11",
+							"data-prohibitions": "[]",
+							className: "p-6",
+							children: [
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									"data-uid": "src/pages/RaioX.tsx:90:13",
+									"data-prohibitions": "[]",
+									className: "text-[12px] font-bold text-slate-500 uppercase tracking-wider mb-4",
+									children: "Margem"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("h3", {
+									"data-uid": "src/pages/RaioX.tsx:93:13",
+									"data-prohibitions": "[]",
+									className: "text-3xl font-bold text-[#3b5bdb] mb-2",
+									children: "0,0 %"
+								}),
+								/* @__PURE__ */ (0, import_jsx_runtime.jsx)("p", {
+									"data-uid": "src/pages/RaioX.tsx:94:13",
+									"data-prohibitions": "[]",
+									className: "text-[13px] text-slate-500 font-medium",
+									children: "Lucratividade"
+								})
+							]
+						})
+					})
+				]
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+				"data-uid": "src/pages/RaioX.tsx:100:7",
+				"data-prohibitions": "[]",
+				className: "mt-10",
+				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Card, {
+					"data-uid": "src/pages/RaioX.tsx:101:9",
+					"data-prohibitions": "[]",
+					className: "shadow-sm border-slate-200/60 rounded-xl bg-white overflow-hidden",
+					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						"data-uid": "src/pages/RaioX.tsx:102:11",
+						"data-prohibitions": "[]",
+						className: "p-6 pb-4 border-b border-slate-100",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("h2", {
+							"data-uid": "src/pages/RaioX.tsx:103:13",
+							"data-prohibitions": "[]",
+							className: "text-[16px] font-semibold text-[#8d5b4c]",
+							children: "Evolução Financeira"
+						})
+					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+						"data-uid": "src/pages/RaioX.tsx:105:11",
+						"data-prohibitions": "[]",
+						className: "p-6",
+						children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+							"data-uid": "src/pages/RaioX.tsx:106:13",
+							"data-prohibitions": "[]",
+							className: "w-full h-full min-h-[400px] border border-dashed border-slate-200 rounded-xl flex items-end justify-center pb-6 bg-slate-50/30",
+							children: /* @__PURE__ */ (0, import_jsx_runtime.jsx)("div", {
+								"data-uid": "src/pages/RaioX.tsx:107:15",
+								"data-prohibitions": "[]",
+								className: "w-12 h-1.5 rounded-full bg-slate-400/60"
+							})
+						})
+					})]
+				})
+			})
+		]
+	});
+}
+//#endregion
 //#region src/App.tsx
 var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
-	"data-uid": "src/App.tsx:11:3",
+	"data-uid": "src/App.tsx:12:3",
 	"data-prohibitions": "[]",
 	future: {
 		v7_startTransition: false,
 		v7_relativeSplatPath: false
 	},
 	children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(TooltipProvider, {
-		"data-uid": "src/App.tsx:12:5",
+		"data-uid": "src/App.tsx:13:5",
 		"data-prohibitions": "[]",
 		children: [
 			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster$2, {
-				"data-uid": "src/App.tsx:13:7",
-				"data-prohibitions": "[editContent]"
-			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster, {
 				"data-uid": "src/App.tsx:14:7",
 				"data-prohibitions": "[editContent]"
 			}),
-			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Routes, {
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Toaster, {
 				"data-uid": "src/App.tsx:15:7",
+				"data-prohibitions": "[editContent]"
+			}),
+			/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Routes, {
+				"data-uid": "src/App.tsx:16:7",
 				"data-prohibitions": "[]",
 				children: /* @__PURE__ */ (0, import_jsx_runtime.jsxs)(Route, {
-					"data-uid": "src/App.tsx:16:9",
+					"data-uid": "src/App.tsx:17:9",
 					"data-prohibitions": "[]",
 					element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Layout, {
-						"data-uid": "src/App.tsx:16:25",
+						"data-uid": "src/App.tsx:17:25",
 						"data-prohibitions": "[editContent]"
 					}),
-					children: [/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-						"data-uid": "src/App.tsx:17:11",
-						"data-prohibitions": "[editContent]",
-						path: "/",
-						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Index, {
-							"data-uid": "src/App.tsx:17:36",
-							"data-prohibitions": "[editContent]"
+					children: [
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+							"data-uid": "src/App.tsx:18:11",
+							"data-prohibitions": "[editContent]",
+							path: "/",
+							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Index, {
+								"data-uid": "src/App.tsx:18:36",
+								"data-prohibitions": "[editContent]"
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+							"data-uid": "src/App.tsx:19:11",
+							"data-prohibitions": "[editContent]",
+							path: "/diario",
+							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Diario, {
+								"data-uid": "src/App.tsx:19:42",
+								"data-prohibitions": "[editContent]"
+							})
+						}),
+						/* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
+							"data-uid": "src/App.tsx:20:11",
+							"data-prohibitions": "[editContent]",
+							path: "/raio-x",
+							element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(RaioX, {
+								"data-uid": "src/App.tsx:20:42",
+								"data-prohibitions": "[editContent]"
+							})
 						})
-					}), /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Route, {
-						"data-uid": "src/App.tsx:18:11",
-						"data-prohibitions": "[editContent]",
-						path: "/diario",
-						element: /* @__PURE__ */ (0, import_jsx_runtime.jsx)(Diario, {
-							"data-uid": "src/App.tsx:18:42",
-							"data-prohibitions": "[editContent]"
-						})
-					})]
+					]
 				})
 			})
 		]
@@ -29375,4 +29671,4 @@ var App = () => /* @__PURE__ */ (0, import_jsx_runtime.jsx)(BrowserRouter, {
 }));
 //#endregion
 
-//# sourceMappingURL=index-CZlrI_ew.js.map
+//# sourceMappingURL=index-CyYGrP8G.js.map
