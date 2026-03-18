@@ -34,7 +34,7 @@ export default function Login() {
     const { error: signInError } = await signIn(email, password)
 
     if (signInError) {
-      setError('Credenciais inválidas. Verifique seu e-mail e senha.')
+      setError('Credenciais inválidas.')
       setLoading(false)
     } else {
       navigate('/')

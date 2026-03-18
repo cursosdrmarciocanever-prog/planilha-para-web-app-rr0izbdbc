@@ -3,12 +3,12 @@ import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase/client'
 import { Database } from '@/lib/supabase/types'
 
-type Usuario = Database['public']['Tables']['usuarios']['Row']
+type Profile = Database['public']['Tables']['profiles']['Row']
 
 interface AuthContextType {
   user: User | null
   session: Session | null
-  profile: Usuario | null
+  profile: Profile | null
   signIn: (email: string, password: string) => Promise<{ error: any }>
   signOut: () => Promise<{ error: any }>
   loading: boolean
@@ -25,7 +25,7 @@ export const useAuth = () => {
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [user, setUser] = useState<User | null>(null)
   const [session, setSession] = useState<Session | null>(null)
-  const [profile, setProfile] = useState<Usuario | null>(null)
+  const [profile, setProfile] = useState<Profile | null>(null)
   const [loadingSession, setLoadingSession] = useState(true)
   const [loadingProfile, setLoadingProfile] = useState(false)
 
@@ -52,7 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     if (user) {
       setLoadingProfile(true)
       supabase
-        .from('usuarios')
+        .from('profiles')
         .select('*')
         .eq('id', user.id)
         .single()
