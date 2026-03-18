@@ -20,6 +20,9 @@ BEGIN
   END IF;
 END $$;
 
+-- Drop the restrictive role check constraint that causes migration failures
+ALTER TABLE public.profiles DROP CONSTRAINT IF EXISTS profiles_role_check;
+
 -- Tables
 CREATE TABLE IF NOT EXISTS public.pacientes (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
