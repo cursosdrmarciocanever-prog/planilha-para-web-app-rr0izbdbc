@@ -5,7 +5,7 @@ import { format, eachDayOfInterval } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 export function useDashboardData(date: DateRange | undefined) {
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [metrics, setMetrics] = useState({
     faturamentoTotal: 0,
     totalPacientes: 0,
@@ -18,17 +18,23 @@ export function useDashboardData(date: DateRange | undefined) {
   }>({ faturamento: [], pacientes: [] })
 
   useEffect(() => {
+    let isMounted = true
+
     async function fetchData() {
       if (!date?.from || !date?.to) {
-        setMetrics({
-          faturamentoTotal: 0,
-          totalPacientes: 0,
-          bilheteria: 0,
-          margemLucro: 0,
-        })
-        setChartData({ faturamento: [], pacientes: [] })
+        if (isMounted) {
+          setMetrics({
+            faturamentoTotal: 0,
+            totalPacientes: 0,
+            bilheteria: 0,
+            margemLucro: 0,
+          })
+          setChartData({ faturamento: [], pacientes: [] })
+          setLoading(false)
+        }
         return
       }
+
       setLoading(true)
 
       const startIso = date.from.toISOString()
@@ -40,17 +46,12 @@ export function useDashboardData(date: DateRange | undefined) {
       const endDay = format(date.to, 'yyyy-MM-dd')
 
       try {
-        const [transacoesRes, despesasRes, pacientesRes, registrosRes] = await Promise.all([
+        const [transacoesRes, pacientesRes, registrosRes] = await Promise.all([
           supabase
             .from('transacoes')
             .select('id, valor, tipo, data, paciente_id')
             .gte('data', startIso)
             .lte('data', endIso),
-          supabase
-            .from('despesas')
-            .select('id, valor, data')
-            .gte('data', startDay)
-            .lte('data', endDay),
           supabase.from('pacientes').select('id', { count: 'exact', head: true }),
           supabase
             .from('registros_diarios')
@@ -59,7 +60,10 @@ export function useDashboardData(date: DateRange | undefined) {
             .lte('data', endDay),
         ])
 
+        if (!isMounted) return
+
         let faturamento = 0
+        let despesas = 0
         const faturamentoDia: Record<string, number> = {}
         const pacientesDia: Record<string, Set<string>> = {}
 
@@ -70,6 +74,8 @@ export function useDashboardData(date: DateRange | undefined) {
           if (t.tipo === 'entrada') {
             faturamento += val
             faturamentoDia[day] = (faturamentoDia[day] || 0) + val
+          } else if (t.tipo === 'saída') {
+            despesas += val
           }
 
           if (t.paciente_id) {
@@ -78,21 +84,18 @@ export function useDashboardData(date: DateRange | undefined) {
           }
         })
 
-        let totalDespesas = 0
-        ;(despesasRes.data || []).forEach((d) => {
-          totalDespesas += Number(d.valor)
-        })
-
         let bilheteriaVal = 0
         ;(registrosRes.data || []).forEach((r) => {
           bilheteriaVal += Number(r.bilheteria || 0)
         })
 
+        const margem = faturamento > 0 ? ((faturamento - despesas) / faturamento) * 100 : 0
+
         setMetrics({
           faturamentoTotal: faturamento,
           totalPacientes: pacientesRes.count || 0,
           bilheteria: bilheteriaVal,
-          margemLucro: faturamento > 0 ? ((faturamento - totalDespesas) / faturamento) * 100 : 0,
+          margemLucro: margem,
         })
 
         const interval = eachDayOfInterval({ start: date.from, end: date.to })
@@ -109,10 +112,15 @@ export function useDashboardData(date: DateRange | undefined) {
       } catch (err) {
         console.error('Dashboard error:', err)
       } finally {
-        setLoading(false)
+        if (isMounted) setLoading(false)
       }
     }
+
     fetchData()
+
+    return () => {
+      isMounted = false
+    }
   }, [date])
 
   return { metrics, chartData, loading }

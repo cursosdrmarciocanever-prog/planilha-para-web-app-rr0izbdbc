@@ -20,6 +20,7 @@ import { Bar, BarChart, CartesianGrid, XAxis, Tooltip, ResponsiveContainer } fro
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
+import { Skeleton } from '@/components/ui/skeleton'
 import { cn } from '@/lib/utils'
 import { useDashboardData } from '@/hooks/use-dashboard'
 
@@ -28,9 +29,10 @@ interface MetricCardProps {
   icon: LucideIcon
   value: string | number
   subtitle: string
+  loading?: boolean
 }
 
-function MetricCard({ title, icon: Icon, value, subtitle }: MetricCardProps) {
+function MetricCard({ title, icon: Icon, value, subtitle, loading }: MetricCardProps) {
   return (
     <Card className="shadow-sm border-border/60 rounded-2xl overflow-hidden hover:border-primary/50 transition-colors bg-card">
       <CardContent className="p-6">
@@ -42,7 +44,11 @@ function MetricCard({ title, icon: Icon, value, subtitle }: MetricCardProps) {
             <Icon className="w-5 h-5" />
           </div>
         </div>
-        <h3 className="text-4xl font-bold text-foreground mb-2">{value}</h3>
+        {loading ? (
+          <Skeleton className="h-10 w-32 mb-2" />
+        ) : (
+          <h3 className="text-4xl font-bold text-foreground mb-2">{value}</h3>
+        )}
         <p className="text-sm font-medium text-muted-foreground">{subtitle}</p>
       </CardContent>
     </Card>
@@ -55,39 +61,51 @@ interface ChartCardProps {
   dataKey: string
   color: string
   formatter?: (val: number) => string
+  loading?: boolean
 }
 
-function ChartCard({ title, data, dataKey, color, formatter }: ChartCardProps) {
+function ChartCard({ title, data, dataKey, color, formatter, loading }: ChartCardProps) {
   return (
-    <Card className="shadow-sm border-border/60 rounded-2xl bg-card">
+    <Card className="shadow-sm border-border/60 rounded-2xl bg-card flex flex-col">
       <CardHeader className="pb-4 pt-6 px-6">
         <CardTitle className="text-lg font-bold text-foreground">{title}</CardTitle>
       </CardHeader>
-      <CardContent className="px-6 pb-6">
+      <CardContent className="px-6 pb-6 flex-1">
         <div className="h-[300px] w-full">
-          <ChartContainer config={{ [dataKey]: { label: title, color } }} className="h-full w-full">
-            <ResponsiveContainer width="100%" height="100%">
-              <BarChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
-                <CartesianGrid vertical={false} strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis
-                  dataKey="name"
-                  tickLine={false}
-                  tickMargin={10}
-                  axisLine={false}
-                  fontSize={12}
-                />
-                <Tooltip
-                  content={
-                    <ChartTooltipContent
-                      formatter={formatter ? (val: any) => formatter(Number(val)) : undefined}
-                    />
-                  }
-                  cursor={{ fill: 'hsl(var(--muted)/0.5)' }}
-                />
-                <Bar dataKey={dataKey} fill={`var(--color-${dataKey})`} radius={[4, 4, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </ChartContainer>
+          {loading ? (
+            <Skeleton className="h-full w-full rounded-xl" />
+          ) : (
+            <ChartContainer
+              config={{ [dataKey]: { label: title, color } }}
+              className="h-full w-full"
+            >
+              <ResponsiveContainer width="100%" height="100%">
+                <BarChart data={data} margin={{ top: 10, right: 10, left: 10, bottom: 0 }}>
+                  <CartesianGrid
+                    vertical={false}
+                    strokeDasharray="3 3"
+                    stroke="hsl(var(--border))"
+                  />
+                  <XAxis
+                    dataKey="name"
+                    tickLine={false}
+                    tickMargin={10}
+                    axisLine={false}
+                    fontSize={12}
+                  />
+                  <Tooltip
+                    content={
+                      <ChartTooltipContent
+                        formatter={formatter ? (val: any) => formatter(Number(val)) : undefined}
+                      />
+                    }
+                    cursor={{ fill: 'hsl(var(--muted)/0.5)' }}
+                  />
+                  <Bar dataKey={dataKey} fill={`var(--color-${dataKey})`} radius={[4, 4, 0, 0]} />
+                </BarChart>
+              </ResponsiveContainer>
+            </ChartContainer>
+          )}
         </div>
       </CardContent>
     </Card>
@@ -100,7 +118,7 @@ export default function Index() {
     to: endOfMonth(new Date()),
   })
 
-  const { metrics, chartData } = useDashboardData(date)
+  const { metrics, chartData, loading } = useDashboardData(date)
 
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0)
@@ -210,24 +228,28 @@ export default function Index() {
             icon={DollarSign}
             value={formatCurrency(metrics.faturamentoTotal)}
             subtitle="Controle do período"
+            loading={loading}
           />
           <MetricCard
             title="Total de Pacientes"
             icon={Users}
             value={metrics.totalPacientes || 0}
             subtitle="Pacientes cadastrados"
+            loading={loading}
           />
           <MetricCard
             title="Bilheteria"
             icon={Target}
             value={formatCurrency(metrics.bilheteria)}
             subtitle="No período selecionado"
+            loading={loading}
           />
           <MetricCard
             title="Margem de Lucro"
             icon={TrendingUp}
             value={formatPercent(metrics.margemLucro)}
             subtitle="Receitas vs Despesas"
+            loading={loading}
           />
         </div>
       </div>
@@ -243,12 +265,14 @@ export default function Index() {
             dataKey="total"
             color="hsl(var(--primary))"
             formatter={(val: number) => formatCurrency(val)}
+            loading={loading}
           />
           <ChartCard
             title="Pacientes por dia"
             data={chartData.pacientes}
             dataKey="total"
             color="hsl(var(--primary))"
+            loading={loading}
           />
         </div>
       </div>
