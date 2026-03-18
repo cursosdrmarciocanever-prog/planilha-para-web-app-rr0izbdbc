@@ -78,7 +78,7 @@ export function useDashboardData(date: DateRange | undefined) {
 
           if (t.tipo === 'receita') {
             faturamento += val
-            faturamentoDia[day] = (faturamentoDia[day] || 0) + val
+            faturamentoDia[day] = (faturamentoDia[day] ?? 0) + val
           } else if (t.tipo === 'despesa') {
             despesasVal += val
           }
@@ -90,35 +90,39 @@ export function useDashboardData(date: DateRange | undefined) {
         })
 
         ;(despesasRes.data || []).forEach((d: any) => {
-          despesasVal += Number(d.valor || 0)
+          despesasVal += Number(d.valor ?? 0)
         })
 
         ;(ocupacoesRes.data || []).forEach((o: any) => {
-          bilheteriaVal += Number(o.valor_cobrado || 0)
+          bilheteriaVal += Number(o.valor_cobrado ?? 0)
         })
 
         const margem = faturamento > 0 ? ((faturamento - despesasVal) / faturamento) * 100 : 0
 
         setMetrics({
-          faturamentoTotal: faturamento || 0,
-          totalPacientes: pacientesRes.count || 0,
-          bilheteria: bilheteriaVal || 0,
-          margemLucro: margem || 0,
+          faturamentoTotal: faturamento ?? 0,
+          totalPacientes: pacientesRes.count ?? 0,
+          bilheteria: bilheteriaVal ?? 0,
+          margemLucro: margem ?? 0,
         })
 
         const interval = eachDayOfInterval({ start: date.from, end: date.to })
         setChartData({
           faturamento: interval.map((d) => ({
             name: format(d, 'dd/MM', { locale: ptBR }),
-            total: faturamentoDia[format(d, 'yyyy-MM-dd')] || 0,
+            total: faturamentoDia[format(d, 'yyyy-MM-dd')] ?? 0,
           })),
           pacientes: interval.map((d) => ({
             name: format(d, 'dd/MM', { locale: ptBR }),
-            total: pacientesDia[format(d, 'yyyy-MM-dd')]?.size || 0,
+            total: pacientesDia[format(d, 'yyyy-MM-dd')]?.size ?? 0,
           })),
         })
       } catch (err) {
         console.error('Dashboard error:', err)
+        // Ensure robust empty state if an error happens during fetch
+        if (isMounted) {
+          setMetrics({ faturamentoTotal: 0, totalPacientes: 0, bilheteria: 0, margemLucro: 0 })
+        }
       } finally {
         if (isMounted) setLoading(false)
       }

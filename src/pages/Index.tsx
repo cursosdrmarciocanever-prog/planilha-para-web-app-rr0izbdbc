@@ -120,11 +120,13 @@ export default function Index() {
 
   const { metrics, chartData, loading } = useDashboardData(date)
 
-  const formatCurrency = (val: number) =>
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0)
-  const formatPercent = (val: number) =>
+  // Robust formatting for empty states and null occurrences
+  const formatCurrency = (val: number | undefined | null) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val ?? 0)
+
+  const formatPercent = (val: number | undefined | null) =>
     new Intl.NumberFormat('pt-BR', { style: 'percent', maximumFractionDigits: 1 }).format(
-      (val || 0) / 100,
+      (val ?? 0) / 100,
     )
 
   return (
@@ -233,7 +235,7 @@ export default function Index() {
           <MetricCard
             title="Total de Pacientes"
             icon={Users}
-            value={metrics.totalPacientes || 0}
+            value={metrics.totalPacientes ?? 0}
             subtitle="Pacientes cadastrados"
             loading={loading}
           />

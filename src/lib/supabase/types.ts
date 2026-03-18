@@ -82,6 +82,33 @@ export type Database = {
           },
         ]
       }
+      despesas: {
+        Row: {
+          categoria: string | null
+          created_at: string | null
+          data_vencimento: string | null
+          id: string
+          status: string | null
+          valor: number
+        }
+        Insert: {
+          categoria?: string | null
+          created_at?: string | null
+          data_vencimento?: string | null
+          id?: string
+          status?: string | null
+          valor: number
+        }
+        Update: {
+          categoria?: string | null
+          created_at?: string | null
+          data_vencimento?: string | null
+          id?: string
+          status?: string | null
+          valor?: number
+        }
+        Relationships: []
+      }
       exames_laboratoriais: {
         Row: {
           arquivo_pdf_url: string | null
@@ -229,6 +256,105 @@ export type Database = {
           },
         ]
       }
+      ocupacao_salas: {
+        Row: {
+          created_at: string | null
+          horario_fim: string | null
+          horario_inicio: string | null
+          id: string
+          paciente_id: string | null
+          sala_id: string | null
+          valor_cobrado: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          horario_fim?: string | null
+          horario_inicio?: string | null
+          id?: string
+          paciente_id?: string | null
+          sala_id?: string | null
+          valor_cobrado?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          horario_fim?: string | null
+          horario_inicio?: string | null
+          id?: string
+          paciente_id?: string | null
+          sala_id?: string | null
+          valor_cobrado?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'ocupacao_salas_paciente_id_fkey'
+            columns: ['paciente_id']
+            isOneToOne: false
+            referencedRelation: 'pacientes'
+            referencedColumns: ['id']
+          },
+          {
+            foreignKeyName: 'ocupacao_salas_sala_id_fkey'
+            columns: ['sala_id']
+            isOneToOne: false
+            referencedRelation: 'salas'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      pacientes: {
+        Row: {
+          cpf: string | null
+          created_at: string | null
+          data_nascimento: string | null
+          email: string | null
+          id: string
+          nome: string
+          telefone: string | null
+        }
+        Insert: {
+          cpf?: string | null
+          created_at?: string | null
+          data_nascimento?: string | null
+          email?: string | null
+          id?: string
+          nome: string
+          telefone?: string | null
+        }
+        Update: {
+          cpf?: string | null
+          created_at?: string | null
+          data_nascimento?: string | null
+          email?: string | null
+          id?: string
+          nome?: string
+          telefone?: string | null
+        }
+        Relationships: []
+      }
+      produtos_servicos: {
+        Row: {
+          created_at: string | null
+          descricao: string | null
+          id: string
+          nome: string
+          preco: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          nome: string
+          preco?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          descricao?: string | null
+          id?: string
+          nome?: string
+          preco?: number | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -253,6 +379,77 @@ export type Database = {
           full_name?: string | null
           id?: string
           role?: string
+        }
+        Relationships: []
+      }
+      registros_diarios: {
+        Row: {
+          autor_id: string | null
+          bilheteria: number | null
+          conteudo: string | null
+          created_at: string | null
+          data: string
+          faturamento_total: number | null
+          id: string
+          total_consultas: number | null
+          total_servicos: number | null
+        }
+        Insert: {
+          autor_id?: string | null
+          bilheteria?: number | null
+          conteudo?: string | null
+          created_at?: string | null
+          data: string
+          faturamento_total?: number | null
+          id?: string
+          total_consultas?: number | null
+          total_servicos?: number | null
+        }
+        Update: {
+          autor_id?: string | null
+          bilheteria?: number | null
+          conteudo?: string | null
+          created_at?: string | null
+          data?: string
+          faturamento_total?: number | null
+          id?: string
+          total_consultas?: number | null
+          total_servicos?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'registros_diarios_autor_id_fkey'
+            columns: ['autor_id']
+            isOneToOne: false
+            referencedRelation: 'profiles'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      salas: {
+        Row: {
+          created_at: string | null
+          id: string
+          nome: string
+          status: string | null
+          taxa_dia: number | null
+          taxa_hora: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          nome: string
+          status?: string | null
+          taxa_dia?: number | null
+          taxa_hora?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          nome?: string
+          status?: string | null
+          taxa_dia?: number | null
+          taxa_hora?: number | null
         }
         Relationships: []
       }
@@ -325,6 +522,44 @@ export type Database = {
             columns: ['gestante_id']
             isOneToOne: false
             referencedRelation: 'gestantes'
+            referencedColumns: ['id']
+          },
+        ]
+      }
+      transacoes: {
+        Row: {
+          created_at: string | null
+          data: string
+          descricao: string | null
+          id: string
+          paciente_id: string | null
+          tipo: string
+          valor: number
+        }
+        Insert: {
+          created_at?: string | null
+          data: string
+          descricao?: string | null
+          id?: string
+          paciente_id?: string | null
+          tipo: string
+          valor: number
+        }
+        Update: {
+          created_at?: string | null
+          data?: string
+          descricao?: string | null
+          id?: string
+          paciente_id?: string | null
+          tipo?: string
+          valor?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'transacoes_paciente_id_fkey'
+            columns: ['paciente_id']
+            isOneToOne: false
+            referencedRelation: 'pacientes'
             referencedColumns: ['id']
           },
         ]
@@ -529,6 +764,13 @@ export const Constants = {
 //   arquivo_pdf_url: text (nullable)
 //   proxima_consulta_agendada: timestamp without time zone (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: despesas
+//   id: uuid (not null, default: gen_random_uuid())
+//   categoria: text (nullable)
+//   valor: numeric (not null)
+//   data_vencimento: date (nullable)
+//   status: text (nullable)
+//   created_at: timestamp with time zone (nullable, default: now())
 // Table: exames_laboratoriais
 //   id: uuid (not null, default: gen_random_uuid())
 //   gestante_id: uuid (nullable)
@@ -562,6 +804,28 @@ export const Constants = {
 //   nome_medicamento: text (nullable)
 //   dosagem: text (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: ocupacao_salas
+//   id: uuid (not null, default: gen_random_uuid())
+//   sala_id: uuid (nullable)
+//   paciente_id: uuid (nullable)
+//   horario_inicio: timestamp with time zone (nullable)
+//   horario_fim: timestamp with time zone (nullable)
+//   valor_cobrado: numeric (nullable, default: 0)
+//   created_at: timestamp with time zone (nullable, default: now())
+// Table: pacientes
+//   id: uuid (not null, default: gen_random_uuid())
+//   nome: text (not null)
+//   cpf: text (nullable)
+//   telefone: text (nullable)
+//   email: text (nullable)
+//   data_nascimento: date (nullable)
+//   created_at: timestamp with time zone (nullable, default: now())
+// Table: produtos_servicos
+//   id: uuid (not null, default: gen_random_uuid())
+//   nome: text (not null)
+//   descricao: text (nullable)
+//   preco: numeric (nullable)
+//   created_at: timestamp with time zone (nullable, default: now())
 // Table: profiles
 //   id: uuid (not null)
 //   email: text (not null)
@@ -569,6 +833,23 @@ export const Constants = {
 //   full_name: text (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
 //   avatar_url: text (nullable)
+// Table: registros_diarios
+//   id: uuid (not null, default: gen_random_uuid())
+//   data: date (not null)
+//   conteudo: text (nullable)
+//   autor_id: uuid (nullable)
+//   faturamento_total: numeric (nullable, default: 0)
+//   total_consultas: integer (nullable, default: 0)
+//   total_servicos: integer (nullable, default: 0)
+//   bilheteria: numeric (nullable, default: 0)
+//   created_at: timestamp with time zone (nullable, default: now())
+// Table: salas
+//   id: uuid (not null, default: gen_random_uuid())
+//   nome: text (not null)
+//   status: text (nullable)
+//   taxa_hora: numeric (nullable, default: 0)
+//   taxa_dia: numeric (nullable, default: 0)
+//   created_at: timestamp with time zone (nullable, default: now())
 // Table: sintomas_observacoes
 //   id: uuid (not null, default: gen_random_uuid())
 //   gestante_id: uuid (nullable)
@@ -584,6 +865,14 @@ export const Constants = {
 //   data_inicio: date (nullable)
 //   observacoes: text (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: transacoes
+//   id: uuid (not null, default: gen_random_uuid())
+//   tipo: text (not null)
+//   valor: numeric (not null)
+//   data: date (not null)
+//   descricao: text (nullable)
+//   paciente_id: uuid (nullable)
+//   created_at: timestamp with time zone (nullable, default: now())
 // Table: ultrassons
 //   id: uuid (not null, default: gen_random_uuid())
 //   gestante_id: uuid (nullable)
@@ -602,6 +891,8 @@ export const Constants = {
 // Table: consultas
 //   FOREIGN KEY consultas_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
 //   PRIMARY KEY consultas_pkey: PRIMARY KEY (id)
+// Table: despesas
+//   PRIMARY KEY despesas_pkey: PRIMARY KEY (id)
 // Table: exames_laboratoriais
 //   FOREIGN KEY exames_laboratoriais_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
 //   PRIMARY KEY exames_laboratoriais_pkey: PRIMARY KEY (id)
@@ -615,16 +906,31 @@ export const Constants = {
 // Table: medicamentos
 //   FOREIGN KEY medicamentos_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
 //   PRIMARY KEY medicamentos_pkey: PRIMARY KEY (id)
+// Table: ocupacao_salas
+//   FOREIGN KEY ocupacao_salas_paciente_id_fkey: FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE SET NULL
+//   PRIMARY KEY ocupacao_salas_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY ocupacao_salas_sala_id_fkey: FOREIGN KEY (sala_id) REFERENCES salas(id) ON DELETE CASCADE
+// Table: pacientes
+//   PRIMARY KEY pacientes_pkey: PRIMARY KEY (id)
+// Table: produtos_servicos
+//   PRIMARY KEY produtos_servicos_pkey: PRIMARY KEY (id)
 // Table: profiles
 //   FOREIGN KEY profiles_id_fkey: FOREIGN KEY (id) REFERENCES auth.users(id) ON DELETE CASCADE
 //   PRIMARY KEY profiles_pkey: PRIMARY KEY (id)
-//   CHECK profiles_role_check: CHECK ((role = ANY (ARRAY['gestante'::text, 'medica'::text, 'familiar'::text, 'admin'::text])))
+// Table: registros_diarios
+//   FOREIGN KEY registros_diarios_autor_id_fkey: FOREIGN KEY (autor_id) REFERENCES profiles(id) ON DELETE SET NULL
+//   PRIMARY KEY registros_diarios_pkey: PRIMARY KEY (id)
+// Table: salas
+//   PRIMARY KEY salas_pkey: PRIMARY KEY (id)
 // Table: sintomas_observacoes
 //   FOREIGN KEY sintomas_observacoes_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
 //   PRIMARY KEY sintomas_observacoes_pkey: PRIMARY KEY (id)
 // Table: suplementos
 //   FOREIGN KEY suplementos_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
 //   PRIMARY KEY suplementos_pkey: PRIMARY KEY (id)
+// Table: transacoes
+//   FOREIGN KEY transacoes_paciente_id_fkey: FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE SET NULL
+//   PRIMARY KEY transacoes_pkey: PRIMARY KEY (id)
 // Table: ultrassons
 //   FOREIGN KEY ultrassons_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
 //   PRIMARY KEY ultrassons_pkey: PRIMARY KEY (id)
@@ -644,6 +950,10 @@ export const Constants = {
 //     WITH CHECK: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = consultas.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
 //   Policy "Medica UPDATE consultas" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = consultas.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
+// Table: despesas
+//   Policy "Allow authenticated users full access on despesas" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: exames_laboratoriais
 //   Policy "Gestante ALL exames_laboratoriais" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: ((EXISTS ( SELECT 1    FROM gestantes g   WHERE ((g.id = exames_laboratoriais.gestante_id) AND (g.user_id = auth.uid())))) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
@@ -672,11 +982,34 @@ export const Constants = {
 //     WITH CHECK: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = medicamentos.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
 //   Policy "Medica UPDATE medicamentos" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = medicamentos.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
+// Table: ocupacao_salas
+//   Policy "Allow authenticated users full access on ocupacao_salas" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: pacientes
+//   Policy "Allow authenticated users full access on pacientes" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: produtos_servicos
+//   Policy "Allow authenticated users full access on produtos_servicos" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: profiles
+//   Policy "Allow authenticated users full access on profiles" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 //   Policy "Users update own profile" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: ((auth.uid() = id) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
 //   Policy "Users view own profile" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: ((auth.uid() = id) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
+// Table: registros_diarios
+//   Policy "Allow authenticated users full access on registros_diarios" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: salas
+//   Policy "Allow authenticated users full access on salas" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: sintomas_observacoes
 //   Policy "Gestante ALL sintomas_observacoes" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: ((EXISTS ( SELECT 1    FROM gestantes g   WHERE ((g.id = sintomas_observacoes.gestante_id) AND (g.user_id = auth.uid())))) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
@@ -695,6 +1028,10 @@ export const Constants = {
 //     WITH CHECK: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = suplementos.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
 //   Policy "Medica UPDATE suplementos" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = suplementos.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
+// Table: transacoes
+//   Policy "Allow authenticated users full access on transacoes" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: ultrassons
 //   Policy "Gestante ALL ultrassons" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: ((EXISTS ( SELECT 1    FROM gestantes g   WHERE ((g.id = ultrassons.gestante_id) AND (g.user_id = auth.uid())))) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
