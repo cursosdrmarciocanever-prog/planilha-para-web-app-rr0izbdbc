@@ -1,8 +1,18 @@
 import { supabase } from '@/lib/supabase/client'
-import { Database } from '@/lib/supabase/types'
 
-export type RegistroDiario = Database['public']['Tables']['registros_diarios']['Row']
-export type InsertRegistroDiario = Database['public']['Tables']['registros_diarios']['Insert']
+export interface RegistroDiario {
+  id: string
+  data: string
+  conteudo?: string
+  autor_id?: string
+  faturamento_total: number
+  total_consultas: number
+  total_servicos: number
+  bilheteria: number
+  created_at: string
+}
+
+export type InsertRegistroDiario = Partial<Omit<RegistroDiario, 'id' | 'created_at'>>
 
 export const getRegistros = async (startDate?: Date, endDate?: Date) => {
   let query = supabase.from('registros_diarios').select('*').order('data', { ascending: false })
@@ -19,7 +29,7 @@ export const getRegistros = async (startDate?: Date, endDate?: Date) => {
 
   const { data, error } = await query
   if (error) throw error
-  return data as RegistroDiario[]
+  return data as unknown as RegistroDiario[]
 }
 
 export const createRegistro = async (registro: InsertRegistroDiario) => {
@@ -30,5 +40,5 @@ export const createRegistro = async (registro: InsertRegistroDiario) => {
     .single()
 
   if (error) throw error
-  return data as RegistroDiario
+  return data as unknown as RegistroDiario
 }

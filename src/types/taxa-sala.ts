@@ -1,6 +1,7 @@
 export interface Sala {
-  id: number
+  id: string
   nome: string
+  status: string
   taxa_hora: number
   taxa_dia: number
   created_at: string
@@ -12,11 +13,11 @@ export interface Paciente {
 }
 
 export interface Ocupacao {
-  id: number
-  sala_id: number
+  id: string
+  sala_id: string
   paciente_id: string | null
-  data_inicio: string
-  data_fim: string
+  horario_inicio: string
+  horario_fim: string
   valor_cobrado: number
   created_at: string
   sala?: Sala

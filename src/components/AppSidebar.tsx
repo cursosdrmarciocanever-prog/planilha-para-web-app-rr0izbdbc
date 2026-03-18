@@ -107,12 +107,16 @@ export function AppSidebar() {
           <div className="flex items-center gap-3">
             <Avatar className="h-10 w-10 bg-primary/20 text-primary rounded-full shrink-0 border border-primary/20">
               <AvatarFallback className="bg-transparent text-primary text-sm font-bold">
-                {profile?.nome ? getUserInitials(profile.nome) : <User className="w-5 h-5" />}
+                {profile?.full_name ? (
+                  getUserInitials(profile.full_name)
+                ) : (
+                  <User className="w-5 h-5" />
+                )}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col overflow-hidden">
               <span className="text-sm font-semibold text-foreground truncate">
-                {profile?.nome || 'Usuário'}
+                {profile?.full_name || 'Usuário'}
               </span>
               <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground truncate mt-0.5">
                 {formatRole(profile?.role)}

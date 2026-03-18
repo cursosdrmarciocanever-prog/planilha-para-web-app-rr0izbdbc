@@ -37,45 +37,50 @@ export function useDashboardData(date: DateRange | undefined) {
 
       setLoading(true)
 
-      const startIso = date.from.toISOString()
-      const endDateStr = new Date(date.to)
-      endDateStr.setHours(23, 59, 59, 999)
-      const endIso = endDateStr.toISOString()
-
       const startDay = format(date.from, 'yyyy-MM-dd')
       const endDay = format(date.to, 'yyyy-MM-dd')
 
       try {
-        const [transacoesRes, pacientesRes, registrosRes] = await Promise.all([
+        const [transacoesRes, pacientesRes, ocupacoesRes, despesasRes] = await Promise.all([
           supabase
             .from('transacoes')
             .select('id, valor, tipo, data, paciente_id')
-            .gte('data', startIso)
-            .lte('data', endIso),
-          supabase.from('pacientes').select('id', { count: 'exact', head: true }),
-          supabase
-            .from('registros_diarios')
-            .select('bilheteria, data')
             .gte('data', startDay)
             .lte('data', endDay),
+          supabase.from('pacientes').select('id', { count: 'exact', head: true }),
+          supabase
+            .from('ocupacao_salas')
+            .select('id, valor_cobrado, horario_inicio')
+            .gte('horario_inicio', date.from.toISOString())
+            .lte(
+              'horario_inicio',
+              new Date(new Date(date.to).setHours(23, 59, 59, 999)).toISOString(),
+            ),
+          supabase
+            .from('despesas')
+            .select('id, valor')
+            .gte('data_vencimento', startDay)
+            .lte('data_vencimento', endDay),
         ])
 
         if (!isMounted) return
 
         let faturamento = 0
-        let despesas = 0
+        let despesasVal = 0
+        let bilheteriaVal = 0
+
         const faturamentoDia: Record<string, number> = {}
         const pacientesDia: Record<string, Set<string>> = {}
 
-        ;(transacoesRes.data || []).forEach((t) => {
+        ;(transacoesRes.data || []).forEach((t: any) => {
           const val = Number(t.valor)
-          const day = format(new Date(t.data), 'yyyy-MM-dd')
+          const day = t.data // format is yyyy-MM-dd
 
-          if (t.tipo === 'entrada') {
+          if (t.tipo === 'receita') {
             faturamento += val
             faturamentoDia[day] = (faturamentoDia[day] || 0) + val
-          } else if (t.tipo === 'saída') {
-            despesas += val
+          } else if (t.tipo === 'despesa') {
+            despesasVal += val
           }
 
           if (t.paciente_id) {
@@ -84,18 +89,21 @@ export function useDashboardData(date: DateRange | undefined) {
           }
         })
 
-        let bilheteriaVal = 0
-        ;(registrosRes.data || []).forEach((r) => {
-          bilheteriaVal += Number(r.bilheteria || 0)
+        ;(despesasRes.data || []).forEach((d: any) => {
+          despesasVal += Number(d.valor || 0)
         })
 
-        const margem = faturamento > 0 ? ((faturamento - despesas) / faturamento) * 100 : 0
+        ;(ocupacoesRes.data || []).forEach((o: any) => {
+          bilheteriaVal += Number(o.valor_cobrado || 0)
+        })
+
+        const margem = faturamento > 0 ? ((faturamento - despesasVal) / faturamento) * 100 : 0
 
         setMetrics({
-          faturamentoTotal: faturamento,
+          faturamentoTotal: faturamento || 0,
           totalPacientes: pacientesRes.count || 0,
-          bilheteria: bilheteriaVal,
-          margemLucro: margem,
+          bilheteria: bilheteriaVal || 0,
+          margemLucro: margem || 0,
         })
 
         const interval = eachDayOfInterval({ start: date.from, end: date.to })

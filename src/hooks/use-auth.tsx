@@ -1,9 +1,15 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from 'react'
 import { User, Session } from '@supabase/supabase-js'
 import { supabase } from '@/lib/supabase/client'
-import { Database } from '@/lib/supabase/types'
 
-type Profile = Database['public']['Tables']['profiles']['Row']
+export interface Profile {
+  id: string
+  email: string
+  full_name: string | null
+  role: string
+  avatar_url?: string | null
+  created_at?: string
+}
 
 interface AuthContextType {
   user: User | null
@@ -59,7 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         .then(({ data, error }) => {
           if (mounted) {
             if (!error && data) {
-              setProfile(data)
+              setProfile(data as Profile)
             } else {
               setProfile(null)
             }
