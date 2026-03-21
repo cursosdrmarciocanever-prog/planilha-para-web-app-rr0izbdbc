@@ -1,12 +1,13 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback, useMemo } from 'react'
 import { startOfMonth, endOfMonth } from 'date-fns'
 import { DateRange } from 'react-day-picker'
-import { CalendarDays, Wallet, Building2 } from 'lucide-react'
+import { CalendarDays, Wallet, Building2, AlertCircle } from 'lucide-react'
 import { DatePickerWithRange } from '@/components/ui/date-range-picker'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { getOcupacoes } from '@/services/taxa-sala'
 import { Ocupacao } from '@/types/taxa-sala'
 
@@ -17,39 +18,51 @@ export default function Dashboard() {
   })
   const [ocupacoes, setOcupacoes] = useState<Ocupacao[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    loadData()
-  }, [date])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       const from = date?.from ? date.from.toISOString() : undefined
-      const to = date?.to ? date.to.toISOString() : undefined
+      let to = undefined
+      if (date?.to) {
+        const toDate = new Date(date.to)
+        toDate.setHours(23, 59, 59, 999)
+        to = toDate.toISOString()
+      }
       const data = await getOcupacoes(from, to)
       setOcupacoes(data)
     } catch (e) {
-      console.error(e)
+      setError(
+        'Não foi possível carregar os dados de ocupação. Verifique sua conexão e tente novamente.',
+      )
     } finally {
       setLoading(false)
     }
-  }
+  }, [date])
 
-  const receitaTotal = ocupacoes.reduce((acc, o) => acc + Number(o.valor_cobrado), 0)
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
-  const receitaPorSalaMap = ocupacoes.reduce(
-    (acc, o) => {
+  const { receitaTotal, chartData } = useMemo(() => {
+    let total = 0
+    const receitaMap: Record<string, number> = {}
+
+    ocupacoes.forEach((o) => {
+      const val = Number(o.valor_cobrado || 0)
+      total += val
       const nome = o.sala?.nome || 'Desconhecida'
-      acc[nome] = (acc[nome] || 0) + Number(o.valor_cobrado)
-      return acc
-    },
-    {} as Record<string, number>,
-  )
+      receitaMap[nome] = (receitaMap[nome] || 0) + val
+    })
 
-  const chartData = Object.entries(receitaPorSalaMap)
-    .map(([name, value]) => ({ name, value }))
-    .sort((a, b) => b.value - a.value)
+    const chart = Object.entries(receitaMap)
+      .map(([name, value]) => ({ name, value }))
+      .sort((a, b) => b.value - a.value)
+
+    return { receitaTotal: total, chartData: chart }
+  }, [ocupacoes])
 
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)
@@ -67,6 +80,17 @@ export default function Dashboard() {
           <DatePickerWithRange date={date} setDate={setDate} />
         </div>
       </div>
+
+      {error && (
+        <Alert
+          variant="destructive"
+          className="bg-destructive/5 text-destructive border-destructive/20 rounded-2xl"
+        >
+          <AlertCircle className="h-5 w-5" />
+          <AlertTitle className="font-semibold">Erro no carregamento</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
         <Card className="shadow-sm border-border/60 rounded-3xl overflow-hidden relative">

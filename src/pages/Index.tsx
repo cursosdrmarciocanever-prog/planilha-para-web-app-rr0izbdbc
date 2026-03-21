@@ -8,6 +8,7 @@ import {
   Target,
   TrendingUp,
   LucideIcon,
+  AlertCircle,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -21,6 +22,7 @@ import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { Calendar } from '@/components/ui/calendar'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { cn } from '@/lib/utils'
 import { useDashboardData } from '@/hooks/use-dashboard'
 
@@ -118,9 +120,8 @@ export default function Index() {
     to: endOfMonth(new Date()),
   })
 
-  const { metrics, chartData, loading } = useDashboardData(date)
+  const { metrics, chartData, loading, error } = useDashboardData(date)
 
-  // Robust formatting for empty states and null occurrences
   const formatCurrency = (val: number | undefined | null) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val ?? 0)
 
@@ -198,6 +199,17 @@ export default function Index() {
             : 'Período inválido'}
         </Badge>
       </div>
+
+      {error && (
+        <Alert
+          variant="destructive"
+          className="mb-10 bg-destructive/5 text-destructive border-destructive/20 rounded-xl"
+        >
+          <AlertCircle className="h-5 w-5" />
+          <AlertTitle className="font-semibold text-base">Falha de Comunicação</AlertTitle>
+          <AlertDescription className="mt-1">{error}</AlertDescription>
+        </Alert>
+      )}
 
       <div className="mb-10">
         <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">

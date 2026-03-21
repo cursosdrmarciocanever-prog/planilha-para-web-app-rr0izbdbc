@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Building2, Plus, Trash2, Loader2 } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Building2, Plus, Trash2, Loader2, AlertCircle } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import {
@@ -20,32 +20,39 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { getSalas, addSala, deleteSala } from '@/services/taxa-sala'
 import { Sala } from '@/types/taxa-sala'
-import { toast } from '@/hooks/use-toast'
+import { useToast } from '@/hooks/use-toast'
 
 export default function SalaManager() {
   const [salas, setSalas] = useState<Sala[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formData, setFormData] = useState({ nome: '', taxa_hora: '', taxa_dia: '' })
+  const { toast } = useToast()
 
-  useEffect(() => {
-    loadSalas()
-  }, [])
-
-  const loadSalas = async () => {
+  const loadSalas = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       const data = await getSalas()
       setSalas(data)
     } catch (e) {
-      toast({ title: 'Erro', description: 'Erro ao carregar salas', variant: 'destructive' })
+      setError(
+        'Não foi possível carregar a lista de salas. Verifique sua conexão e tente novamente.',
+      )
+      toast({ title: 'Erro', description: 'Falha ao buscar dados', variant: 'destructive' })
     } finally {
       setLoading(false)
     }
-  }
+  }, [toast])
+
+  useEffect(() => {
+    loadSalas()
+  }, [loadSalas])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -61,13 +68,17 @@ export default function SalaManager() {
       loadSalas()
       setFormData({ nome: '', taxa_hora: '', taxa_dia: '' })
     } catch (e) {
-      toast({ title: 'Erro', description: 'Não foi possível salvar', variant: 'destructive' })
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível salvar a sala.',
+        variant: 'destructive',
+      })
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Tem certeza que deseja excluir esta sala?')) return
     try {
       await deleteSala(id)
@@ -157,6 +168,17 @@ export default function SalaManager() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {error && (
+        <Alert
+          variant="destructive"
+          className="bg-destructive/5 text-destructive border-destructive/20 rounded-2xl"
+        >
+          <AlertCircle className="h-5 w-5" />
+          <AlertTitle className="font-semibold">Erro de Comunicação</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       <Card className="rounded-2xl shadow-sm border border-border/80 overflow-hidden">
         <Table>

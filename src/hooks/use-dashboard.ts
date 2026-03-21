@@ -6,6 +6,7 @@ import { ptBR } from 'date-fns/locale'
 
 export function useDashboardData(date: DateRange | undefined) {
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [metrics, setMetrics] = useState({
     faturamentoTotal: 0,
     totalPacientes: 0,
@@ -23,19 +24,16 @@ export function useDashboardData(date: DateRange | undefined) {
     async function fetchData() {
       if (!date?.from || !date?.to) {
         if (isMounted) {
-          setMetrics({
-            faturamentoTotal: 0,
-            totalPacientes: 0,
-            bilheteria: 0,
-            margemLucro: 0,
-          })
+          setMetrics({ faturamentoTotal: 0, totalPacientes: 0, bilheteria: 0, margemLucro: 0 })
           setChartData({ faturamento: [], pacientes: [] })
           setLoading(false)
+          setError(null)
         }
         return
       }
 
       setLoading(true)
+      setError(null)
 
       const startDay = format(date.from, 'yyyy-MM-dd')
       const endDay = format(date.to, 'yyyy-MM-dd')
@@ -64,6 +62,11 @@ export function useDashboardData(date: DateRange | undefined) {
         ])
 
         if (!isMounted) return
+
+        if (transacoesRes.error) throw transacoesRes.error
+        if (pacientesRes.error) throw pacientesRes.error
+        if (ocupacoesRes.error) throw ocupacoesRes.error
+        if (despesasRes.error) throw despesasRes.error
 
         let faturamento = 0
         let despesasVal = 0
@@ -119,9 +122,12 @@ export function useDashboardData(date: DateRange | undefined) {
         })
       } catch (err) {
         console.error('Dashboard error:', err)
-        // Ensure robust empty state if an error happens during fetch
         if (isMounted) {
+          setError(
+            'Não foi possível carregar os dados do painel. Verifique sua conexão ou tente novamente mais tarde.',
+          )
           setMetrics({ faturamentoTotal: 0, totalPacientes: 0, bilheteria: 0, margemLucro: 0 })
+          setChartData({ faturamento: [], pacientes: [] })
         }
       } finally {
         if (isMounted) setLoading(false)
@@ -135,5 +141,5 @@ export function useDashboardData(date: DateRange | undefined) {
     }
   }, [date])
 
-  return { metrics, chartData, loading }
+  return { metrics, chartData, loading, error }
 }

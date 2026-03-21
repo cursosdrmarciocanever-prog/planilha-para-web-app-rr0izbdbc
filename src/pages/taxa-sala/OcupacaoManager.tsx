@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react'
-import { Plus, Trash2, CalendarDays, Loader2, Clock } from 'lucide-react'
+import { useState, useEffect, useCallback } from 'react'
+import { Plus, Trash2, CalendarDays, Loader2, Clock, AlertCircle } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Button } from '@/components/ui/button'
@@ -29,6 +29,7 @@ import {
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
 import { Skeleton } from '@/components/ui/skeleton'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import {
   getOcupacoes,
   addOcupacao,
@@ -37,15 +38,17 @@ import {
   getPacientesSimples,
 } from '@/services/taxa-sala'
 import { Ocupacao, Sala, Paciente } from '@/types/taxa-sala'
-import { toast } from '@/hooks/use-toast'
+import { useToast } from '@/hooks/use-toast'
 
 export default function OcupacaoManager() {
   const [ocupacoes, setOcupacoes] = useState<Ocupacao[]>([])
   const [salas, setSalas] = useState<Sala[]>([])
   const [pacientes, setPacientes] = useState<Paciente[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [open, setOpen] = useState(false)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const { toast } = useToast()
 
   const [formData, setFormData] = useState({
     sala_id: '',
@@ -55,12 +58,9 @@ export default function OcupacaoManager() {
     valor_cobrado: '',
   })
 
-  useEffect(() => {
-    loadData()
-  }, [])
-
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true)
+    setError(null)
     try {
       const [ocupData, salasData, pacData] = await Promise.all([
         getOcupacoes(),
@@ -71,11 +71,16 @@ export default function OcupacaoManager() {
       setSalas(salasData)
       setPacientes(pacData)
     } catch (e) {
+      setError('Falha ao obter os registros de ocupação ou dependências. Verifique sua conexão.')
       toast({ title: 'Erro', description: 'Erro ao carregar dados', variant: 'destructive' })
     } finally {
       setLoading(false)
     }
-  }
+  }, [toast])
+
+  useEffect(() => {
+    loadData()
+  }, [loadData])
 
   const handleAutoCalc = () => {
     if (!formData.sala_id || !formData.data_inicio || !formData.data_fim) return
@@ -95,7 +100,7 @@ export default function OcupacaoManager() {
       const pId =
         formData.paciente_id && formData.paciente_id !== 'none' ? formData.paciente_id : null
       await addOcupacao({
-        sala_id: Number(formData.sala_id),
+        sala_id: formData.sala_id,
         paciente_id: pId,
         data_inicio: new Date(formData.data_inicio).toISOString(),
         data_fim: new Date(formData.data_fim).toISOString(),
@@ -112,20 +117,28 @@ export default function OcupacaoManager() {
         valor_cobrado: '',
       })
     } catch (e) {
-      toast({ title: 'Erro', description: 'Não foi possível salvar', variant: 'destructive' })
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível salvar o registro.',
+        variant: 'destructive',
+      })
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = async (id: string) => {
     if (!confirm('Deseja excluir esta ocupação?')) return
     try {
       await deleteOcupacao(id)
       loadData()
       toast({ title: 'Sucesso', description: 'Ocupação excluída com sucesso.' })
     } catch (e) {
-      toast({ title: 'Erro', description: 'Não foi possível excluir', variant: 'destructive' })
+      toast({
+        title: 'Erro',
+        description: 'Não foi possível excluir o registro.',
+        variant: 'destructive',
+      })
     }
   }
 
@@ -237,6 +250,17 @@ export default function OcupacaoManager() {
           </DialogContent>
         </Dialog>
       </div>
+
+      {error && (
+        <Alert
+          variant="destructive"
+          className="bg-destructive/5 text-destructive border-destructive/20 rounded-2xl"
+        >
+          <AlertCircle className="h-5 w-5" />
+          <AlertTitle className="font-semibold">Erro de Comunicação</AlertTitle>
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
       <Card className="rounded-2xl shadow-sm border border-border/80 overflow-hidden">
         <Table>

@@ -2,16 +2,33 @@ import { supabase } from '@/lib/supabase/client'
 import { Sala, Ocupacao, Paciente } from '@/types/taxa-sala'
 import { logAction } from './audit'
 
-export const getSalas = async () => {
+// Cache em memória para otimização de renderização de abas
+let salasCache: Sala[] | null = null
+let pacientesCache: Paciente[] | null = null
+
+export const clearSalasCache = () => {
+  salasCache = null
+}
+
+export const clearPacientesCache = () => {
+  pacientesCache = null
+}
+
+export const getSalas = async (forceRefresh = false) => {
+  if (salasCache && !forceRefresh) return salasCache
+
   const { data, error } = await supabase.from('salas').select('*').order('nome')
   if (error) throw error
-  return data as unknown as Sala[]
+
+  salasCache = data as unknown as Sala[]
+  return salasCache
 }
 
 export const addSala = async (sala: Partial<Sala>) => {
   const { data, error } = await supabase.from('salas').insert(sala).select().single()
   if (error) throw error
 
+  clearSalasCache()
   await logAction(`Criou sala: ${sala.nome}`, 'sala', data.id)
   return data as unknown as Sala
 }
@@ -20,6 +37,7 @@ export const deleteSala = async (id: string) => {
   const { error } = await supabase.from('salas').delete().eq('id', id)
   if (error) throw error
 
+  clearSalasCache()
   await logAction('Excluiu sala', 'sala', id)
 }
 
@@ -58,8 +76,12 @@ export const deleteOcupacao = async (id: string) => {
   await logAction('Excluiu registro de ocupação', 'ocupacao', id)
 }
 
-export const getPacientesSimples = async () => {
+export const getPacientesSimples = async (forceRefresh = false) => {
+  if (pacientesCache && !forceRefresh) return pacientesCache
+
   const { data, error } = await supabase.from('pacientes').select('id, nome').order('nome')
   if (error) throw error
-  return data as unknown as Paciente[]
+
+  pacientesCache = data as unknown as Paciente[]
+  return pacientesCache
 }
