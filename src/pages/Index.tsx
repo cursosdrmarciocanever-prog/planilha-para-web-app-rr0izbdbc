@@ -13,7 +13,6 @@ import {
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
 import { DateRange } from 'react-day-picker'
 import { startOfMonth, endOfMonth, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -216,30 +215,6 @@ export default function Index() {
       )}
 
       <div className="mb-10">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 print:hidden">
-          <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
-            Principais Indicadores
-          </h2>
-          <ToggleGroup
-            type="single"
-            defaultValue="todos"
-            className="bg-card border border-border p-1 rounded-full shadow-sm"
-          >
-            <ToggleGroupItem
-              value="todos"
-              className="data-[state=on]:bg-secondary data-[state=on]:text-foreground rounded-full px-6 text-sm h-9 font-medium text-muted-foreground"
-            >
-              Todos
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="consultas"
-              className="data-[state=on]:bg-secondary data-[state=on]:text-foreground rounded-full px-6 text-sm h-9 font-medium text-muted-foreground"
-            >
-              Consultas
-            </ToggleGroupItem>
-          </ToggleGroup>
-        </div>
-
         <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
           <MetricCard
             title="Faturamento Total"
@@ -249,10 +224,10 @@ export default function Index() {
             loading={loading}
           />
           <MetricCard
-            title="Total de Pacientes"
+            title="Novos Pacientes"
             icon={Users}
             value={metrics.totalPacientes ?? 0}
-            subtitle="Pacientes cadastrados"
+            subtitle="Cadastrados no período"
             loading={loading}
           />
           <MetricCard

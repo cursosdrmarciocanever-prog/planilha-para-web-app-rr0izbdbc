@@ -117,6 +117,7 @@ export type Database = {
           categoria: string | null
           created_at: string | null
           data_vencimento: string | null
+          descricao: string | null
           id: string
           status: string | null
           valor: number
@@ -125,6 +126,7 @@ export type Database = {
           categoria?: string | null
           created_at?: string | null
           data_vencimento?: string | null
+          descricao?: string | null
           id?: string
           status?: string | null
           valor: number
@@ -133,6 +135,7 @@ export type Database = {
           categoria?: string | null
           created_at?: string | null
           data_vencimento?: string | null
+          descricao?: string | null
           id?: string
           status?: string | null
           valor?: number
@@ -385,6 +388,7 @@ export type Database = {
       produtos_servicos: {
         Row: {
           created_at: string | null
+          custo_estimado: number | null
           descricao: string | null
           id: string
           nome: string
@@ -392,6 +396,7 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          custo_estimado?: number | null
           descricao?: string | null
           id?: string
           nome: string
@@ -399,6 +404,7 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          custo_estimado?: number | null
           descricao?: string | null
           id?: string
           nome?: string
@@ -830,6 +836,7 @@ export const Constants = {
 //   data_vencimento: date (nullable)
 //   status: text (nullable)
 //   created_at: timestamp with time zone (nullable, default: now())
+//   descricao: text (nullable)
 // Table: exames_laboratoriais
 //   id: uuid (not null, default: gen_random_uuid())
 //   gestante_id: uuid (nullable)
@@ -890,6 +897,7 @@ export const Constants = {
 //   descricao: text (nullable)
 //   preco: numeric (nullable)
 //   created_at: timestamp with time zone (nullable, default: now())
+//   custo_estimado: numeric (nullable, default: 0)
 // Table: profiles
 //   id: uuid (not null)
 //   email: text (not null)
@@ -1069,6 +1077,9 @@ export const Constants = {
 //     WITH CHECK: true
 // Table: produtos_servicos
 //   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+//   Policy "Allow authenticated users full access on produtos_servicos" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
 // Table: profiles

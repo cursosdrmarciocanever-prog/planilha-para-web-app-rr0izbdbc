@@ -43,7 +43,11 @@ export function useDashboardData(date: DateRange | undefined) {
           .select('data, faturamento_total, bilheteria, total_consultas')
           .gte('data', startDay)
           .lte('data', endDay),
-        supabase.from('pacientes').select('id'),
+        supabase
+          .from('pacientes')
+          .select('*', { count: 'exact', head: true })
+          .gte('created_at', `${startDay}T00:00:00.000Z`)
+          .lte('created_at', `${endDay}T23:59:59.999Z`),
         supabase
           .from('despesas')
           .select('valor')
@@ -98,7 +102,7 @@ export function useDashboardData(date: DateRange | undefined) {
 
       setMetrics({
         faturamentoTotal: faturamento,
-        totalPacientes: pacientesRes.data ? pacientesRes.data.length : 0,
+        totalPacientes: pacientesRes.count || 0,
         bilheteria: bilheteriaVal,
         margemLucro: margem,
       })
@@ -133,14 +137,18 @@ export function useDashboardData(date: DateRange | undefined) {
 
     const channel = supabase
       .channel('dashboard_changes')
-      .on(
-        'postgres_changes',
-        { event: '*', schema: 'public', table: 'registros_diarios' },
-        fetchData,
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'registros_diarios' }, () =>
+        fetchData(),
       )
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'despesas' }, fetchData)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'pacientes' }, fetchData)
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'funcionarios' }, fetchData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'despesas' }, () =>
+        fetchData(),
+      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pacientes' }, () =>
+        fetchData(),
+      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'funcionarios' }, () =>
+        fetchData(),
+      )
       .subscribe()
 
     return () => {
