@@ -13,6 +13,7 @@ import RaioX from './pages/RaioX'
 import Custo from './pages/Custo'
 import Precisao from './pages/Precisao'
 import TaxaSala from './pages/TaxaSala'
+import Importar from './pages/Importar'
 
 const App = () => (
   <BrowserRouter future={{ v7_startTransition: false, v7_relativeSplatPath: false }}>
@@ -31,6 +32,7 @@ const App = () => (
               <Route path="/custo" element={<Custo />} />
               <Route path="/precisao" element={<Precisao />} />
               <Route path="/taxa" element={<TaxaSala />} />
+              <Route path="/importar" element={<Importar />} />
             </Route>
           </Route>
         </Routes>
