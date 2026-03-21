@@ -282,7 +282,7 @@ export default function Index() {
             loading={loading}
           />
           <ChartCard
-            title="Pacientes por dia"
+            title="Consultas por dia"
             data={chartData.pacientes}
             dataKey="total"
             color="hsl(var(--primary))"

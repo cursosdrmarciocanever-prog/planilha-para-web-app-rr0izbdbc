@@ -39,65 +39,48 @@ export function useDashboardData(date: DateRange | undefined) {
       const endDay = format(date.to, 'yyyy-MM-dd')
 
       try {
-        const [transacoesRes, pacientesRes, ocupacoesRes, despesasRes] = await Promise.all([
+        const [registrosRes, pacientesRes, despesasRes] = await Promise.all([
           supabase
-            .from('transacoes')
-            .select('id, valor, tipo, data, paciente_id')
+            .from('registros_diarios')
+            .select('data, faturamento_total, bilheteria, total_consultas')
             .gte('data', startDay)
             .lte('data', endDay),
           supabase.from('pacientes').select('id', { count: 'exact', head: true }),
           supabase
-            .from('ocupacao_salas')
-            .select('id, valor_cobrado, horario_inicio')
-            .gte('horario_inicio', date.from.toISOString())
-            .lte(
-              'horario_inicio',
-              new Date(new Date(date.to).setHours(23, 59, 59, 999)).toISOString(),
-            ),
-          supabase
             .from('despesas')
-            .select('id, valor')
+            .select('valor')
             .gte('data_vencimento', startDay)
             .lte('data_vencimento', endDay),
         ])
 
         if (!isMounted) return
 
-        if (transacoesRes.error) throw transacoesRes.error
+        if (registrosRes.error) throw registrosRes.error
         if (pacientesRes.error) throw pacientesRes.error
-        if (ocupacoesRes.error) throw ocupacoesRes.error
         if (despesasRes.error) throw despesasRes.error
 
         let faturamento = 0
-        let despesasVal = 0
         let bilheteriaVal = 0
+        let despesasVal = 0
 
         const faturamentoDia: Record<string, number> = {}
-        const pacientesDia: Record<string, Set<string>> = {}
+        const pacientesDia: Record<string, number> = {}
 
-        ;(transacoesRes.data || []).forEach((t: any) => {
-          const val = Number(t.valor)
-          const day = t.data // format is yyyy-MM-dd
+        ;(registrosRes.data || []).forEach((r: any) => {
+          const day = r.data // format is yyyy-MM-dd
+          const faturamentoVal = Number(r.faturamento_total ?? 0)
+          const bilheteriaDia = Number(r.bilheteria ?? 0)
+          const consultasDia = Number(r.total_consultas ?? 0)
 
-          if (t.tipo === 'receita') {
-            faturamento += val
-            faturamentoDia[day] = (faturamentoDia[day] ?? 0) + val
-          } else if (t.tipo === 'despesa') {
-            despesasVal += val
-          }
+          faturamento += faturamentoVal
+          bilheteriaVal += bilheteriaDia
 
-          if (t.paciente_id) {
-            if (!pacientesDia[day]) pacientesDia[day] = new Set()
-            pacientesDia[day].add(t.paciente_id)
-          }
+          faturamentoDia[day] = (faturamentoDia[day] ?? 0) + faturamentoVal
+          pacientesDia[day] = (pacientesDia[day] ?? 0) + consultasDia
         })
 
         ;(despesasRes.data || []).forEach((d: any) => {
           despesasVal += Number(d.valor ?? 0)
-        })
-
-        ;(ocupacoesRes.data || []).forEach((o: any) => {
-          bilheteriaVal += Number(o.valor_cobrado ?? 0)
         })
 
         const margem = faturamento > 0 ? ((faturamento - despesasVal) / faturamento) * 100 : 0
@@ -117,7 +100,7 @@ export function useDashboardData(date: DateRange | undefined) {
           })),
           pacientes: interval.map((d) => ({
             name: format(d, 'dd/MM', { locale: ptBR }),
-            total: pacientesDia[format(d, 'yyyy-MM-dd')]?.size ?? 0,
+            total: pacientesDia[format(d, 'yyyy-MM-dd')] ?? 0,
           })),
         })
       } catch (err) {
