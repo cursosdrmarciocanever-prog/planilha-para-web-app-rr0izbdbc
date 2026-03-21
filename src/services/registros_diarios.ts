@@ -45,3 +45,24 @@ export const createRegistro = async (registro: InsertRegistroDiario) => {
   await logAction(`Criou registro diário para data ${registro.data}`, 'registro_diario', data.id)
   return data as unknown as RegistroDiario
 }
+
+export const updateRegistro = async (id: string, registro: Partial<InsertRegistroDiario>) => {
+  const { data, error } = await supabase
+    .from('registros_diarios')
+    .update(registro)
+    .eq('id', id)
+    .select()
+    .single()
+
+  if (error) throw error
+
+  await logAction(`Atualizou registro diário ${id}`, 'registro_diario', id)
+  return data as unknown as RegistroDiario
+}
+
+export const deleteRegistro = async (id: string) => {
+  const { error } = await supabase.from('registros_diarios').delete().eq('id', id)
+  if (error) throw error
+
+  await logAction(`Excluiu registro diário ${id}`, 'registro_diario', id)
+}

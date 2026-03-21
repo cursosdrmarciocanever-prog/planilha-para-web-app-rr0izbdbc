@@ -41,6 +41,36 @@ export type Database = {
           },
         ]
       }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string | null
+          entity: string
+          entity_id: string | null
+          id: string
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string | null
+          entity: string
+          entity_id?: string | null
+          id?: string
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string | null
+          entity?: string
+          entity_id?: string | null
+          id?: string
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       consultas: {
         Row: {
           arquivo_pdf_url: string | null
@@ -755,6 +785,14 @@ export const Constants = {
 //   email: text (not null)
 //   role: text (not null)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: audit_logs
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (nullable)
+//   user_email: text (nullable)
+//   action: text (not null)
+//   entity: text (not null)
+//   entity_id: text (nullable)
+//   created_at: timestamp with time zone (nullable, default: now())
 // Table: consultas
 //   id: uuid (not null, default: gen_random_uuid())
 //   gestante_id: uuid (nullable)
@@ -888,6 +926,9 @@ export const Constants = {
 //   FOREIGN KEY access_control_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
 //   PRIMARY KEY access_control_pkey: PRIMARY KEY (id)
 //   CHECK access_control_role_check: CHECK ((role = ANY (ARRAY['medica'::text, 'familiar'::text])))
+// Table: audit_logs
+//   PRIMARY KEY audit_logs_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY audit_logs_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL
 // Table: consultas
 //   FOREIGN KEY consultas_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
 //   PRIMARY KEY consultas_pkey: PRIMARY KEY (id)
@@ -941,6 +982,10 @@ export const Constants = {
 //     USING: ((EXISTS ( SELECT 1    FROM gestantes g   WHERE ((g.id = access_control.gestante_id) AND (g.user_id = auth.uid())))) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
 //   Policy "Invited view access" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: (email = (auth.jwt() ->> 'email'::text))
+// Table: audit_logs
+//   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: consultas
 //   Policy "Gestante ALL consultas" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: ((EXISTS ( SELECT 1    FROM gestantes g   WHERE ((g.id = consultas.gestante_id) AND (g.user_id = auth.uid())))) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
