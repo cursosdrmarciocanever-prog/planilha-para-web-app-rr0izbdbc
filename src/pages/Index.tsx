@@ -22,7 +22,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import { cn } from '@/lib/utils'
+import { cn, generatePDF } from '@/lib/utils'
 import { useDashboardData } from '@/hooks/use-dashboard'
 
 interface MetricCardProps {
@@ -181,7 +181,7 @@ export default function Index() {
           >
             <X className="w-4 h-4" />
           </Button>
-          <Button variant="outline" className="gap-2" onClick={() => window.print()}>
+          <Button variant="outline" className="gap-2" onClick={generatePDF}>
             <Download className="w-4 h-4" /> Gerar PDF
           </Button>
         </div>

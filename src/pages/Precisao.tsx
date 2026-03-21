@@ -8,6 +8,7 @@ import { Label } from '@/components/ui/label'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
+import { generatePDF } from '@/lib/utils'
 
 interface ProdutoServico {
   id: string
@@ -112,7 +113,7 @@ export default function Precisao() {
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0)
 
-  const handlePrint = () => window.print()
+  const handlePrint = generatePDF
 
   return (
     <div className="p-6 md:p-10 animate-fade-in flex flex-col min-h-[calc(100vh-4rem)] lg:min-h-screen print:p-0 print:m-0">

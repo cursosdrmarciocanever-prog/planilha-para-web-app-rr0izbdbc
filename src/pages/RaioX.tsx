@@ -20,6 +20,7 @@ import {
 } from 'recharts'
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart'
 import { Skeleton } from '@/components/ui/skeleton'
+import { generatePDF } from '@/lib/utils'
 
 export default function RaioX() {
   const [dateRange, setDateRange] = useState<DateRange | undefined>({
@@ -151,7 +152,7 @@ export default function RaioX() {
       value / 100,
     )
 
-  const handlePrint = () => window.print()
+  const handlePrint = generatePDF
 
   return (
     <div className="p-6 md:p-10 animate-fade-in print:p-0 print:m-0">

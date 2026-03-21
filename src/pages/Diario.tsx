@@ -29,6 +29,7 @@ import { DatePickerWithRange } from '@/components/ui/date-range-picker'
 import { useToast } from '@/hooks/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
 import { useLocalStorage } from '@/hooks/use-local-storage'
+import { generatePDF } from '@/lib/utils'
 
 export default function Diario() {
   const [registros, setRegistros] = useState<RegistroDiario[]>([])
@@ -123,7 +124,7 @@ export default function Diario() {
     bilheteria: Math.min(100, (totals.bilheteria / (targets.bilheteria || 1)) * 100),
   }
 
-  const handlePrint = () => window.print()
+  const handlePrint = generatePDF
 
   return (
     <div className="p-6 md:p-10 animate-fade-in print:p-0 print:m-0">

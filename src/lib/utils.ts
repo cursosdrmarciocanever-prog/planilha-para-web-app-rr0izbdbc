@@ -1,6 +1,6 @@
-/* General utility functions (exposes cn) */
 import { clsx, type ClassValue } from 'clsx'
 import { twMerge } from 'tailwind-merge'
+import { toast } from '@/hooks/use-toast'
 
 /**
  * Merges multiple class names into a single string
@@ -11,4 +11,37 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-// Add any other utility functions here
+/**
+ * Triggers the browser print dialog.
+ * If running inside an iframe (like the preview), it attempts to open the app in a new tab
+ * and trigger the print dialog there, as iframes block modals like print().
+ */
+export function generatePDF() {
+  try {
+    let isIframe = false
+    try {
+      isIframe = window.self !== window.top
+    } catch (e) {
+      isIframe = true // If it throws, we are definitely in a cross-origin iframe
+    }
+
+    if (isIframe) {
+      const url = new URL(window.location.href)
+      url.searchParams.set('print', 'true')
+      const newWin = window.open(url.toString(), '_blank')
+      if (!newWin) {
+        toast({
+          title: 'Pop-up bloqueado',
+          description:
+            'Não foi possível abrir a janela de impressão. Permita pop-ups no seu navegador ou acesse o sistema fora da pré-visualização.',
+          variant: 'destructive',
+        })
+      }
+    } else {
+      window.print()
+    }
+  } catch (error) {
+    // Fallback
+    window.print()
+  }
+}
