@@ -131,8 +131,8 @@ export default function Index() {
     )
 
   return (
-    <div className="p-6 md:p-10 animate-fade-in">
-      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6 mb-8">
+    <div className="p-6 md:p-10 animate-fade-in print:p-0">
+      <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6 mb-8 print:hidden">
         <div>
           <h1 className="text-4xl font-bold text-foreground tracking-tight">Painel</h1>
           <p className="text-muted-foreground mt-2 text-lg">Visão geral do seu desempenho</p>
@@ -151,7 +151,7 @@ export default function Index() {
               >
                 <CalendarIcon className="mr-2 w-4 h-4" />
                 {date?.from ? (
-                  date.to ? (
+                  date.to && date.to.getTime() !== date.from.getTime() ? (
                     `${format(date.from, 'dd/MM/yyyy')} - ${format(date.to, 'dd/MM/yyyy')}`
                   ) : (
                     format(date.from, 'dd/MM/yyyy')
@@ -182,20 +182,24 @@ export default function Index() {
           >
             <X className="w-4 h-4" />
           </Button>
-          <Button variant="outline" className="gap-2">
+          <Button variant="outline" className="gap-2" onClick={() => window.print()}>
             <Download className="w-4 h-4" /> Gerar PDF
           </Button>
         </div>
       </div>
 
-      <div className="flex items-center gap-3 mb-10">
-        <span className="text-sm font-medium text-muted-foreground">Exibindo dados de:</span>
+      <div className="flex items-center gap-3 mb-10 print:mb-6">
+        <span className="text-sm font-medium text-muted-foreground print:hidden">
+          Exibindo dados de:
+        </span>
         <Badge
           variant="secondary"
           className="bg-primary/10 text-primary hover:bg-primary/20 px-4 py-1.5 font-semibold border border-primary/20"
         >
-          {date?.from && date?.to
-            ? `${format(date.from, 'dd/MM/yyyy')} até ${format(date.to, 'dd/MM/yyyy')}`
+          {date?.from
+            ? date.to && date.to.getTime() !== date.from.getTime()
+              ? `${format(date.from, 'dd/MM/yyyy')} até ${format(date.to, 'dd/MM/yyyy')}`
+              : format(date.from, 'dd/MM/yyyy')
             : 'Período inválido'}
         </Badge>
       </div>
@@ -203,16 +207,16 @@ export default function Index() {
       {error && (
         <Alert
           variant="destructive"
-          className="mb-10 bg-destructive/5 text-destructive border-destructive/20 rounded-xl"
+          className="mb-10 bg-destructive/5 text-destructive border-destructive/20 rounded-xl print:hidden"
         >
           <AlertCircle className="h-5 w-5" />
-          <AlertTitle className="font-semibold text-base">Falha de Comunicação</AlertTitle>
+          <AlertTitle className="font-semibold text-base">Aviso</AlertTitle>
           <AlertDescription className="mt-1">{error}</AlertDescription>
         </Alert>
       )}
 
       <div className="mb-10">
-        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4 print:hidden">
           <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-widest">
             Principais Indicadores
           </h2>
@@ -269,10 +273,10 @@ export default function Index() {
       </div>
 
       <div>
-        <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-6">
+        <h2 className="text-xs font-bold text-muted-foreground uppercase tracking-widest mb-6 print:hidden">
           Evolução no Período
         </h2>
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 print:hidden">
           <ChartCard
             title="Faturamento por dia"
             data={chartData.faturamento}
