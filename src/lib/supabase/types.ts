@@ -212,6 +212,27 @@ export type Database = {
           },
         ]
       }
+      funcionarios: {
+        Row: {
+          created_at: string | null
+          id: string
+          nome: string
+          salario_base: number
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          nome: string
+          salario_base?: number
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          nome?: string
+          salario_base?: number
+        }
+        Relationships: []
+      }
       gestantes: {
         Row: {
           alergias: string | null
@@ -824,6 +845,11 @@ export const Constants = {
 //   descricao: text (nullable)
 //   foto_url: text (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: funcionarios
+//   id: uuid (not null, default: gen_random_uuid())
+//   nome: text (not null)
+//   salario_base: numeric (not null, default: 0)
+//   created_at: timestamp with time zone (nullable, default: now())
 // Table: gestantes
 //   id: uuid (not null, default: gen_random_uuid())
 //   user_id: uuid (nullable)
@@ -940,6 +966,8 @@ export const Constants = {
 // Table: fotos_timeline
 //   FOREIGN KEY fotos_timeline_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
 //   PRIMARY KEY fotos_timeline_pkey: PRIMARY KEY (id)
+// Table: funcionarios
+//   PRIMARY KEY funcionarios_pkey: PRIMARY KEY (id)
 // Table: gestantes
 //   PRIMARY KEY gestantes_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY gestantes_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
@@ -1013,6 +1041,10 @@ export const Constants = {
 //     USING: ((EXISTS ( SELECT 1    FROM gestantes g   WHERE ((g.id = fotos_timeline.gestante_id) AND (g.user_id = auth.uid())))) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
 //   Policy "Invited SELECT fotos" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = fotos_timeline.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)))))
+// Table: funcionarios
+//   Policy "Allow authenticated full access on funcionarios" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: gestantes
 //   Policy "Gestante access own" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: ((user_id = auth.uid()) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))

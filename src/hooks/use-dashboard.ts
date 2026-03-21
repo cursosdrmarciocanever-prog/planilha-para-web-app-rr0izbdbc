@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { DateRange } from 'react-day-picker'
-import { format, eachDayOfInterval } from 'date-fns'
+import { format, eachDayOfInterval, eachMonthOfInterval, startOfMonth } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 
 export function useDashboardData(date: DateRange | undefined) {
@@ -37,19 +37,19 @@ export function useDashboardData(date: DateRange | undefined) {
       const startDay = format(fromDate, 'yyyy-MM-dd')
       const endDay = format(toDate, 'yyyy-MM-dd')
 
-      // Use Promise.all but handle errors individually so one table doesn't break everything
-      const [registrosRes, pacientesRes, despesasRes] = await Promise.all([
+      const [registrosRes, pacientesRes, despesasRes, funcionariosRes] = await Promise.all([
         supabase
           .from('registros_diarios')
           .select('data, faturamento_total, bilheteria, total_consultas')
           .gte('data', startDay)
           .lte('data', endDay),
-        supabase.from('pacientes').select('id', { count: 'exact', head: true }),
+        supabase.from('pacientes').select('id'),
         supabase
           .from('despesas')
           .select('valor')
           .gte('data_vencimento', startDay)
           .lte('data_vencimento', endDay),
+        supabase.from('funcionarios').select('salario_base'),
       ])
 
       let faturamento = 0
@@ -59,11 +59,9 @@ export function useDashboardData(date: DateRange | undefined) {
       const faturamentoDia: Record<string, number> = {}
       const pacientesDia: Record<string, number> = {}
 
-      if (registrosRes.error) {
-        console.error('Error fetching registros_diarios:', registrosRes.error)
-      } else if (registrosRes.data) {
+      if (registrosRes.data) {
         registrosRes.data.forEach((r: any) => {
-          const day = r.data // format is yyyy-MM-dd
+          const day = r.data
           const faturamentoVal = Number(r.faturamento_total ?? 0)
           const bilheteriaDia = Number(r.bilheteria ?? 0)
           const consultasDia = Number(r.total_consultas ?? 0)
@@ -76,23 +74,31 @@ export function useDashboardData(date: DateRange | undefined) {
         })
       }
 
-      if (despesasRes.error) {
-        console.error('Error fetching despesas:', despesasRes.error)
-      } else if (despesasRes.data) {
+      // Calculate span of months to include employee costs
+      const months = eachMonthOfInterval({
+        start: startOfMonth(fromDate),
+        end: startOfMonth(toDate),
+      })
+
+      let funcMonthlyCost = 0
+      if (funcionariosRes.data) {
+        funcMonthlyCost =
+          funcionariosRes.data.reduce((acc, f) => acc + Number(f.salario_base || 0), 0) * 1.4744
+      }
+
+      despesasVal += funcMonthlyCost * months.length
+
+      if (despesasRes.data) {
         despesasRes.data.forEach((d: any) => {
           despesasVal += Number(d.valor ?? 0)
         })
-      }
-
-      if (pacientesRes.error) {
-        console.error('Error fetching pacientes:', pacientesRes.error)
       }
 
       const margem = faturamento > 0 ? ((faturamento - despesasVal) / faturamento) * 100 : 0
 
       setMetrics({
         faturamentoTotal: faturamento,
-        totalPacientes: pacientesRes.count ?? 0,
+        totalPacientes: pacientesRes.data ? pacientesRes.data.length : 0,
         bilheteria: bilheteriaVal,
         margemLucro: margem,
       })
@@ -125,18 +131,16 @@ export function useDashboardData(date: DateRange | undefined) {
   useEffect(() => {
     fetchData()
 
-    // Real-time synchronization to ensure changes in "Diário" instantly update the dashboard
     const channel = supabase
       .channel('dashboard_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'registros_diarios' }, () => {
-        fetchData()
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'despesas' }, () => {
-        fetchData()
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'pacientes' }, () => {
-        fetchData()
-      })
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'registros_diarios' },
+        fetchData,
+      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'despesas' }, fetchData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'pacientes' }, fetchData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'funcionarios' }, fetchData)
       .subscribe()
 
     return () => {

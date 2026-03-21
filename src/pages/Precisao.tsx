@@ -1,19 +1,117 @@
-import { useState } from 'react'
-import { FileDown, Plus, DollarSign } from 'lucide-react'
-import { Card } from '@/components/ui/card'
+import { useState, useEffect } from 'react'
+import { FileDown, Plus, DollarSign, Edit, Trash2 } from 'lucide-react'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { supabase } from '@/lib/supabase/client'
+import { useToast } from '@/hooks/use-toast'
+import { Skeleton } from '@/components/ui/skeleton'
+
+interface ProdutoServico {
+  id: string
+  nome: string
+  custo_estimado: number
+  preco: number
+}
 
 export default function Precisao() {
   const [open, setOpen] = useState(false)
+  const [servicos, setServicos] = useState<ProdutoServico[]>([])
+  const [loading, setLoading] = useState(true)
+
+  // Form State
+  const [editId, setEditId] = useState<string | null>(null)
+  const [nome, setNome] = useState('')
+  const [custoEstimado, setCustoEstimado] = useState('')
+  const [precoVenda, setPrecoVenda] = useState('')
+
+  const { toast } = useToast()
+
+  const fetchServicos = async () => {
+    setLoading(true)
+    const { data, error } = await supabase
+      .from('produtos_servicos')
+      .select('id, nome, custo_estimado, preco')
+      .order('created_at', { ascending: false })
+
+    if (!error && data) {
+      setServicos(data as ProdutoServico[])
+    }
+    setLoading(false)
+  }
+
+  useEffect(() => {
+    fetchServicos()
+  }, [])
+
+  const handleOpenNew = () => {
+    setEditId(null)
+    setNome('')
+    setCustoEstimado('')
+    setPrecoVenda('')
+    setOpen(true)
+  }
+
+  const handleOpenEdit = (s: ProdutoServico) => {
+    setEditId(s.id)
+    setNome(s.nome)
+    setCustoEstimado(s.custo_estimado?.toString() || '0')
+    setPrecoVenda(s.preco?.toString() || '0')
+    setOpen(true)
+  }
+
+  const handleSave = async () => {
+    if (!nome) {
+      toast({
+        title: 'Atenção',
+        description: 'O nome do serviço é obrigatório.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    const payload = {
+      nome,
+      custo_estimado: parseFloat(custoEstimado || '0'),
+      preco: parseFloat(precoVenda || '0'),
+    }
+
+    if (editId) {
+      const { error } = await supabase.from('produtos_servicos').update(payload).eq('id', editId)
+      if (error)
+        toast({ title: 'Erro', description: 'Falha ao atualizar.', variant: 'destructive' })
+      else {
+        toast({ title: 'Sucesso', description: 'Serviço atualizado.' })
+        fetchServicos()
+        setOpen(false)
+      }
+    } else {
+      const { error } = await supabase.from('produtos_servicos').insert([payload])
+      if (error)
+        toast({ title: 'Erro', description: 'Falha ao cadastrar.', variant: 'destructive' })
+      else {
+        toast({ title: 'Sucesso', description: 'Serviço cadastrado com sucesso.' })
+        fetchServicos()
+        setOpen(false)
+      }
+    }
+  }
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Deseja excluir este serviço?')) return
+    const { error } = await supabase.from('produtos_servicos').delete().eq('id', id)
+    if (error) toast({ title: 'Erro', description: 'Falha ao excluir.', variant: 'destructive' })
+    else {
+      toast({ title: 'Sucesso', description: 'Serviço excluído.' })
+      fetchServicos()
+    }
+  }
+
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0)
+
   const handlePrint = () => window.print()
 
   return (
@@ -30,61 +128,141 @@ export default function Precisao() {
           <Button onClick={handlePrint} variant="outline" className="flex-1 md:flex-none gap-2">
             <FileDown className="w-4 h-4" /> Gerar PDF
           </Button>
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button className="flex-1 md:flex-none gap-2">
-                <Plus className="w-4 h-4" /> Novo Serviço
-              </Button>
-            </DialogTrigger>
-            <DialogContent>
-              <DialogHeader>
-                <DialogTitle>Cadastrar Novo Serviço</DialogTitle>
-              </DialogHeader>
-              <div className="space-y-4 pt-4">
-                <div className="space-y-2">
-                  <Label>Nome do Serviço</Label>
-                  <Input placeholder="Ex: Consulta de Rotina" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Custo Estimado (R$)</Label>
-                  <Input type="number" placeholder="0.00" />
-                </div>
-                <div className="space-y-2">
-                  <Label>Preço de Venda (R$)</Label>
-                  <Input type="number" placeholder="0.00" />
-                </div>
-                <Button onClick={() => setOpen(false)} className="w-full">
-                  Salvar Serviço
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+          <Button onClick={handleOpenNew} className="flex-1 md:flex-none gap-2">
+            <Plus className="w-4 h-4" /> Novo Serviço
+          </Button>
         </div>
       </div>
 
-      {/* Main Card Container */}
-      <Card className="shadow-sm border-border/60 rounded-2xl bg-card flex-1 flex flex-col print:border-none print:shadow-none">
-        <div className="p-6 border-b border-border/40 print:border-none print:px-0">
+      {/* Main Container */}
+      <Card className="shadow-sm border-border/60 rounded-2xl bg-card flex-1 flex flex-col print:border-none print:shadow-none overflow-hidden">
+        <div className="p-6 border-b border-border/40 print:border-none print:px-0 bg-secondary/20">
           <h2 className="text-[16px] font-bold text-foreground uppercase tracking-widest">
             Serviços e Produtos
           </h2>
         </div>
 
-        {/* Empty State */}
-        <div className="flex-1 flex flex-col items-center justify-center pb-20 print:hidden">
-          <div className="bg-primary/5 p-6 rounded-full mb-6">
-            <DollarSign className="w-16 h-16 text-primary/40" strokeWidth={1.5} />
+        {loading ? (
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <Skeleton className="h-32 w-full rounded-xl" />
+            <Skeleton className="h-32 w-full rounded-xl" />
+            <Skeleton className="h-32 w-full rounded-xl" />
           </div>
-          <h3 className="text-2xl font-bold text-foreground mb-3">Nenhum serviço cadastrado</h3>
-          <p className="text-muted-foreground text-[16px] max-w-sm text-center">
-            Adicione seus serviços e produtos para começar a calcular preços e margens de forma
-            inteligente.
-          </p>
-          <Button onClick={() => setOpen(true)} className="mt-8 gap-2">
-            <Plus className="w-4 h-4" /> Cadastrar Primeiro Serviço
-          </Button>
-        </div>
+        ) : servicos.length === 0 ? (
+          <div className="flex-1 flex flex-col items-center justify-center pb-20 print:hidden">
+            <div className="bg-primary/5 p-6 rounded-full mb-6">
+              <DollarSign className="w-16 h-16 text-primary/40" strokeWidth={1.5} />
+            </div>
+            <h3 className="text-2xl font-bold text-foreground mb-3">Nenhum serviço cadastrado</h3>
+            <p className="text-muted-foreground text-[16px] max-w-sm text-center">
+              Adicione seus serviços e produtos para começar a calcular preços e margens de forma
+              inteligente.
+            </p>
+            <Button onClick={handleOpenNew} className="mt-8 gap-2">
+              <Plus className="w-4 h-4" /> Cadastrar Primeiro Serviço
+            </Button>
+          </div>
+        ) : (
+          <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {servicos.map((s) => {
+              const margem = s.preco > 0 ? ((s.preco - s.custo_estimado) / s.preco) * 100 : 0
+              return (
+                <Card
+                  key={s.id}
+                  className="relative group border-border/60 shadow-sm hover:shadow-md transition-all overflow-hidden bg-background"
+                >
+                  <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-primary"
+                      onClick={() => handleOpenEdit(s)}
+                    >
+                      <Edit className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                      onClick={() => handleDelete(s.id)}
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                  <CardContent className="p-5">
+                    <div className="mb-4 pr-16">
+                      <h3 className="font-semibold text-lg text-foreground line-clamp-2">
+                        {s.nome}
+                      </h3>
+                    </div>
+                    <div className="space-y-2">
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">Custo Estimado</span>
+                        <span className="font-medium">{formatCurrency(s.custo_estimado)}</span>
+                      </div>
+                      <div className="flex justify-between items-center text-sm">
+                        <span className="text-muted-foreground">Preço de Venda</span>
+                        <span className="font-bold text-primary">{formatCurrency(s.preco)}</span>
+                      </div>
+                      <div className="pt-3 mt-3 border-t border-border/50 flex justify-between items-center">
+                        <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                          Margem
+                        </span>
+                        <span
+                          className={`text-sm font-bold ${margem >= 20 ? 'text-green-600' : 'text-amber-500'}`}
+                        >
+                          {margem.toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )
+            })}
+          </div>
+        )}
       </Card>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{editId ? 'Editar Serviço' : 'Cadastrar Novo Serviço'}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Label>Nome do Serviço</Label>
+              <Input
+                placeholder="Ex: Consulta de Rotina"
+                value={nome}
+                onChange={(e) => setNome(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Custo Estimado (R$)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                value={custoEstimado}
+                onChange={(e) => setCustoEstimado(e.target.value)}
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Preço de Venda (R$)</Label>
+              <Input
+                type="number"
+                step="0.01"
+                placeholder="0.00"
+                value={precoVenda}
+                onChange={(e) => setPrecoVenda(e.target.value)}
+              />
+            </div>
+            <Button onClick={handleSave} className="w-full mt-2">
+              {editId ? 'Salvar Alterações' : 'Salvar Serviço'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

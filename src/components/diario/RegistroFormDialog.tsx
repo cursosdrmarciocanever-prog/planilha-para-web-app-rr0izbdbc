@@ -47,6 +47,11 @@ export function RegistroFormDialog({ onSuccess }: { onSuccess: () => void }) {
   })
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (!values.data) {
+      form.setError('data', { type: 'manual', message: 'A data é obrigatória.' })
+      return
+    }
+
     try {
       const year = values.data.getFullYear()
       const month = String(values.data.getMonth() + 1).padStart(2, '0')
@@ -78,7 +83,13 @@ export function RegistroFormDialog({ onSuccess }: { onSuccess: () => void }) {
   }
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog
+      open={open}
+      onOpenChange={(isOpen) => {
+        setOpen(isOpen)
+        if (isOpen) form.reset()
+      }}
+    >
       <DialogTrigger asChild>
         <Button className="flex-1 md:flex-none bg-[#3b5bdb] hover:bg-[#364fc7] text-white font-medium gap-2 shadow-sm rounded-lg h-10 px-4">
           <Plus className="w-4 h-4" /> Novo Registro
@@ -95,7 +106,7 @@ export function RegistroFormDialog({ onSuccess }: { onSuccess: () => void }) {
               name="data"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Data do Registro</FormLabel>
+                  <FormLabel>Data do Registro *</FormLabel>
                   <DatePicker date={field.value} setDate={field.onChange} />
                   <FormMessage />
                 </FormItem>

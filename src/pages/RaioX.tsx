@@ -4,7 +4,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { DatePickerWithRange } from '@/components/ui/date-range-picker'
 import { DateRange } from 'react-day-picker'
-import { startOfMonth, endOfMonth, format, parseISO } from 'date-fns'
+import { startOfMonth, endOfMonth, format, parseISO, eachMonthOfInterval } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { supabase } from '@/lib/supabase/client'
 import {
@@ -39,7 +39,7 @@ export default function RaioX() {
     const endDay = format(dateRange.to || dateRange.from, 'yyyy-MM-dd')
 
     try {
-      const [registrosRes, despesasRes] = await Promise.all([
+      const [registrosRes, despesasRes, funcionariosRes] = await Promise.all([
         supabase
           .from('registros_diarios')
           .select('data, faturamento_total')
@@ -50,11 +50,29 @@ export default function RaioX() {
           .select('data_vencimento, valor')
           .gte('data_vencimento', startDay)
           .lte('data_vencimento', endDay),
+        supabase.from('funcionarios').select('salario_base'),
       ])
 
       let faturamento = 0
       let custos = 0
       const evolutionMap: Record<string, { faturamento: number; custos: number }> = {}
+
+      const months = eachMonthOfInterval({
+        start: startOfMonth(dateRange.from),
+        end: startOfMonth(dateRange.to || dateRange.from),
+      })
+
+      let funcMonthlyCost = 0
+      if (funcionariosRes.data) {
+        funcMonthlyCost =
+          funcionariosRes.data.reduce((acc, f) => acc + Number(f.salario_base || 0), 0) * 1.4744
+      }
+
+      months.forEach((m) => {
+        const monthStr = format(m, 'yyyy-MM')
+        evolutionMap[monthStr] = { faturamento: 0, custos: funcMonthlyCost }
+        custos += funcMonthlyCost
+      })
 
       if (registrosRes.data) {
         registrosRes.data.forEach((r) => {
@@ -62,8 +80,9 @@ export default function RaioX() {
           faturamento += val
 
           const month = r.data.substring(0, 7) // yyyy-MM
-          if (!evolutionMap[month]) evolutionMap[month] = { faturamento: 0, custos: 0 }
-          evolutionMap[month].faturamento += val
+          if (evolutionMap[month]) {
+            evolutionMap[month].faturamento += val
+          }
         })
       }
 
@@ -73,8 +92,9 @@ export default function RaioX() {
           custos += val
 
           const month = d.data_vencimento?.substring(0, 7) || startDay.substring(0, 7)
-          if (!evolutionMap[month]) evolutionMap[month] = { faturamento: 0, custos: 0 }
-          evolutionMap[month].custos += val
+          if (evolutionMap[month]) {
+            evolutionMap[month].custos += val
+          }
         })
       }
 
@@ -109,12 +129,13 @@ export default function RaioX() {
 
     const channel = supabase
       .channel('raiox_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'registros_diarios' }, () => {
-        fetchData()
-      })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'despesas' }, () => {
-        fetchData()
-      })
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'registros_diarios' },
+        fetchData,
+      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'despesas' }, fetchData)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'funcionarios' }, fetchData)
       .subscribe()
 
     return () => {
@@ -138,7 +159,9 @@ export default function RaioX() {
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 print:hidden">
         <div>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Raio-X Financeiro</h1>
-          <p className="text-slate-500 mt-1">Análise completa da saúde financeira</p>
+          <p className="text-slate-500 mt-1">
+            Análise completa da saúde financeira (inclui custos fixos de RH)
+          </p>
         </div>
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
           <Button
@@ -207,7 +230,7 @@ export default function RaioX() {
               <h3 className="text-3xl font-bold text-[#e03131] mb-2">
                 {formatCurrency(metrics.custos)}
               </h3>
-              <p className="text-[13px] text-slate-500 font-medium">Despesas operacionais</p>
+              <p className="text-[13px] text-slate-500 font-medium">Despesas operacionais e RH</p>
             </CardContent>
           )}
         </Card>

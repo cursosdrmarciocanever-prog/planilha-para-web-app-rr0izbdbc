@@ -10,6 +10,7 @@ import {
   User,
   Infinity as InfinityIcon,
   Upload,
+  Receipt,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -29,6 +30,7 @@ const navItems = [
   { label: 'Painel', path: '/', icon: LayoutDashboard },
   { label: 'Diário', path: '/diario', icon: Calendar },
   { label: 'Raio-X Financeiro', path: '/raio-x', icon: TrendingUp },
+  { label: 'Despesas', path: '/despesas', icon: Receipt },
   { label: 'Custo Funcionário', path: '/custo', icon: Users },
   { label: 'Precisão', path: '/precisao', icon: Target },
   { label: 'Taxa de Sala', path: '/taxa', icon: Building },

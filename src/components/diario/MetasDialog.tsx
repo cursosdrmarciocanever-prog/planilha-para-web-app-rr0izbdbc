@@ -60,9 +60,10 @@ export function MetasDialog({
       <DialogTrigger asChild>
         <Button
           variant="outline"
-          className="h-10 px-4 gap-2 bg-white shadow-sm hover:bg-slate-50 flex-1 md:flex-none"
+          className="h-10 px-4 bg-white shadow-sm hover:bg-slate-50 flex-1 md:flex-none flex items-center gap-2"
         >
-          <Settings2 className="w-4 h-4" /> <span>Configurar Metas</span>
+          <Settings2 className="w-4 h-4" />
+          Configurar Metas
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">

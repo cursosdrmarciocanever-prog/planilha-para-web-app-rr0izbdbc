@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Calculator, Plus, Trash2, User } from 'lucide-react'
+import { Calculator, Plus, Trash2, User, Edit } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
   Dialog,
@@ -22,8 +22,12 @@ interface Funcionario {
 export default function Custo() {
   const [open, setOpen] = useState(false)
   const [funcionarios, setFuncionarios] = useState<Funcionario[]>([])
+
+  // Form state
+  const [editId, setEditId] = useState<string | null>(null)
   const [nome, setNome] = useState('')
   const [salarioBase, setSalarioBase] = useState('')
+
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(true)
   const { toast } = useToast()
@@ -45,6 +49,20 @@ export default function Custo() {
     fetchFuncionarios()
   }, [])
 
+  const handleOpenNew = () => {
+    setEditId(null)
+    setNome('')
+    setSalarioBase('')
+    setOpen(true)
+  }
+
+  const handleOpenEdit = (funcionario: Funcionario) => {
+    setEditId(funcionario.id)
+    setNome(funcionario.nome)
+    setSalarioBase(funcionario.salario_base.toString())
+    setOpen(true)
+  }
+
   const handleSave = async () => {
     if (!nome || !salarioBase) {
       toast({
@@ -56,25 +74,41 @@ export default function Custo() {
     }
 
     setLoading(true)
-    const { data, error } = await supabase
-      .from('funcionarios' as any)
-      .insert([{ nome, salario_base: parseFloat(salarioBase) }])
-      .select()
-      .single()
 
-    if (error) {
-      toast({ title: 'Erro ao salvar', description: error.message, variant: 'destructive' })
+    if (editId) {
+      const { error } = await supabase
+        .from('funcionarios' as any)
+        .update({ nome, salario_base: parseFloat(salarioBase) })
+        .eq('id', editId)
+
+      if (error) {
+        toast({ title: 'Erro ao atualizar', description: error.message, variant: 'destructive' })
+      } else {
+        toast({ title: 'Sucesso', description: 'Funcionário atualizado.' })
+        fetchFuncionarios()
+        setOpen(false)
+      }
     } else {
-      toast({ title: 'Sucesso', description: 'Funcionário cadastrado com sucesso.' })
-      setFuncionarios([data, ...funcionarios])
-      setOpen(false)
-      setNome('')
-      setSalarioBase('')
+      const { data, error } = await supabase
+        .from('funcionarios' as any)
+        .insert([{ nome, salario_base: parseFloat(salarioBase) }])
+        .select()
+        .single()
+
+      if (error) {
+        toast({ title: 'Erro ao salvar', description: error.message, variant: 'destructive' })
+      } else {
+        toast({ title: 'Sucesso', description: 'Funcionário cadastrado com sucesso.' })
+        setFuncionarios([data, ...funcionarios])
+        setOpen(false)
+      }
     }
+
     setLoading(false)
   }
 
   const handleDelete = async (id: string) => {
+    if (!confirm('Deseja realmente excluir este funcionário?')) return
     const { error } = await supabase
       .from('funcionarios' as any)
       .delete()
@@ -105,16 +139,18 @@ export default function Custo() {
           </p>
         </div>
         <div className="shrink-0 mt-2 md:mt-0">
+          <Button
+            onClick={handleOpenNew}
+            className="bg-[#3b5bdb] hover:bg-[#364fc7] text-white font-medium shadow-sm rounded-lg px-6 h-[42px] text-[15px]"
+          >
+            <Plus className="w-4 h-4 mr-2" strokeWidth={2.5} />
+            Adicionar Funcionário
+          </Button>
+
           <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-[#3b5bdb] hover:bg-[#364fc7] text-white font-medium shadow-sm rounded-lg px-6 h-[42px] text-[15px]">
-                <Plus className="w-4 h-4 mr-2" strokeWidth={2.5} />
-                Adicionar Funcionário
-              </Button>
-            </DialogTrigger>
             <DialogContent>
               <DialogHeader>
-                <DialogTitle>Novo Funcionário</DialogTitle>
+                <DialogTitle>{editId ? 'Editar Funcionário' : 'Novo Funcionário'}</DialogTitle>
               </DialogHeader>
               <div className="space-y-4 pt-4">
                 <div className="space-y-2">
@@ -139,7 +175,7 @@ export default function Custo() {
                   disabled={loading}
                   className="w-full bg-[#3b5bdb] hover:bg-[#364fc7]"
                 >
-                  {loading ? 'Salvando...' : 'Cadastrar Funcionário'}
+                  {loading ? 'Salvando...' : editId ? 'Salvar Alterações' : 'Cadastrar Funcionário'}
                 </Button>
               </div>
             </DialogContent>
@@ -159,10 +195,7 @@ export default function Custo() {
             <p className="text-slate-500 text-[15px] mb-6">
               Clique em "Adicionar funcionário" para cadastrar o primeiro.
             </p>
-            <Button
-              onClick={() => setOpen(true)}
-              className="bg-[#3b5bdb] hover:bg-[#364fc7] text-white"
-            >
+            <Button onClick={handleOpenNew} className="bg-[#3b5bdb] hover:bg-[#364fc7] text-white">
               <Plus className="w-4 h-4 mr-2" /> Adicionar Funcionário
             </Button>
           </div>
@@ -177,20 +210,31 @@ export default function Custo() {
                 key={f.id}
                 className="bg-white border border-slate-200 rounded-xl p-6 shadow-sm relative group hover:shadow-md transition-all"
               >
-                <Button
-                  variant="ghost"
-                  size="icon"
-                  className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-red-500 hover:text-red-700 hover:bg-red-50"
-                  onClick={() => handleDelete(f.id)}
-                >
-                  <Trash2 className="w-4 h-4" />
-                </Button>
+                <div className="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity flex gap-1">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-slate-500 hover:text-primary hover:bg-slate-50 h-8 w-8"
+                    onClick={() => handleOpenEdit(f)}
+                  >
+                    <Edit className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="text-red-500 hover:text-red-700 hover:bg-red-50 h-8 w-8"
+                    onClick={() => handleDelete(f.id)}
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                </div>
+
                 <div className="flex items-center gap-3 mb-4">
                   <div className="w-10 h-10 rounded-full bg-blue-50 flex items-center justify-center text-[#3b5bdb]">
                     <User className="w-5 h-5" />
                   </div>
                   <div>
-                    <h3 className="font-semibold text-slate-900">{f.nome}</h3>
+                    <h3 className="font-semibold text-slate-900 pr-16">{f.nome}</h3>
                     <p className="text-sm text-slate-500">
                       Salário:{' '}
                       {new Intl.NumberFormat('pt-BR', {
