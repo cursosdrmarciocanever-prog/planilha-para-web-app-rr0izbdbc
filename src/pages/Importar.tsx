@@ -30,6 +30,7 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import { supabase } from '@/lib/supabase/client'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { logAction } from '@/services/audit'
 
 type EntityType = 'pacientes' | 'despesas' | 'produtos_servicos' | 'salas'
 
@@ -188,6 +189,11 @@ export default function Importar() {
         title: 'Importação concluída',
         description: `${successCount} registros importados com sucesso.`,
       })
+      await logAction(
+        `Importou ${successCount} registros na entidade ${entity}`,
+        'importacao',
+        entity,
+      )
       setFile(null)
       setPreviewData([])
       if (fileInputRef.current) fileInputRef.current.value = ''
@@ -197,6 +203,11 @@ export default function Importar() {
         description: `Sucesso: ${successCount} | Erros: ${errorCount}. Verifique os detalhes.`,
         variant: 'destructive',
       })
+      await logAction(
+        `Importação com ${errorCount} erros na entidade ${entity}`,
+        'importacao',
+        entity,
+      )
     }
   }
 

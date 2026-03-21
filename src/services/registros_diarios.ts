@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
+import { logAction } from './audit'
 
 export interface RegistroDiario {
   id: string
@@ -40,5 +41,7 @@ export const createRegistro = async (registro: InsertRegistroDiario) => {
     .single()
 
   if (error) throw error
+
+  await logAction(`Criou registro diário para data ${registro.data}`, 'registro_diario', data.id)
   return data as unknown as RegistroDiario
 }
