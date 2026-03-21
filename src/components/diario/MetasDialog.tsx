@@ -62,7 +62,7 @@ export function MetasDialog({
           variant="outline"
           className="h-10 px-4 gap-2 bg-white shadow-sm hover:bg-slate-50 flex-1 md:flex-none"
         >
-          <Settings2 className="w-4 h-4" /> Configurar Metas
+          <Settings2 className="w-4 h-4" /> <span>Configurar Metas</span>
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">

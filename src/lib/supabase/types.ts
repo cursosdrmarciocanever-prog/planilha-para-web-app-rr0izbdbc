@@ -1110,5 +1110,22 @@ export const Constants = {
 // --- INDEXES ---
 // Table: access_control
 //   CREATE UNIQUE INDEX access_control_gestante_id_email_key ON public.access_control USING btree (gestante_id, email)
+// Table: consultas
+//   CREATE INDEX idx_consultas_data_consulta ON public.consultas USING btree (data_consulta)
+//   CREATE INDEX idx_consultas_gestante_id ON public.consultas USING btree (gestante_id)
+// Table: despesas
+//   CREATE INDEX idx_despesas_data_vencimento ON public.despesas USING btree (data_vencimento)
+//   CREATE INDEX idx_despesas_status ON public.despesas USING btree (status)
 // Table: gestantes
 //   CREATE UNIQUE INDEX gestantes_user_id_key ON public.gestantes USING btree (user_id)
+// Table: ocupacao_salas
+//   CREATE INDEX idx_ocupacao_salas_horario_inicio ON public.ocupacao_salas USING btree (horario_inicio)
+//   CREATE INDEX idx_ocupacao_salas_paciente_id ON public.ocupacao_salas USING btree (paciente_id)
+//   CREATE INDEX idx_ocupacao_salas_sala_id ON public.ocupacao_salas USING btree (sala_id)
+// Table: registros_diarios
+//   CREATE INDEX idx_registros_diarios_autor_id ON public.registros_diarios USING btree (autor_id)
+//   CREATE INDEX idx_registros_diarios_data ON public.registros_diarios USING btree (data)
+// Table: transacoes
+//   CREATE INDEX idx_transacoes_data ON public.transacoes USING btree (data)
+//   CREATE INDEX idx_transacoes_paciente_id ON public.transacoes USING btree (paciente_id)
+//   CREATE INDEX idx_transacoes_tipo ON public.transacoes USING btree (tipo)
