@@ -1,15 +1,16 @@
 import { useState, useEffect, useCallback, useMemo } from 'react'
 import { startOfMonth, endOfMonth } from 'date-fns'
 import { DateRange } from 'react-day-picker'
-import { CalendarDays, Wallet, Building2, AlertCircle } from 'lucide-react'
+import { Wallet, Building2, TrendingUp, DollarSign, Percent, AlertCircle } from 'lucide-react'
 import { DatePickerWithRange } from '@/components/ui/date-range-picker'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid } from 'recharts'
+import { ComposedChart, Bar, Line, XAxis, YAxis, CartesianGrid } from 'recharts'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { getOcupacoes } from '@/services/taxa-sala'
 import { Ocupacao } from '@/types/taxa-sala'
+import { cn } from '@/lib/utils'
 
 export default function Dashboard() {
   const [date, setDate] = useState<DateRange | undefined>({
@@ -34,9 +35,7 @@ export default function Dashboard() {
       const data = await getOcupacoes(from, to)
       setOcupacoes(data)
     } catch (e) {
-      setError(
-        'Não foi possível carregar os dados de ocupação. Verifique sua conexão e tente novamente.',
-      )
+      setError('Não foi possível carregar os dados. Verifique sua conexão e tente novamente.')
     } finally {
       setLoading(false)
     }
@@ -46,22 +45,46 @@ export default function Dashboard() {
     loadData()
   }, [loadData])
 
-  const { receitaTotal, chartData } = useMemo(() => {
-    let total = 0
-    const receitaMap: Record<string, number> = {}
+  const metrics = useMemo(() => {
+    let receitaTotal = 0
+    let custoTotal = 0
+    let horasTotal = 0
+    const salaMap: Record<string, { receita: number; custo: number; horas: number }> = {}
 
     ocupacoes.forEach((o) => {
-      const val = Number(o.valor_cobrado || 0)
-      total += val
-      const nome = o.sala?.nome || 'Desconhecida'
-      receitaMap[nome] = (receitaMap[nome] || 0) + val
+      const receita = Number(o.valor_cobrado || 0)
+      receitaTotal += receita
+
+      const start = new Date(o.horario_inicio).getTime()
+      const end = new Date(o.horario_fim).getTime()
+      const diffHours = Math.max(0, (end - start) / (1000 * 60 * 60))
+      horasTotal += diffHours
+
+      const taxaHora = Number(o.sala?.taxa_hora || 0)
+      const custo = diffHours * taxaHora
+      custoTotal += custo
+
+      const nome = o.sala?.nome || 'Sem Sala'
+      if (!salaMap[nome]) salaMap[nome] = { receita: 0, custo: 0, horas: 0 }
+      salaMap[nome].receita += receita
+      salaMap[nome].custo += custo
+      salaMap[nome].horas += diffHours
     })
 
-    const chart = Object.entries(receitaMap)
-      .map(([name, value]) => ({ name, value }))
-      .sort((a, b) => b.value - a.value)
+    const margemTotal = receitaTotal - custoTotal
+    const rentabilidade = receitaTotal > 0 ? (margemTotal / receitaTotal) * 100 : 0
 
-    return { receitaTotal: total, chartData: chart }
+    const chartData = Object.entries(salaMap)
+      .map(([name, data]) => ({
+        name,
+        receita: data.receita,
+        custo: data.custo,
+        margem: data.receita - data.custo,
+        rentabilidade: data.receita > 0 ? ((data.receita - data.custo) / data.receita) * 100 : 0,
+      }))
+      .sort((a, b) => b.margem - a.margem)
+
+    return { receitaTotal, custoTotal, margemTotal, rentabilidade, horasTotal, chartData }
   }, [ocupacoes])
 
   const formatCurrency = (val: number) =>
@@ -71,9 +94,9 @@ export default function Dashboard() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-card p-5 rounded-3xl shadow-sm border border-border/80 gap-4">
         <div className="space-y-1">
-          <h2 className="text-xl font-semibold">Visão Geral de Ocupações</h2>
+          <h2 className="text-xl font-semibold">Análise de Rentabilidade</h2>
           <p className="text-sm text-muted-foreground">
-            Analise as receitas e o volume de reservas no período.
+            Acompanhe a margem de contribuição e lucratividade por sala.
           </p>
         </div>
         <div className="w-full sm:w-auto">
@@ -92,51 +115,40 @@ export default function Dashboard() {
         </Alert>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
-        <Card className="shadow-sm border-border/60 rounded-3xl overflow-hidden relative">
-          <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
-            <Wallet className="w-24 h-24 text-primary" />
-          </div>
-          <CardHeader className="pb-2 z-10 relative">
-            <CardTitle className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              Receita Total no Período
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="z-10 relative">
-            {loading ? (
-              <Skeleton className="h-10 w-40 mt-1" />
-            ) : (
-              <div className="text-[36px] font-bold tracking-tight text-primary">
-                {formatCurrency(receitaTotal)}
-              </div>
-            )}
-          </CardContent>
-        </Card>
-
-        <Card className="shadow-sm border-border/60 rounded-3xl overflow-hidden relative">
-          <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
-            <CalendarDays className="w-24 h-24 text-foreground" />
-          </div>
-          <CardHeader className="pb-2 z-10 relative">
-            <CardTitle className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
-              Total de Ocupações
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="z-10 relative">
-            {loading ? (
-              <Skeleton className="h-10 w-20 mt-1" />
-            ) : (
-              <div className="text-[36px] font-bold tracking-tight text-foreground">
-                {ocupacoes.length}
-              </div>
-            )}
-          </CardContent>
-        </Card>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <MetricCard
+          title="Faturamento Salas"
+          value={formatCurrency(metrics.receitaTotal)}
+          icon={Wallet}
+          loading={loading}
+          color="text-primary"
+        />
+        <MetricCard
+          title="Custo Operacional"
+          value={formatCurrency(metrics.custoTotal)}
+          icon={DollarSign}
+          loading={loading}
+          color="text-destructive"
+        />
+        <MetricCard
+          title="Margem de Contribuição"
+          value={formatCurrency(metrics.margemTotal)}
+          icon={TrendingUp}
+          loading={loading}
+          color={metrics.margemTotal >= 0 ? 'text-emerald-600' : 'text-destructive'}
+        />
+        <MetricCard
+          title="Rentabilidade"
+          value={`${metrics.rentabilidade.toFixed(1)}%`}
+          icon={Percent}
+          loading={loading}
+          color={metrics.rentabilidade >= 0 ? 'text-emerald-600' : 'text-destructive'}
+        />
       </div>
 
       <Card className="shadow-sm border-border/60 rounded-3xl">
         <CardHeader>
-          <CardTitle className="text-lg">Receita por Sala</CardTitle>
+          <CardTitle className="text-lg">Performance por Sala (Método GM)</CardTitle>
         </CardHeader>
         <CardContent className="h-[400px]">
           {loading ? (
@@ -144,14 +156,20 @@ export default function Dashboard() {
               <Skeleton className="h-[40%] w-full rounded-t-sm" />
               <Skeleton className="h-[70%] w-full rounded-t-sm" />
               <Skeleton className="h-[50%] w-full rounded-t-sm" />
-              <Skeleton className="h-[90%] w-full rounded-t-sm" />
             </div>
-          ) : chartData.length > 0 ? (
+          ) : metrics.chartData.length > 0 ? (
             <ChartContainer
-              config={{ value: { label: 'Receita', color: 'hsl(var(--primary))' } }}
+              config={{
+                receita: { label: 'Faturamento', color: 'hsl(var(--primary))' },
+                custo: { label: 'Custo', color: 'hsl(var(--destructive))' },
+                margem: { label: 'Margem', color: '#10b981' }, // emerald-500
+              }}
               className="h-full w-full"
             >
-              <BarChart data={chartData} margin={{ top: 20, right: 20, left: 0, bottom: 20 }}>
+              <ComposedChart
+                data={metrics.chartData}
+                margin={{ top: 20, right: 20, left: 0, bottom: 20 }}
+              >
                 <CartesianGrid
                   strokeDasharray="3 3"
                   vertical={false}
@@ -179,12 +197,25 @@ export default function Dashboard() {
                   content={<ChartTooltipContent />}
                 />
                 <Bar
-                  dataKey="value"
-                  fill="var(--color-value)"
-                  radius={[6, 6, 0, 0]}
-                  maxBarSize={60}
+                  dataKey="receita"
+                  fill="var(--color-receita)"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={40}
                 />
-              </BarChart>
+                <Bar
+                  dataKey="custo"
+                  fill="var(--color-custo)"
+                  radius={[4, 4, 0, 0]}
+                  maxBarSize={40}
+                />
+                <Line
+                  type="monotone"
+                  dataKey="margem"
+                  stroke="var(--color-margem)"
+                  strokeWidth={3}
+                  dot={{ r: 4, fill: 'var(--color-margem)' }}
+                />
+              </ComposedChart>
             </ChartContainer>
           ) : (
             <div className="flex flex-col h-full items-center justify-center text-muted-foreground gap-3">
@@ -195,5 +226,27 @@ export default function Dashboard() {
         </CardContent>
       </Card>
     </div>
+  )
+}
+
+function MetricCard({ title, value, icon: Icon, loading, color }: any) {
+  return (
+    <Card className="shadow-sm border-border/60 rounded-3xl overflow-hidden relative">
+      <div className="absolute top-0 right-0 p-6 opacity-5 pointer-events-none">
+        <Icon className={cn('w-24 h-24', color)} />
+      </div>
+      <CardHeader className="pb-2 z-10 relative">
+        <CardTitle className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground flex items-center gap-2">
+          {title}
+        </CardTitle>
+      </CardHeader>
+      <CardContent className="z-10 relative">
+        {loading ? (
+          <Skeleton className="h-10 w-24 mt-1" />
+        ) : (
+          <div className={cn('text-[32px] font-bold tracking-tight', color)}>{value}</div>
+        )}
+      </CardContent>
+    </Card>
   )
 }

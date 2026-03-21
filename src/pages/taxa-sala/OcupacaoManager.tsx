@@ -39,6 +39,7 @@ import {
 } from '@/services/taxa-sala'
 import { Ocupacao, Sala, Paciente } from '@/types/taxa-sala'
 import { useToast } from '@/hooks/use-toast'
+import { cn } from '@/lib/utils'
 
 export default function OcupacaoManager() {
   const [ocupacoes, setOcupacoes] = useState<Ocupacao[]>([])
@@ -53,8 +54,8 @@ export default function OcupacaoManager() {
   const [formData, setFormData] = useState({
     sala_id: '',
     paciente_id: '',
-    data_inicio: '',
-    data_fim: '',
+    horario_inicio: '',
+    horario_fim: '',
     valor_cobrado: '',
   })
 
@@ -83,14 +84,17 @@ export default function OcupacaoManager() {
   }, [loadData])
 
   const handleAutoCalc = () => {
-    if (!formData.sala_id || !formData.data_inicio || !formData.data_fim) return
+    if (!formData.sala_id || !formData.horario_inicio || !formData.horario_fim) return
     const sala = salas.find((s) => s.id.toString() === formData.sala_id)
     if (!sala) return
-    const start = new Date(formData.data_inicio).getTime()
-    const end = new Date(formData.data_fim).getTime()
+    const start = new Date(formData.horario_inicio).getTime()
+    const end = new Date(formData.horario_fim).getTime()
     if (end <= start) return
     const diffHours = (end - start) / (1000 * 60 * 60)
-    setFormData((prev) => ({ ...prev, valor_cobrado: (diffHours * sala.taxa_hora).toFixed(2) }))
+    setFormData((prev) => ({
+      ...prev,
+      valor_cobrado: (diffHours * Number(sala.taxa_hora)).toFixed(2),
+    }))
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -102,8 +106,8 @@ export default function OcupacaoManager() {
       await addOcupacao({
         sala_id: formData.sala_id,
         paciente_id: pId,
-        data_inicio: new Date(formData.data_inicio).toISOString(),
-        data_fim: new Date(formData.data_fim).toISOString(),
+        horario_inicio: new Date(formData.horario_inicio).toISOString(),
+        horario_fim: new Date(formData.horario_fim).toISOString(),
         valor_cobrado: Number(formData.valor_cobrado),
       })
       toast({ title: 'Sucesso', description: 'Ocupação registrada com sucesso.' })
@@ -112,8 +116,8 @@ export default function OcupacaoManager() {
       setFormData({
         sala_id: '',
         paciente_id: '',
-        data_inicio: '',
-        data_fim: '',
+        horario_inicio: '',
+        horario_fim: '',
         valor_cobrado: '',
       })
     } catch (e) {
@@ -148,7 +152,7 @@ export default function OcupacaoManager() {
         <div>
           <h2 className="text-xl font-semibold text-foreground">Registro de Ocupações</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Acompanhe as reservas e o faturamento por sala e período.
+            Acompanhe o uso das salas, faturamento e margem de contribuição de cada sessão.
           </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
@@ -206,8 +210,8 @@ export default function OcupacaoManager() {
                   <Input
                     type="datetime-local"
                     required
-                    value={formData.data_inicio}
-                    onChange={(e) => setFormData({ ...formData, data_inicio: e.target.value })}
+                    value={formData.horario_inicio}
+                    onChange={(e) => setFormData({ ...formData, horario_inicio: e.target.value })}
                     onBlur={handleAutoCalc}
                     className="bg-secondary/20"
                   />
@@ -217,8 +221,8 @@ export default function OcupacaoManager() {
                   <Input
                     type="datetime-local"
                     required
-                    value={formData.data_fim}
-                    onChange={(e) => setFormData({ ...formData, data_fim: e.target.value })}
+                    value={formData.horario_fim}
+                    onChange={(e) => setFormData({ ...formData, horario_fim: e.target.value })}
                     onBlur={handleAutoCalc}
                     className="bg-secondary/20"
                   />
@@ -266,10 +270,11 @@ export default function OcupacaoManager() {
         <Table>
           <TableHeader className="bg-secondary/30">
             <TableRow className="hover:bg-transparent">
-              <TableHead className="px-6 h-12 w-[25%]">Sala</TableHead>
-              <TableHead className="h-12 w-[25%]">Paciente</TableHead>
-              <TableHead className="h-12 w-[25%]">Período</TableHead>
-              <TableHead className="h-12 w-[15%]">Valor</TableHead>
+              <TableHead className="px-6 h-12 w-[20%]">Sala</TableHead>
+              <TableHead className="h-12 w-[20%]">Paciente</TableHead>
+              <TableHead className="h-12 w-[20%]">Período</TableHead>
+              <TableHead className="h-12 w-[15%]">Faturamento</TableHead>
+              <TableHead className="h-12 w-[15%]">Margem</TableHead>
               <TableHead className="text-right px-6 h-12 w-[10%]">Ações</TableHead>
             </TableRow>
           </TableHeader>
@@ -289,6 +294,9 @@ export default function OcupacaoManager() {
                   <TableCell className="py-4">
                     <Skeleton className="h-5 w-20" />
                   </TableCell>
+                  <TableCell className="py-4">
+                    <Skeleton className="h-5 w-20" />
+                  </TableCell>
                   <TableCell className="text-right px-6 py-4">
                     <Skeleton className="h-8 w-8 ml-auto rounded-full" />
                   </TableCell>
@@ -296,7 +304,7 @@ export default function OcupacaoManager() {
               ))
             ) : ocupacoes.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-[300px] text-center">
+                <TableCell colSpan={6} className="h-[300px] text-center">
                   <div className="flex flex-col items-center justify-center text-muted-foreground">
                     <div className="bg-secondary/50 p-4 rounded-full mb-4">
                       <CalendarDays className="w-8 h-8 opacity-50" />
@@ -305,47 +313,67 @@ export default function OcupacaoManager() {
                       Nenhuma ocupação registrada
                     </p>
                     <p className="text-sm mt-1">
-                      Registre o uso das salas para acompanhar o faturamento.
+                      Registre o uso das salas para analisar o faturamento e as margens.
                     </p>
                   </div>
                 </TableCell>
               </TableRow>
             ) : (
-              ocupacoes.map((ocup) => (
-                <TableRow key={ocup.id} className="hover:bg-secondary/20 transition-colors">
-                  <TableCell className="font-medium px-6 py-4 text-foreground">
-                    {ocup.sala?.nome || 'Sala excluída'}
-                  </TableCell>
-                  <TableCell className="py-4 text-muted-foreground">
-                    {ocup.paciente?.nome || (
-                      <span className="italic opacity-60">Não associado</span>
-                    )}
-                  </TableCell>
-                  <TableCell className="py-4">
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Clock className="w-3.5 h-3.5 opacity-70" />
-                      <span>
-                        {format(new Date(ocup.data_inicio), "dd/MM 'às' HH:mm", { locale: ptBR })} -{' '}
-                        {format(new Date(ocup.data_fim), 'HH:mm')}
-                      </span>
-                    </div>
-                  </TableCell>
-                  <TableCell className="py-4 font-medium text-foreground">
-                    R$ {Number(ocup.valor_cobrado).toFixed(2).replace('.', ',')}
-                  </TableCell>
-                  <TableCell className="text-right px-6 py-4">
-                    <Button
-                      variant="ghost"
-                      size="icon"
-                      onClick={() => handleDelete(ocup.id)}
-                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full h-8 w-8 transition-colors"
-                      title="Excluir Ocupação"
+              ocupacoes.map((ocup) => {
+                const start = new Date(ocup.horario_inicio).getTime()
+                const end = new Date(ocup.horario_fim).getTime()
+                const diffHours = Math.max(0, (end - start) / (1000 * 60 * 60))
+                const taxaHora = Number(ocup.sala?.taxa_hora || 0)
+                const custo = diffHours * taxaHora
+                const receita = Number(ocup.valor_cobrado || 0)
+                const margem = receita - custo
+
+                return (
+                  <TableRow key={ocup.id} className="hover:bg-secondary/20 transition-colors">
+                    <TableCell className="font-medium px-6 py-4 text-foreground">
+                      {ocup.sala?.nome || 'Sala excluída'}
+                    </TableCell>
+                    <TableCell className="py-4 text-muted-foreground">
+                      {ocup.paciente?.nome || (
+                        <span className="italic opacity-60">Não associado</span>
+                      )}
+                    </TableCell>
+                    <TableCell className="py-4">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Clock className="w-3.5 h-3.5 opacity-70" />
+                        <span>
+                          {format(new Date(ocup.horario_inicio), "dd/MM 'às' HH:mm", {
+                            locale: ptBR,
+                          })}{' '}
+                          - {format(new Date(ocup.horario_fim), 'HH:mm')}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell className="py-4 font-medium text-foreground">
+                      R$ {receita.toFixed(2).replace('.', ',')}
+                    </TableCell>
+                    <TableCell
+                      className={cn(
+                        'py-4 font-medium',
+                        margem >= 0 ? 'text-emerald-600' : 'text-destructive',
+                      )}
                     >
-                      <Trash2 className="w-4 h-4" />
-                    </Button>
-                  </TableCell>
-                </TableRow>
-              ))
+                      R$ {margem.toFixed(2).replace('.', ',')}
+                    </TableCell>
+                    <TableCell className="text-right px-6 py-4">
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDelete(ocup.id)}
+                        className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full h-8 w-8 transition-colors"
+                        title="Excluir Ocupação"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                )
+              })
             )}
           </TableBody>
         </Table>
