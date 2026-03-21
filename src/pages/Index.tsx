@@ -227,7 +227,7 @@ export default function Index() {
             title="Total de Pacientes"
             icon={Users}
             value={metrics.totalPacientes ?? 0}
-            subtitle="Pacientes únicos na base"
+            subtitle="Atendidos no período"
             loading={loading}
           />
           <MetricCard

@@ -37,13 +37,12 @@ export function useDashboardData(date: DateRange | undefined) {
       const startDay = format(fromDate, 'yyyy-MM-dd')
       const endDay = format(toDate, 'yyyy-MM-dd')
 
-      const [registrosRes, pacientesRes, despesasRes, funcionariosRes] = await Promise.all([
+      const [registrosRes, despesasRes, funcionariosRes] = await Promise.all([
         supabase
           .from('registros_diarios')
           .select('data, faturamento_total, bilheteria, total_consultas')
           .gte('data', startDay)
           .lte('data', endDay),
-        supabase.from('pacientes').select('id', { count: 'exact', head: true }),
         supabase
           .from('despesas')
           .select('valor')
@@ -55,6 +54,7 @@ export function useDashboardData(date: DateRange | undefined) {
       let faturamento = 0
       let bilheteriaVal = 0
       let despesasVal = 0
+      let totalConsultas = 0
 
       const faturamentoDia: Record<string, number> = {}
       const pacientesDia: Record<string, number> = {}
@@ -68,6 +68,7 @@ export function useDashboardData(date: DateRange | undefined) {
 
           faturamento += faturamentoVal
           bilheteriaVal += bilheteriaDia
+          totalConsultas += consultasDia
 
           faturamentoDia[day] = (faturamentoDia[day] ?? 0) + faturamentoVal
           pacientesDia[day] = (pacientesDia[day] ?? 0) + consultasDia
@@ -98,7 +99,7 @@ export function useDashboardData(date: DateRange | undefined) {
 
       setMetrics({
         faturamentoTotal: faturamento,
-        totalPacientes: pacientesRes.count || 0,
+        totalPacientes: totalConsultas,
         bilheteria: bilheteriaVal,
         margemLucro: margem,
       })
@@ -137,9 +138,6 @@ export function useDashboardData(date: DateRange | undefined) {
         fetchData(),
       )
       .on('postgres_changes', { event: '*', schema: 'public', table: 'despesas' }, () =>
-        fetchData(),
-      )
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'pacientes' }, () =>
         fetchData(),
       )
       .on('postgres_changes', { event: '*', schema: 'public', table: 'funcionarios' }, () =>
