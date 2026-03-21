@@ -43,11 +43,7 @@ export function useDashboardData(date: DateRange | undefined) {
           .select('data, faturamento_total, bilheteria, total_consultas')
           .gte('data', startDay)
           .lte('data', endDay),
-        supabase
-          .from('pacientes')
-          .select('*', { count: 'exact', head: true })
-          .gte('created_at', `${startDay}T00:00:00.000Z`)
-          .lte('created_at', `${endDay}T23:59:59.999Z`),
+        supabase.from('pacientes').select('id', { count: 'exact', head: true }),
         supabase
           .from('despesas')
           .select('valor')
