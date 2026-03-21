@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Plus, Trash2, CalendarDays } from 'lucide-react'
+import { Plus, Trash2, CalendarDays, Loader2, Clock } from 'lucide-react'
 import { format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Button } from '@/components/ui/button'
@@ -28,6 +28,7 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Label } from '@/components/ui/label'
+import { Skeleton } from '@/components/ui/skeleton'
 import {
   getOcupacoes,
   addOcupacao,
@@ -42,7 +43,9 @@ export default function OcupacaoManager() {
   const [ocupacoes, setOcupacoes] = useState<Ocupacao[]>([])
   const [salas, setSalas] = useState<Sala[]>([])
   const [pacientes, setPacientes] = useState<Paciente[]>([])
+  const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
   const [formData, setFormData] = useState({
     sala_id: '',
@@ -57,6 +60,7 @@ export default function OcupacaoManager() {
   }, [])
 
   const loadData = async () => {
+    setLoading(true)
     try {
       const [ocupData, salasData, pacData] = await Promise.all([
         getOcupacoes(),
@@ -68,6 +72,8 @@ export default function OcupacaoManager() {
       setPacientes(pacData)
     } catch (e) {
       toast({ title: 'Erro', description: 'Erro ao carregar dados', variant: 'destructive' })
+    } finally {
+      setLoading(false)
     }
   }
 
@@ -84,6 +90,7 @@ export default function OcupacaoManager() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setIsSubmitting(true)
     try {
       const pId =
         formData.paciente_id && formData.paciente_id !== 'none' ? formData.paciente_id : null
@@ -106,6 +113,8 @@ export default function OcupacaoManager() {
       })
     } catch (e) {
       toast({ title: 'Erro', description: 'Não foi possível salvar', variant: 'destructive' })
+    } finally {
+      setIsSubmitting(false)
     }
   }
 
@@ -114,7 +123,7 @@ export default function OcupacaoManager() {
     try {
       await deleteOcupacao(id)
       loadData()
-      toast({ title: 'Sucesso', description: 'Ocupação excluída.' })
+      toast({ title: 'Sucesso', description: 'Ocupação excluída com sucesso.' })
     } catch (e) {
       toast({ title: 'Erro', description: 'Não foi possível excluir', variant: 'destructive' })
     }
@@ -122,31 +131,32 @@ export default function OcupacaoManager() {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h2 className="text-xl font-semibold text-foreground">Registro de Ocupações</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            Acompanhe as reservas e faturamentos por sala.
+            Acompanhe as reservas e o faturamento por sala e período.
           </p>
         </div>
         <Dialog open={open} onOpenChange={setOpen}>
           <DialogTrigger asChild>
-            <Button className="rounded-full shadow-sm">
+            <Button className="rounded-full shadow-sm w-full sm:w-auto">
               <Plus className="w-4 h-4 mr-2" /> Nova Ocupação
             </Button>
           </DialogTrigger>
-          <DialogContent>
+          <DialogContent className="sm:max-w-[450px]">
             <DialogHeader>
-              <DialogTitle>Registrar Ocupação</DialogTitle>
+              <DialogTitle>Registrar Nova Ocupação</DialogTitle>
             </DialogHeader>
-            <form onSubmit={handleSubmit} className="space-y-4 pt-4">
+            <form onSubmit={handleSubmit} className="space-y-5 pt-4">
               <div className="space-y-2">
                 <Label>Sala</Label>
                 <Select
                   value={formData.sala_id}
                   onValueChange={(val) => setFormData({ ...formData, sala_id: val })}
+                  required
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-secondary/20">
                     <SelectValue placeholder="Selecione a sala" />
                   </SelectTrigger>
                   <SelectContent>
@@ -164,7 +174,7 @@ export default function OcupacaoManager() {
                   value={formData.paciente_id}
                   onValueChange={(val) => setFormData({ ...formData, paciente_id: val })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-secondary/20">
                     <SelectValue placeholder="Selecione o paciente" />
                   </SelectTrigger>
                   <SelectContent>
@@ -186,6 +196,7 @@ export default function OcupacaoManager() {
                     value={formData.data_inicio}
                     onChange={(e) => setFormData({ ...formData, data_inicio: e.target.value })}
                     onBlur={handleAutoCalc}
+                    className="bg-secondary/20"
                   />
                 </div>
                 <div className="space-y-2">
@@ -196,6 +207,7 @@ export default function OcupacaoManager() {
                     value={formData.data_fim}
                     onChange={(e) => setFormData({ ...formData, data_fim: e.target.value })}
                     onBlur={handleAutoCalc}
+                    className="bg-secondary/20"
                   />
                 </div>
               </div>
@@ -207,10 +219,19 @@ export default function OcupacaoManager() {
                   required
                   value={formData.valor_cobrado}
                   onChange={(e) => setFormData({ ...formData, valor_cobrado: e.target.value })}
+                  className="bg-secondary/20"
+                  placeholder="0.00"
                 />
               </div>
-              <Button type="submit" className="w-full mt-2 rounded-full">
-                Salvar Ocupação
+              <Button type="submit" disabled={isSubmitting} className="w-full mt-4 rounded-full">
+                {isSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Salvando...
+                  </>
+                ) : (
+                  'Salvar Ocupação'
+                )}
               </Button>
             </form>
           </DialogContent>
@@ -220,46 +241,81 @@ export default function OcupacaoManager() {
       <Card className="rounded-2xl shadow-sm border border-border/80 overflow-hidden">
         <Table>
           <TableHeader className="bg-secondary/30">
-            <TableRow>
-              <TableHead className="px-6 h-12">Sala</TableHead>
-              <TableHead className="h-12">Paciente</TableHead>
-              <TableHead className="h-12">Período</TableHead>
-              <TableHead className="h-12">Valor</TableHead>
-              <TableHead className="text-right px-6 h-12">Ações</TableHead>
+            <TableRow className="hover:bg-transparent">
+              <TableHead className="px-6 h-12 w-[25%]">Sala</TableHead>
+              <TableHead className="h-12 w-[25%]">Paciente</TableHead>
+              <TableHead className="h-12 w-[25%]">Período</TableHead>
+              <TableHead className="h-12 w-[15%]">Valor</TableHead>
+              <TableHead className="text-right px-6 h-12 w-[10%]">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
-            {ocupacoes.length === 0 ? (
+            {loading ? (
+              Array.from({ length: 4 }).map((_, i) => (
+                <TableRow key={i}>
+                  <TableCell className="px-6 py-4">
+                    <Skeleton className="h-5 w-32" />
+                  </TableCell>
+                  <TableCell className="py-4">
+                    <Skeleton className="h-5 w-40" />
+                  </TableCell>
+                  <TableCell className="py-4">
+                    <Skeleton className="h-5 w-36" />
+                  </TableCell>
+                  <TableCell className="py-4">
+                    <Skeleton className="h-5 w-20" />
+                  </TableCell>
+                  <TableCell className="text-right px-6 py-4">
+                    <Skeleton className="h-8 w-8 ml-auto rounded-full" />
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : ocupacoes.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="text-center h-24 text-muted-foreground">
-                  Nenhuma ocupação registrada.
+                <TableCell colSpan={5} className="h-[300px] text-center">
+                  <div className="flex flex-col items-center justify-center text-muted-foreground">
+                    <div className="bg-secondary/50 p-4 rounded-full mb-4">
+                      <CalendarDays className="w-8 h-8 opacity-50" />
+                    </div>
+                    <p className="text-base font-medium text-foreground">
+                      Nenhuma ocupação registrada
+                    </p>
+                    <p className="text-sm mt-1">
+                      Registre o uso das salas para acompanhar o faturamento.
+                    </p>
+                  </div>
                 </TableCell>
               </TableRow>
             ) : (
               ocupacoes.map((ocup) => (
-                <TableRow key={ocup.id} className="hover:bg-secondary/30">
-                  <TableCell className="font-medium px-6 py-4">{ocup.sala?.nome}</TableCell>
+                <TableRow key={ocup.id} className="hover:bg-secondary/20 transition-colors">
+                  <TableCell className="font-medium px-6 py-4 text-foreground">
+                    {ocup.sala?.nome || 'Sala excluída'}
+                  </TableCell>
                   <TableCell className="py-4 text-muted-foreground">
-                    {ocup.paciente?.nome || 'Não associado'}
+                    {ocup.paciente?.nome || (
+                      <span className="italic opacity-60">Não associado</span>
+                    )}
                   </TableCell>
                   <TableCell className="py-4">
-                    <div className="flex items-center gap-2 text-sm">
-                      <CalendarDays className="w-4 h-4 text-primary opacity-70" />
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Clock className="w-3.5 h-3.5 opacity-70" />
                       <span>
-                        {format(new Date(ocup.data_inicio), 'dd/MM HH:mm', { locale: ptBR })} às{' '}
+                        {format(new Date(ocup.data_inicio), "dd/MM 'às' HH:mm", { locale: ptBR })} -{' '}
                         {format(new Date(ocup.data_fim), 'HH:mm')}
                       </span>
                     </div>
                   </TableCell>
                   <TableCell className="py-4 font-medium text-foreground">
-                    R$ {Number(ocup.valor_cobrado).toFixed(2)}
+                    R$ {Number(ocup.valor_cobrado).toFixed(2).replace('.', ',')}
                   </TableCell>
                   <TableCell className="text-right px-6 py-4">
                     <Button
                       variant="ghost"
                       size="icon"
                       onClick={() => handleDelete(ocup.id)}
-                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full h-8 w-8"
+                      className="text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full h-8 w-8 transition-colors"
+                      title="Excluir Ocupação"
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

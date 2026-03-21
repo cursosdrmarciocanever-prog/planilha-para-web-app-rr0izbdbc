@@ -951,7 +951,7 @@ export const Constants = {
 //   Policy "Medica UPDATE consultas" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = consultas.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
 // Table: despesas
-//   Policy "Allow authenticated users full access on despesas" (ALL, PERMISSIVE) roles={authenticated}
+//   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
 // Table: exames_laboratoriais
@@ -983,19 +983,19 @@ export const Constants = {
 //   Policy "Medica UPDATE medicamentos" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = medicamentos.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
 // Table: ocupacao_salas
-//   Policy "Allow authenticated users full access on ocupacao_salas" (ALL, PERMISSIVE) roles={authenticated}
+//   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
 // Table: pacientes
-//   Policy "Allow authenticated users full access on pacientes" (ALL, PERMISSIVE) roles={authenticated}
+//   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
 // Table: produtos_servicos
-//   Policy "Allow authenticated users full access on produtos_servicos" (ALL, PERMISSIVE) roles={authenticated}
+//   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
 // Table: profiles
-//   Policy "Allow authenticated users full access on profiles" (ALL, PERMISSIVE) roles={authenticated}
+//   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
 //   Policy "Users update own profile" (UPDATE, PERMISSIVE) roles={authenticated}
@@ -1003,11 +1003,11 @@ export const Constants = {
 //   Policy "Users view own profile" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: ((auth.uid() = id) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
 // Table: registros_diarios
-//   Policy "Allow authenticated users full access on registros_diarios" (ALL, PERMISSIVE) roles={authenticated}
+//   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
 // Table: salas
-//   Policy "Allow authenticated users full access on salas" (ALL, PERMISSIVE) roles={authenticated}
+//   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
 // Table: sintomas_observacoes
@@ -1029,7 +1029,7 @@ export const Constants = {
 //   Policy "Medica UPDATE suplementos" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = suplementos.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
 // Table: transacoes
-//   Policy "Allow authenticated users full access on transacoes" (ALL, PERMISSIVE) roles={authenticated}
+//   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
 // Table: ultrassons
