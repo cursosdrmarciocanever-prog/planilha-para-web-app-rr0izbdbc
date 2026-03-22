@@ -11,6 +11,7 @@ import {
   Infinity as InfinityIcon,
   Upload,
   Receipt,
+  Pill,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -34,6 +35,7 @@ const navItems = [
   { label: 'Custo Funcionário', path: '/custo', icon: Users },
   { label: 'Precisão', path: '/precisao', icon: Target },
   { label: 'Taxa de Sala', path: '/taxa', icon: Building },
+  { label: 'Medicamentos', path: '/medicamentos', icon: Pill },
   { label: 'Importar Dados', path: '/importar', icon: Upload },
 ]
 

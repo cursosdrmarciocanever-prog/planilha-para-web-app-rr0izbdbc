@@ -14,6 +14,7 @@ import RaioX from './pages/RaioX'
 import Custo from './pages/Custo'
 import Precisao from './pages/Precisao'
 import TaxaSala from './pages/TaxaSala'
+import Medicamentos from './pages/Medicamentos'
 import Importar from './pages/Importar'
 import Despesas from './pages/Despesas'
 
@@ -55,6 +56,7 @@ const App = () => (
               <Route path="/custo" element={<Custo />} />
               <Route path="/precisao" element={<Precisao />} />
               <Route path="/taxa" element={<TaxaSala />} />
+              <Route path="/medicamentos" element={<Medicamentos />} />
               <Route path="/importar" element={<Importar />} />
             </Route>
           </Route>
