@@ -14,17 +14,21 @@ import { Label } from '@/components/ui/label'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
-import { generatePDF } from '@/lib/utils'
+import { generatePDF, cn } from '@/lib/utils'
 import { Alert, AlertDescription } from '@/components/ui/alert'
+import { Badge } from '@/components/ui/badge'
+import { Switch } from '@/components/ui/switch'
 
 interface Medicamento {
   id: string
   nome: string
+  categoria?: string
   custo_aquisicao: number
   margem_lucro: number
   impostos: number
   preco_venda_sugerido: number
   preco_venda_final: number
+  ativo?: boolean
 }
 
 export default function Medicamentos() {
@@ -35,10 +39,12 @@ export default function Medicamentos() {
   // Form State
   const [editId, setEditId] = useState<string | null>(null)
   const [nome, setNome] = useState('')
+  const [categoria, setCategoria] = useState('')
   const [custo, setCusto] = useState('')
   const [margem, setMargem] = useState('')
   const [impostos, setImpostos] = useState('')
   const [precoFinal, setPrecoFinal] = useState('')
+  const [ativo, setAtivo] = useState(true)
 
   const { toast } = useToast()
 
@@ -47,7 +53,7 @@ export default function Medicamentos() {
     const { data, error } = await supabase
       .from('medicamentos_precificacao' as any)
       .select('*')
-      .order('created_at', { ascending: false })
+      .order('nome', { ascending: true })
 
     if (!error && data) {
       setMedicamentos(data as Medicamento[])
@@ -70,20 +76,24 @@ export default function Medicamentos() {
   const handleOpenNew = () => {
     setEditId(null)
     setNome('')
+    setCategoria('')
     setCusto('')
     setMargem('50')
     setImpostos('6')
     setPrecoFinal('')
+    setAtivo(true)
     setOpen(true)
   }
 
   const handleOpenEdit = (m: Medicamento) => {
     setEditId(m.id)
     setNome(m.nome)
+    setCategoria(m.categoria || '')
     setCusto(m.custo_aquisicao?.toString() || '0')
     setMargem(m.margem_lucro?.toString() || '0')
     setImpostos(m.impostos?.toString() || '0')
     setPrecoFinal(m.preco_venda_final?.toString() || '0')
+    setAtivo(m.ativo !== false)
     setOpen(true)
   }
 
@@ -99,6 +109,8 @@ export default function Medicamentos() {
 
     const payload = {
       nome,
+      categoria,
+      ativo,
       custo_aquisicao: parseFloat(custo || '0'),
       margem_lucro: parseFloat(margem || '0'),
       impostos: parseFloat(impostos || '0'),
@@ -146,8 +158,6 @@ export default function Medicamentos() {
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0)
 
-  const handlePrint = generatePDF
-
   return (
     <div className="p-6 md:p-10 animate-fade-in flex flex-col min-h-[calc(100vh-4rem)] lg:min-h-screen print:p-0 print:m-0">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4 shrink-0 print:hidden">
@@ -160,7 +170,7 @@ export default function Medicamentos() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
-          <Button onClick={handlePrint} variant="outline" className="flex-1 md:flex-none gap-2">
+          <Button onClick={generatePDF} variant="outline" className="flex-1 md:flex-none gap-2">
             <FileDown className="w-4 h-4" /> Gerar PDF
           </Button>
           <Button onClick={handleOpenNew} className="flex-1 md:flex-none gap-2">
@@ -212,7 +222,10 @@ export default function Medicamentos() {
               return (
                 <Card
                   key={m.id}
-                  className="relative group border-border/60 shadow-sm hover:shadow-md transition-all overflow-hidden bg-background"
+                  className={cn(
+                    'relative group border-border/60 shadow-sm hover:shadow-md transition-all overflow-hidden bg-background',
+                    m.ativo === false && 'opacity-60 grayscale-[0.5]',
+                  )}
                 >
                   <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity print:hidden">
                     <Button
@@ -234,9 +247,23 @@ export default function Medicamentos() {
                   </div>
 
                   <CardHeader className="pb-2 pt-5 px-5">
-                    <CardTitle className="text-lg font-bold pr-16 line-clamp-1" title={m.nome}>
-                      {m.nome}
-                    </CardTitle>
+                    <div className="pr-16">
+                      <CardTitle className="text-lg font-bold line-clamp-2" title={m.nome}>
+                        {m.nome}
+                      </CardTitle>
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
+                        {m.categoria && (
+                          <Badge variant="secondary" className="font-medium text-[10px]">
+                            {m.categoria}
+                          </Badge>
+                        )}
+                        {m.ativo === false && (
+                          <Badge variant="destructive" className="font-medium text-[10px]">
+                            Inativo
+                          </Badge>
+                        )}
+                      </div>
+                    </div>
                   </CardHeader>
 
                   <CardContent className="p-5 pt-2">
@@ -302,7 +329,7 @@ export default function Medicamentos() {
           <DialogHeader>
             <DialogTitle>{editId ? 'Editar Medicamento' : 'Cadastrar Medicamento'}</DialogTitle>
           </DialogHeader>
-          <div className="space-y-5 pt-4">
+          <div className="space-y-4 pt-4">
             <div className="space-y-2">
               <Label>Nome do Medicamento / Insumo</Label>
               <Input
@@ -310,6 +337,24 @@ export default function Medicamentos() {
                 value={nome}
                 onChange={(e) => setNome(e.target.value)}
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Categoria</Label>
+                <Input
+                  placeholder="Ex: Antioxidantes"
+                  value={categoria}
+                  onChange={(e) => setCategoria(e.target.value)}
+                />
+              </div>
+              <div className="space-y-2 flex flex-col justify-center pt-2">
+                <Label className="mb-2">Status</Label>
+                <div className="flex items-center gap-2">
+                  <Switch checked={ativo} onCheckedChange={setAtivo} />
+                  <span className="text-sm font-medium">{ativo ? 'Ativo' : 'Inativo'}</span>
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

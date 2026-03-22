@@ -310,6 +310,42 @@ export type Database = {
           },
         ]
       }
+      medicamentos_precificacao: {
+        Row: {
+          created_at: string | null
+          custo_aquisicao: number
+          id: string
+          impostos: number
+          margem_lucro: number
+          nome: string
+          preco_venda_final: number
+          preco_venda_sugerido: number
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          custo_aquisicao?: number
+          id?: string
+          impostos?: number
+          margem_lucro?: number
+          nome: string
+          preco_venda_final?: number
+          preco_venda_sugerido?: number
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          custo_aquisicao?: number
+          id?: string
+          impostos?: number
+          margem_lucro?: number
+          nome?: string
+          preco_venda_final?: number
+          preco_venda_sugerido?: number
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       ocupacao_salas: {
         Row: {
           created_at: string | null
@@ -875,6 +911,16 @@ export const Constants = {
 //   nome_medicamento: text (nullable)
 //   dosagem: text (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: medicamentos_precificacao
+//   id: uuid (not null, default: gen_random_uuid())
+//   nome: text (not null)
+//   custo_aquisicao: numeric (not null, default: 0)
+//   margem_lucro: numeric (not null, default: 0)
+//   impostos: numeric (not null, default: 0)
+//   preco_venda_sugerido: numeric (not null, default: 0)
+//   preco_venda_final: numeric (not null, default: 0)
+//   created_at: timestamp with time zone (nullable, default: now())
+//   updated_at: timestamp with time zone (nullable, default: now())
 // Table: ocupacao_salas
 //   id: uuid (not null, default: gen_random_uuid())
 //   sala_id: uuid (nullable)
@@ -983,6 +1029,8 @@ export const Constants = {
 // Table: medicamentos
 //   FOREIGN KEY medicamentos_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
 //   PRIMARY KEY medicamentos_pkey: PRIMARY KEY (id)
+// Table: medicamentos_precificacao
+//   PRIMARY KEY medicamentos_precificacao_pkey: PRIMARY KEY (id)
 // Table: ocupacao_salas
 //   FOREIGN KEY ocupacao_salas_paciente_id_fkey: FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE SET NULL
 //   PRIMARY KEY ocupacao_salas_pkey: PRIMARY KEY (id)
@@ -1067,6 +1115,10 @@ export const Constants = {
 //     WITH CHECK: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = medicamentos.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
 //   Policy "Medica UPDATE medicamentos" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = medicamentos.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
+// Table: medicamentos_precificacao
+//   Policy "Allow authenticated users access to medicamentos_precificacao" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: ocupacao_salas
 //   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
