@@ -351,6 +351,7 @@ export type Database = {
           categoria: string | null
           created_at: string | null
           custo_aquisicao: number
+          custo_reposicao: number
           id: string
           impostos: number
           margem_lucro: number
@@ -365,6 +366,7 @@ export type Database = {
           categoria?: string | null
           created_at?: string | null
           custo_aquisicao?: number
+          custo_reposicao?: number
           id?: string
           impostos?: number
           margem_lucro?: number
@@ -379,6 +381,7 @@ export type Database = {
           categoria?: string | null
           created_at?: string | null
           custo_aquisicao?: number
+          custo_reposicao?: number
           id?: string
           impostos?: number
           margem_lucro?: number
@@ -975,6 +978,7 @@ export const Constants = {
 //   user_id: uuid (nullable)
 //   categoria: text (nullable)
 //   ativo: boolean (nullable, default: true)
+//   custo_reposicao: numeric (not null, default: 0)
 // Table: ocupacao_salas
 //   id: uuid (not null, default: gen_random_uuid())
 //   sala_id: uuid (nullable)
