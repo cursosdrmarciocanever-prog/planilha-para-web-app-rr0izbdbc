@@ -217,22 +217,40 @@ export type Database = {
       }
       funcionarios: {
         Row: {
+          beneficios_mensais: number | null
           created_at: string | null
+          encargos_percentual: number | null
+          horas_mensais: number | null
           id: string
+          meta_receita: number | null
           nome: string
+          receita_gerada: number | null
           salario_base: number
+          setor: string | null
         }
         Insert: {
+          beneficios_mensais?: number | null
           created_at?: string | null
+          encargos_percentual?: number | null
+          horas_mensais?: number | null
           id?: string
+          meta_receita?: number | null
           nome: string
+          receita_gerada?: number | null
           salario_base?: number
+          setor?: string | null
         }
         Update: {
+          beneficios_mensais?: number | null
           created_at?: string | null
+          encargos_percentual?: number | null
+          horas_mensais?: number | null
           id?: string
+          meta_receita?: number | null
           nome?: string
+          receita_gerada?: number | null
           salario_base?: number
+          setor?: string | null
         }
         Relationships: []
       }
@@ -940,6 +958,12 @@ export const Constants = {
 //   nome: text (not null)
 //   salario_base: numeric (not null, default: 0)
 //   created_at: timestamp with time zone (nullable, default: now())
+//   horas_mensais: numeric (nullable, default: 220)
+//   encargos_percentual: numeric (nullable, default: 47.44)
+//   beneficios_mensais: numeric (nullable, default: 0)
+//   setor: text (nullable, default: 'Geral'::text)
+//   receita_gerada: numeric (nullable, default: 0)
+//   meta_receita: numeric (nullable, default: 0)
 // Table: gestantes
 //   id: uuid (not null, default: gen_random_uuid())
 //   user_id: uuid (nullable)

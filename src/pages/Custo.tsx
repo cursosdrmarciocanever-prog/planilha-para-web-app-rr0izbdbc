@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { useToast } from '@/hooks/use-toast'
 import { useFuncionarios, Funcionario } from '@/hooks/use-funcionarios'
+import { useLocalStorage } from '@/hooks/use-local-storage'
 
 import { DashboardKPIs } from '@/components/custo/DashboardKPIs'
 import { FuncionarioList } from '@/components/custo/FuncionarioList'
@@ -14,16 +15,24 @@ export default function Custo() {
   const { funcionarios, fetching, saveFuncionario, deleteFuncionario } = useFuncionarios()
   const { toast } = useToast()
 
-  const [dialogOpen, setDialogOpen] = useState(false)
-  const [editingFunc, setEditingFunc] = useState<Funcionario | null>(null)
+  const [activeTab, setActiveTab] = useLocalStorage('custo-active-tab', 'dashboard')
+  const [dialogOpen, setDialogOpen] = useLocalStorage('custo-dialog-open', false)
+  const [isNewFunc, setIsNewFunc] = useLocalStorage('custo-is-new-func', true)
+  const [editingFuncId, setEditingFuncId] = useLocalStorage<string | null>('custo-editing-id', null)
+
+  const editingFunc = editingFuncId
+    ? funcionarios.find((f) => f.id === editingFuncId) || null
+    : null
 
   const handleOpenNew = () => {
-    setEditingFunc(null)
+    setIsNewFunc(true)
+    setEditingFuncId(null)
     setDialogOpen(true)
   }
 
   const handleOpenEdit = (f: Funcionario) => {
-    setEditingFunc(f)
+    setIsNewFunc(false)
+    setEditingFuncId(f.id)
     setDialogOpen(true)
   }
 
@@ -67,14 +76,14 @@ export default function Custo() {
         </Button>
       </div>
 
-      <Tabs defaultValue="dashboard" className="w-full">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="mb-6 grid w-full grid-cols-3 max-w-md bg-slate-100 p-1">
           <TabsTrigger value="dashboard">Dashboard</TabsTrigger>
           <TabsTrigger value="equipe">Equipe</TabsTrigger>
           <TabsTrigger value="simulador">Simulador ROI</TabsTrigger>
         </TabsList>
 
-        {fetching ? (
+        {fetching && funcionarios.length === 0 ? (
           <div className="flex justify-center items-center min-h-[400px]">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
           </div>
@@ -102,6 +111,7 @@ export default function Custo() {
         onOpenChange={setDialogOpen}
         onSave={handleSave}
         initialData={editingFunc}
+        isNew={isNewFunc}
       />
     </div>
   )

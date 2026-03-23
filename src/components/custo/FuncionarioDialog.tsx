@@ -4,48 +4,70 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Funcionario } from '@/hooks/use-funcionarios'
+import { useLocalStorage } from '@/hooks/use-local-storage'
 
 interface Props {
   open: boolean
   onOpenChange: (o: boolean) => void
   onSave: (f: Partial<Funcionario>) => Promise<void>
   initialData?: Funcionario | null
+  isNew?: boolean
 }
 
-export function FuncionarioDialog({ open, onOpenChange, onSave, initialData }: Props) {
-  const [formData, setFormData] = useState<Partial<Funcionario>>({
-    encargos_percentual: 47.44,
-    horas_mensais: 220,
-    beneficios_mensais: 0,
-    receita_gerada: 0,
-    meta_receita: 0,
-    setor: 'Geral',
-  })
+const DEFAULT_DRAFT: Partial<Funcionario> = {
+  encargos_percentual: 47.44,
+  horas_mensais: 220,
+  beneficios_mensais: 0,
+  receita_gerada: 0,
+  meta_receita: 0,
+  setor: 'Geral',
+  nome: '',
+  salario_base: 0,
+}
+
+export function FuncionarioDialog({
+  open,
+  onOpenChange,
+  onSave,
+  initialData,
+  isNew = true,
+}: Props) {
+  const [draft, setDraft] = useLocalStorage<Partial<Funcionario>>(
+    'custo-funcionario-draft',
+    DEFAULT_DRAFT,
+  )
+
+  const [formData, setFormData] = useState<Partial<Funcionario>>(DEFAULT_DRAFT)
   const [loading, setLoading] = useState(false)
 
   useEffect(() => {
-    if (initialData) {
-      setFormData(initialData)
-    } else {
-      setFormData({
-        encargos_percentual: 47.44,
-        horas_mensais: 220,
-        beneficios_mensais: 0,
-        receita_gerada: 0,
-        meta_receita: 0,
-        setor: 'Geral',
-      })
+    if (open) {
+      if (isNew) {
+        setFormData({ ...DEFAULT_DRAFT, ...draft })
+      } else if (initialData) {
+        setFormData(initialData)
+      }
     }
-  }, [initialData, open])
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open, isNew, initialData])
 
   const handleChange = (field: keyof Funcionario, value: any) => {
-    setFormData((prev) => ({ ...prev, [field]: value }))
+    setFormData((prev) => {
+      const next = { ...prev, [field]: value }
+      if (isNew) {
+        setDraft(next)
+      }
+      return next
+    })
   }
 
   const handleSubmit = async () => {
     setLoading(true)
     try {
       await onSave(formData)
+      if (isNew) {
+        setDraft(DEFAULT_DRAFT)
+      }
       onOpenChange(false)
     } catch (err) {
       console.error(err)
@@ -54,12 +76,22 @@ export function FuncionarioDialog({ open, onOpenChange, onSave, initialData }: P
     }
   }
 
+  if (!isNew && !initialData && open) {
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="max-w-2xl">
+          <div className="flex justify-center p-8">Carregando dados...</div>
+        </DialogContent>
+      </Dialog>
+    )
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>
-            {initialData ? 'Editar Colaborador' : 'Novo Colaborador (GM Metrics)'}
+            {!isNew ? 'Editar Colaborador' : 'Novo Colaborador (GM Metrics)'}
           </DialogTitle>
         </DialogHeader>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 py-4">
