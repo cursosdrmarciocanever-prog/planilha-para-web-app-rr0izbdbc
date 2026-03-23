@@ -9,6 +9,8 @@ import {
   Settings2,
   History as HistoryIcon,
   TrendingUp,
+  RefreshCw,
+  AlertTriangle,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -31,12 +33,14 @@ import { Switch } from '@/components/ui/switch'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
 import { SimuladorModal } from '@/components/SimuladorModal'
 import { HistoricoModal } from '@/components/HistoricoModal'
+import { ReajusteMassaModal } from '@/components/ReajusteMassaModal'
 
 export interface Medicamento {
   id: string
   nome: string
   categoria?: string
   custo_aquisicao: number
+  custo_reposicao?: number
   margem_lucro: number
   impostos: number
   preco_venda_sugerido: number
@@ -55,6 +59,7 @@ export default function Medicamentos() {
 
   // Modals state
   const [simuladorOpen, setSimuladorOpen] = useState(false)
+  const [reajusteOpen, setReajusteOpen] = useState(false)
   const [historicoOpen, setHistoricoOpen] = useState(false)
   const [historicoId, setHistoricoId] = useState<string | null>(null)
   const [historicoNome, setHistoricoNome] = useState('')
@@ -64,6 +69,7 @@ export default function Medicamentos() {
   const [nome, setNome] = useState('')
   const [categoria, setCategoria] = useState('')
   const [custo, setCusto] = useState('')
+  const [custoReposicao, setCustoReposicao] = useState('')
   const [margem, setMargem] = useState('')
   const [impostos, setImpostos] = useState('')
   const [precoFinal, setPrecoFinal] = useState('')
@@ -95,6 +101,9 @@ export default function Medicamentos() {
   const handleCustoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value
     setCusto(val)
+    if (!custoReposicao || custoReposicao === custo) {
+      setCustoReposicao(val)
+    }
     const c = parseFloat(val) || 0
     const m = parseFloat(margem) || 0
     const i = parseFloat(impostos) || 0
@@ -144,6 +153,7 @@ export default function Medicamentos() {
     setNome('')
     setCategoria('')
     setCusto('')
+    setCustoReposicao('')
     setMargem('50')
     setImpostos('6')
     setPrecoFinal('')
@@ -156,6 +166,7 @@ export default function Medicamentos() {
     setNome(m.nome)
     setCategoria(m.categoria || '')
     setCusto(m.custo_aquisicao?.toString() || '0')
+    setCustoReposicao(m.custo_reposicao?.toString() || m.custo_aquisicao?.toString() || '0')
     setMargem(m.margem_lucro?.toString() || '0')
     setImpostos(m.impostos?.toString() || '0')
     setPrecoFinal(m.preco_venda_final?.toString() || '0')
@@ -181,6 +192,7 @@ export default function Medicamentos() {
       categoria,
       ativo,
       custo_aquisicao: parseFloat(custo || '0'),
+      custo_reposicao: parseFloat(custoReposicao || custo || '0'),
       margem_lucro: parseFloat(margem || '0'),
       impostos: parseFloat(impostos || '0'),
       preco_venda_sugerido: pFinalNum,
@@ -268,6 +280,13 @@ export default function Medicamentos() {
             </PopoverContent>
           </Popover>
           <Button
+            onClick={() => setReajusteOpen(true)}
+            variant="outline"
+            className="flex-1 md:flex-none gap-2"
+          >
+            <RefreshCw className="w-4 h-4" /> Reajuste
+          </Button>
+          <Button
             onClick={() => setSimuladorOpen(true)}
             variant="secondary"
             className="flex-1 md:flex-none gap-2"
@@ -309,15 +328,24 @@ export default function Medicamentos() {
         ) : (
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {medicamentos.map((m) => {
+              const cReposicao = m.custo_reposicao || m.custo_aquisicao
               const impostosCalculados = m.custo_aquisicao * (m.impostos / 100)
+              const impostosReposicao = cReposicao * (m.impostos / 100)
+
               const lucroReal = m.preco_venda_final - m.custo_aquisicao - impostosCalculados
+              const lucroReposicao = m.preco_venda_final - cReposicao - impostosReposicao
+
               const margemReal =
                 m.custo_aquisicao > 0
                   ? (lucroReal / m.custo_aquisicao) * 100
                   : m.preco_venda_final > 0
                     ? 100
                     : 0
+              const margemRep = cReposicao > 0 ? (lucroReposicao / cReposicao) * 100 : 0
+
               const isAbaixoMargem = margemReal < margemMinima && m.ativo !== false
+              const isRiscoEstoque =
+                cReposicao > m.custo_aquisicao && margemRep < margemMinima && m.ativo !== false
 
               return (
                 <Card
@@ -326,7 +354,9 @@ export default function Medicamentos() {
                     'relative group border-border/60 shadow-sm hover:shadow-md transition-all flex flex-col',
                     m.ativo === false && 'opacity-60 grayscale-[0.5]',
                     isAbaixoMargem &&
+                      !isRiscoEstoque &&
                       'border-destructive/50 shadow-destructive/10 bg-destructive/5',
+                    isRiscoEstoque && 'border-orange-500/50 shadow-orange-500/10 bg-orange-500/5',
                   )}
                 >
                   <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity print:hidden">
@@ -372,12 +402,20 @@ export default function Medicamentos() {
                             Inativo
                           </Badge>
                         )}
-                        {isAbaixoMargem && (
+                        {isAbaixoMargem && !isRiscoEstoque && (
                           <Badge
                             variant="destructive"
                             className="font-medium text-[10px] animate-pulse"
                           >
                             Margem Baixa
+                          </Badge>
+                        )}
+                        {isRiscoEstoque && (
+                          <Badge
+                            variant="outline"
+                            className="font-medium text-[10px] animate-pulse border-orange-500 text-orange-600 bg-orange-50"
+                          >
+                            <AlertTriangle className="w-3 h-3 mr-1" /> Risco Reposição
                           </Badge>
                         )}
                       </div>
@@ -387,31 +425,43 @@ export default function Medicamentos() {
                   <CardContent className="p-5 pt-2 flex-1 flex flex-col justify-end">
                     <div className="grid grid-cols-2 gap-y-3 gap-x-4 mb-4">
                       <div>
-                        <p className="text-xs text-muted-foreground font-medium mb-1">Custo (R$)</p>
-                        <p className="font-semibold">{formatCurrency(m.custo_aquisicao)}</p>
-                      </div>
-                      <div>
-                        <p className="text-xs text-muted-foreground font-medium mb-1">
-                          Impostos (%)
+                        <p className="text-[11px] text-muted-foreground font-medium mb-1">
+                          Custo Estoque
                         </p>
-                        <p className="font-semibold">{m.impostos}%</p>
+                        <p className="font-semibold text-sm">{formatCurrency(m.custo_aquisicao)}</p>
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground font-medium mb-1">Margem (%)</p>
+                        <p className="text-[11px] text-muted-foreground font-medium mb-1 flex items-center gap-1">
+                          Custo Reposição
+                        </p>
                         <p
-                          className={`font-semibold ${isAbaixoMargem ? 'text-destructive' : margemReal >= 0 ? 'text-green-600' : 'text-destructive'}`}
+                          className={cn(
+                            'font-semibold text-sm',
+                            cReposicao > m.custo_aquisicao ? 'text-orange-600' : '',
+                          )}
+                        >
+                          {formatCurrency(cReposicao)}
+                        </p>
+                      </div>
+
+                      <div>
+                        <p className="text-[11px] text-muted-foreground font-medium mb-1">
+                          Margem Atual
+                        </p>
+                        <p
+                          className={`font-semibold text-sm ${isAbaixoMargem ? 'text-destructive' : margemReal >= 0 ? 'text-green-600' : 'text-destructive'}`}
                         >
                           {margemReal.toFixed(1)}%
                         </p>
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground font-medium mb-1">
-                          Lucro Líquido
+                        <p className="text-[11px] text-muted-foreground font-medium mb-1">
+                          Margem Reposição
                         </p>
                         <p
-                          className={`font-semibold ${lucroReal >= 0 ? 'text-green-600' : 'text-destructive'}`}
+                          className={`font-semibold text-sm ${isRiscoEstoque ? 'text-orange-600' : margemRep >= 0 ? 'text-green-600' : 'text-destructive'}`}
                         >
-                          {formatCurrency(lucroReal)}
+                          {margemRep.toFixed(1)}%
                         </p>
                       </div>
                     </div>
@@ -437,6 +487,12 @@ export default function Medicamentos() {
       <SimuladorModal
         open={simuladorOpen}
         onOpenChange={setSimuladorOpen}
+        medicamentos={medicamentos}
+        onSuccess={fetchMedicamentos}
+      />
+      <ReajusteMassaModal
+        open={reajusteOpen}
+        onOpenChange={setReajusteOpen}
         medicamentos={medicamentos}
         onSuccess={fetchMedicamentos}
       />
@@ -482,9 +538,22 @@ export default function Medicamentos() {
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Custo de Aquisição (R$)</Label>
+                <Label>Custo Aquisição (Estoque)</Label>
                 <Input type="number" step="0.01" value={custo} onChange={handleCustoChange} />
               </div>
+              <div className="space-y-2">
+                <Label>Custo de Reposição (Mercado)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={custoReposicao}
+                  onChange={(e) => setCustoReposicao(e.target.value)}
+                  className="border-orange-200 focus-visible:ring-orange-500"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Impostos (%)</Label>
                 <Input type="number" step="0.01" value={impostos} onChange={handleImpostosChange} />

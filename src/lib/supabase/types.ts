@@ -275,6 +275,41 @@ export type Database = {
         }
         Relationships: []
       }
+      medicamento_historico: {
+        Row: {
+          created_at: string | null
+          custo_aquisicao: number
+          id: string
+          margem_lucro: number
+          medicamento_id: string | null
+          preco_venda_final: number
+        }
+        Insert: {
+          created_at?: string | null
+          custo_aquisicao: number
+          id?: string
+          margem_lucro: number
+          medicamento_id?: string | null
+          preco_venda_final: number
+        }
+        Update: {
+          created_at?: string | null
+          custo_aquisicao?: number
+          id?: string
+          margem_lucro?: number
+          medicamento_id?: string | null
+          preco_venda_final?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'medicamento_historico_medicamento_id_fkey'
+            columns: ['medicamento_id']
+            isOneToOne: false
+            referencedRelation: 'medicamentos_precificacao'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       medicamentos: {
         Row: {
           created_at: string
@@ -913,6 +948,13 @@ export const Constants = {
 //   data_ultima_menstruacao: date (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
 //   foto_perfil_url: text (nullable)
+// Table: medicamento_historico
+//   id: uuid (not null, default: gen_random_uuid())
+//   medicamento_id: uuid (nullable)
+//   custo_aquisicao: numeric (not null)
+//   preco_venda_final: numeric (not null)
+//   margem_lucro: numeric (not null)
+//   created_at: timestamp with time zone (nullable, default: now())
 // Table: medicamentos
 //   id: uuid (not null, default: gen_random_uuid())
 //   gestante_id: uuid (nullable)
@@ -1038,6 +1080,9 @@ export const Constants = {
 //   PRIMARY KEY gestantes_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY gestantes_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 //   UNIQUE gestantes_user_id_key: UNIQUE (user_id)
+// Table: medicamento_historico
+//   FOREIGN KEY medicamento_historico_medicamento_id_fkey: FOREIGN KEY (medicamento_id) REFERENCES medicamentos_precificacao(id) ON DELETE CASCADE
+//   PRIMARY KEY medicamento_historico_pkey: PRIMARY KEY (id)
 // Table: medicamentos
 //   FOREIGN KEY medicamentos_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
 //   PRIMARY KEY medicamentos_pkey: PRIMARY KEY (id)
@@ -1119,6 +1164,10 @@ export const Constants = {
 //     USING: ((user_id = auth.uid()) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
 //   Policy "Invited view gestante" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = ac.id) AND (ac.email = (auth.jwt() ->> 'email'::text)))))
+// Table: medicamento_historico
+//   Policy "Allow authenticated access to medicamento_historico" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: medicamentos
 //   Policy "Gestante ALL medicamentos" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: ((EXISTS ( SELECT 1    FROM gestantes g   WHERE ((g.id = medicamentos.gestante_id) AND (g.user_id = auth.uid())))) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
@@ -1214,6 +1263,31 @@ export const Constants = {
 //   END;
 //   $function$
 //
+// FUNCTION log_medicamento_historico()
+//   CREATE OR REPLACE FUNCTION public.log_medicamento_historico()
+//    RETURNS trigger
+//    LANGUAGE plpgsql
+//    SECURITY DEFINER
+//   AS $function$
+//   BEGIN
+//     IF TG_OP = 'INSERT' OR (
+//       TG_OP = 'UPDATE' AND (
+//         NEW.custo_aquisicao IS DISTINCT FROM OLD.custo_aquisicao OR
+//         NEW.preco_venda_final IS DISTINCT FROM OLD.preco_venda_final OR
+//         NEW.margem_lucro IS DISTINCT FROM OLD.margem_lucro
+//       )
+//     ) THEN
+//       INSERT INTO public.medicamento_historico (medicamento_id, custo_aquisicao, preco_venda_final, margem_lucro)
+//       VALUES (NEW.id, NEW.custo_aquisicao, NEW.preco_venda_final, NEW.margem_lucro);
+//     END IF;
+//     RETURN NEW;
+//   END;
+//   $function$
+//
+
+// --- TRIGGERS ---
+// Table: medicamentos_precificacao
+//   on_medicamento_change: CREATE TRIGGER on_medicamento_change AFTER INSERT OR UPDATE ON public.medicamentos_precificacao FOR EACH ROW EXECUTE FUNCTION log_medicamento_historico()
 
 // --- INDEXES ---
 // Table: access_control
