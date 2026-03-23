@@ -587,6 +587,8 @@ export type Database = {
       salas: {
         Row: {
           created_at: string | null
+          dias_mes: number | null
+          horas_mes: number | null
           id: string
           nome: string
           status: string | null
@@ -595,6 +597,8 @@ export type Database = {
         }
         Insert: {
           created_at?: string | null
+          dias_mes?: number | null
+          horas_mes?: number | null
           id?: string
           nome: string
           status?: string | null
@@ -603,6 +607,8 @@ export type Database = {
         }
         Update: {
           created_at?: string | null
+          dias_mes?: number | null
+          horas_mes?: number | null
           id?: string
           nome?: string
           status?: string | null
@@ -1050,6 +1056,8 @@ export const Constants = {
 //   taxa_hora: numeric (nullable, default: 0)
 //   taxa_dia: numeric (nullable, default: 0)
 //   created_at: timestamp with time zone (nullable, default: now())
+//   horas_mes: numeric (nullable, default: 220)
+//   dias_mes: numeric (nullable, default: 22)
 // Table: sintomas_observacoes
 //   id: uuid (not null, default: gen_random_uuid())
 //   gestante_id: uuid (nullable)
