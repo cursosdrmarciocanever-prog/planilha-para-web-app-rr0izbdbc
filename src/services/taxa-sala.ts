@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase/client'
-import { Sala, Ocupacao, Paciente } from '@/types/taxa-sala'
+import { Sala, Ocupacao, Paciente, ProcedimentoTaxa } from '@/types/taxa-sala'
 import { logAction } from './audit'
 
 // Cache em memória para otimização de renderização de abas
@@ -93,4 +93,33 @@ export const getPacientesSimples = async (forceRefresh = false) => {
 
   pacientesCache = data as unknown as Paciente[]
   return pacientesCache
+}
+
+// Procedimentos Taxa (Integração Agenda/Análise)
+export const getProcedimentosTaxa = async () => {
+  const { data, error } = await supabase.from('procedimentos_taxa').select('*').order('nome')
+  if (error) throw error
+  return data as unknown as ProcedimentoTaxa[]
+}
+
+export const addProcedimentoTaxa = async (proc: Partial<ProcedimentoTaxa>) => {
+  const { data, error } = await supabase.from('procedimentos_taxa').insert(proc).select().single()
+  if (error) throw error
+  return data as unknown as ProcedimentoTaxa
+}
+
+export const updateProcedimentoTaxa = async (id: string, proc: Partial<ProcedimentoTaxa>) => {
+  const { data, error } = await supabase
+    .from('procedimentos_taxa')
+    .update(proc)
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data as unknown as ProcedimentoTaxa
+}
+
+export const deleteProcedimentoTaxa = async (id: string) => {
+  const { error } = await supabase.from('procedimentos_taxa').delete().eq('id', id)
+  if (error) throw error
 }

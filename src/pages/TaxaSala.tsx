@@ -165,7 +165,7 @@ export default function TaxaSala() {
   const custoPorTurnoMes = custoSalaMes / numTurnos
   const turnoSemanal = custoPorTurnoMes / numSemanas
   const salaDia = totalDespesas / diasTrab
-  const custoHora100 = totalDespesas / horasMes
+  const custoHora100 = horasMes > 0 ? totalDespesas / horasMes : 0
   const custoHora50 = custoHora100 / 0.5
   const custoHora20 = custoHora100 / 0.2
 
@@ -391,7 +391,7 @@ export default function TaxaSala() {
               value="dashboard"
               className="animate-fade-in-up mt-0 outline-none bg-background p-6 md:p-8 rounded-3xl shadow-sm border border-border/50 w-full"
             >
-              <Dashboard />
+              <Dashboard custoHora100={custoHora100} />
             </TabsContent>
             <TabsContent
               value="ocupacoes"

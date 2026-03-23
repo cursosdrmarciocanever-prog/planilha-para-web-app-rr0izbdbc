@@ -25,3 +25,11 @@ export interface Ocupacao {
   sala?: Sala
   paciente?: Paciente
 }
+
+export interface ProcedimentoTaxa {
+  id: string
+  nome: string
+  duracao_minutos: number
+  valor_cobrado: number
+  created_at?: string
+}

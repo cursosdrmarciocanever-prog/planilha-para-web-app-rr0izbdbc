@@ -2,6 +2,7 @@ import { DespesasFixasTable } from './DespesasFixasTable'
 import { SalasTable } from './SalasTable'
 import { VisaoCustos } from './VisaoCustos'
 import { EvolucaoCustoHora } from './EvolucaoCustoHora'
+import { AlertasEficiencia } from './AlertasEficiencia'
 import { Loader2 } from 'lucide-react'
 
 export default function RegistroTaxaSala({
@@ -28,8 +29,19 @@ export default function RegistroTaxaSala({
   const sala = salas.find((s: any) => s.id === selectedSalaId) || salas[0] || {}
   const horasMes = Number(sala.horas_mes || 220)
 
+  const totalDespesas = valores.reduce((acc: number, v: any) => acc + (Number(v.valor) || 0), 0)
+  const custoHora100 = horasMes > 0 ? totalDespesas / horasMes : 0
+  const totalSalas = Math.max(1, salas.length)
+
   return (
     <div className="flex flex-col gap-8 animate-fade-in-up">
+      <AlertasEficiencia
+        totalDespesas={totalDespesas}
+        custoHora100={custoHora100}
+        totalSalas={totalSalas}
+        horasMesBase={horasMes}
+      />
+
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8">
         <div className="xl:col-span-4 flex flex-col gap-8">
           <div className="flex-1">

@@ -11,8 +11,9 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { getOcupacoes } from '@/services/taxa-sala'
 import { Ocupacao } from '@/types/taxa-sala'
 import { cn } from '@/lib/utils'
+import { AnaliseProcedimentos } from './AnaliseProcedimentos'
 
-export default function Dashboard() {
+export default function Dashboard({ custoHora100 }: { custoHora100?: number }) {
   const [date, setDate] = useState<DateRange | undefined>({
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date()),
@@ -225,6 +226,9 @@ export default function Dashboard() {
           )}
         </CardContent>
       </Card>
+
+      {/* INTEGRAÇÃO DE ANÁLISE DE PROCEDIMENTOS */}
+      {custoHora100 !== undefined && <AnaliseProcedimentos custoHora100={custoHora100} />}
     </div>
   )
 }
