@@ -12,8 +12,9 @@ import { getOcupacoes } from '@/services/taxa-sala'
 import { Ocupacao } from '@/types/taxa-sala'
 import { cn } from '@/lib/utils'
 import { AnaliseProcedimentos } from './AnaliseProcedimentos'
+import { MetasPorSala } from './MetasPorSala'
 
-export default function Dashboard({ custoHora100 }: { custoHora100?: number }) {
+export default function Dashboard({ custoHora100, totalDespesas, salas, reloadSalas }: any) {
   const [date, setDate] = useState<DateRange | undefined>({
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date()),
@@ -226,6 +227,16 @@ export default function Dashboard({ custoHora100 }: { custoHora100?: number }) {
           )}
         </CardContent>
       </Card>
+
+      {/* INTEGRAÇÃO DE METAS POR SALA */}
+      {salas && (
+        <MetasPorSala
+          salas={salas}
+          ocupacoes={ocupacoes}
+          totalDespesas={totalDespesas}
+          reloadSalas={reloadSalas}
+        />
+      )}
 
       {/* INTEGRAÇÃO DE ANÁLISE DE PROCEDIMENTOS */}
       {custoHora100 !== undefined && <AnaliseProcedimentos custoHora100={custoHora100} />}

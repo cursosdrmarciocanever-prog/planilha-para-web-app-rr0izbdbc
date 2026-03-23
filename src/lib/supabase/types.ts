@@ -486,6 +486,30 @@ export type Database = {
         }
         Relationships: []
       }
+      procedimentos_taxa: {
+        Row: {
+          created_at: string
+          duracao_minutos: number
+          id: string
+          nome: string
+          valor_cobrado: number
+        }
+        Insert: {
+          created_at?: string
+          duracao_minutos?: number
+          id?: string
+          nome: string
+          valor_cobrado?: number
+        }
+        Update: {
+          created_at?: string
+          duracao_minutos?: number
+          id?: string
+          nome?: string
+          valor_cobrado?: number
+        }
+        Relationships: []
+      }
       produtos_servicos: {
         Row: {
           created_at: string | null
@@ -1025,6 +1049,12 @@ export const Constants = {
 //   email: text (nullable)
 //   data_nascimento: date (nullable)
 //   created_at: timestamp with time zone (nullable, default: now())
+// Table: procedimentos_taxa
+//   id: uuid (not null, default: gen_random_uuid())
+//   nome: text (not null)
+//   duracao_minutos: integer (not null, default: 30)
+//   valor_cobrado: numeric (not null, default: 0)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: produtos_servicos
 //   id: uuid (not null, default: gen_random_uuid())
 //   nome: text (not null)
@@ -1131,6 +1161,8 @@ export const Constants = {
 //   FOREIGN KEY ocupacao_salas_sala_id_fkey: FOREIGN KEY (sala_id) REFERENCES salas(id) ON DELETE CASCADE
 // Table: pacientes
 //   PRIMARY KEY pacientes_pkey: PRIMARY KEY (id)
+// Table: procedimentos_taxa
+//   PRIMARY KEY procedimentos_taxa_pkey: PRIMARY KEY (id)
 // Table: produtos_servicos
 //   PRIMARY KEY produtos_servicos_pkey: PRIMARY KEY (id)
 // Table: profiles
@@ -1222,6 +1254,10 @@ export const Constants = {
 //     USING: true
 //     WITH CHECK: true
 // Table: pacientes
+//   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: procedimentos_taxa
 //   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true

@@ -24,6 +24,7 @@ import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { cn, generatePDF } from '@/lib/utils'
 import { useDashboardData } from '@/hooks/use-dashboard'
+import { SystemAlerts } from '@/components/SystemAlerts'
 
 interface MetricCardProps {
   title: string
@@ -131,6 +132,10 @@ export default function Index() {
 
   return (
     <div className="p-6 md:p-10 animate-fade-in print:p-0">
+      <div className="print:hidden">
+        <SystemAlerts />
+      </div>
+
       <div className="flex flex-col lg:flex-row lg:items-start justify-between gap-6 mb-8 print:hidden">
         <div>
           <h1 className="text-4xl font-bold text-foreground tracking-tight">Painel</h1>
@@ -181,7 +186,7 @@ export default function Index() {
           >
             <X className="w-4 h-4" />
           </Button>
-          <Button variant="outline" className="gap-2" onClick={generatePDF}>
+          <Button variant="outline" className="gap-2" onClick={() => generatePDF('simples')}>
             <Download className="w-4 h-4" /> Gerar PDF
           </Button>
         </div>

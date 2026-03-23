@@ -16,7 +16,7 @@ export function cn(...inputs: ClassValue[]) {
  * If running inside an iframe (like the preview), it attempts to open the app in a new tab
  * and trigger the print dialog there, as iframes block modals like print().
  */
-export function generatePDF() {
+export function generatePDF(layout: string = 'simples') {
   try {
     let isIframe = false
     try {
@@ -27,7 +27,7 @@ export function generatePDF() {
 
     if (isIframe) {
       const url = new URL(window.location.href)
-      url.searchParams.set('print', 'true')
+      url.searchParams.set('print', layout)
       const newWin = window.open(url.toString(), '_blank')
       if (!newWin) {
         toast({
@@ -38,7 +38,11 @@ export function generatePDF() {
         })
       }
     } else {
-      window.print()
+      document.body.setAttribute('data-print-layout', layout)
+      setTimeout(() => {
+        window.print()
+        document.body.removeAttribute('data-print-layout')
+      }, 300)
     }
   } catch (error) {
     // Fallback

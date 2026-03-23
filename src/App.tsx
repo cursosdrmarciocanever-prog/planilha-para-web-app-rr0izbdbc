@@ -23,12 +23,15 @@ function PrintHandler() {
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search)
-    if (params.get('print') === 'true') {
+    const printLayout = params.get('print')
+    if (printLayout) {
+      document.body.setAttribute('data-print-layout', printLayout)
       const timer = setTimeout(() => {
         window.print()
         const url = new URL(window.location.href)
         url.searchParams.delete('print')
         window.history.replaceState({}, '', url.pathname + url.search + url.hash)
+        document.body.removeAttribute('data-print-layout')
       }, 1500) // Aguarda o carregamento dos dados antes de abrir o diálogo
       return () => clearTimeout(timer)
     }

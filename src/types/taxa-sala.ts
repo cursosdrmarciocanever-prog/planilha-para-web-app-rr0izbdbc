@@ -6,6 +6,8 @@ export interface Sala {
   taxa_dia: number
   horas_mes?: number
   dias_mes?: number
+  meta_faturamento?: number
+  meta_horas?: number
   created_at: string
 }
 
