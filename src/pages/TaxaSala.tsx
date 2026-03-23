@@ -124,7 +124,10 @@ export default function TaxaSala() {
               m.valor = overrides[m.id]
             }
           })
-        } catch (e) {}
+        } catch (e) {
+          // Ignorar erros de parse do localStorage
+          console.error('Failed to parse gm_metrics_overrides', e)
+        }
       }
 
       setValores(mapped)
