@@ -4,6 +4,8 @@ export interface Sala {
   status: string
   taxa_hora: number
   taxa_dia: number
+  horas_mes?: number
+  dias_mes?: number
   created_at: string
 }
 

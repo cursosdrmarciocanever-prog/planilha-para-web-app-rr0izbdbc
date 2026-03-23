@@ -33,6 +33,15 @@ export const addSala = async (sala: Partial<Sala>) => {
   return data as unknown as Sala
 }
 
+export const updateSala = async (id: string, sala: Partial<Sala>) => {
+  const { data, error } = await supabase.from('salas').update(sala).eq('id', id).select().single()
+  if (error) throw error
+
+  clearSalasCache()
+  await logAction(`Atualizou sala: ${sala.nome || id}`, 'sala', id)
+  return data as unknown as Sala
+}
+
 export const deleteSala = async (id: string) => {
   const { error } = await supabase.from('salas').delete().eq('id', id)
   if (error) throw error
