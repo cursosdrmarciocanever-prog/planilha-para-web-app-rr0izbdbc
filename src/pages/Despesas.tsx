@@ -1,13 +1,7 @@
 import { useState, useEffect } from 'react'
-import { Receipt, Plus, Trash2, Edit } from 'lucide-react'
+import { Receipt, Plus, Trash2, Edit, TrendingDown } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -143,6 +137,8 @@ export default function Despesas() {
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)
 
+  const totalDespesas = despesas.reduce((acc, curr) => acc + Number(curr.valor), 0)
+
   return (
     <div className="p-6 md:p-10 animate-fade-in flex flex-col min-h-screen">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -158,6 +154,20 @@ export default function Despesas() {
         <Button onClick={handleOpenNew} className="gap-2">
           <Plus className="w-4 h-4" /> Nova Despesa
         </Button>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+        <div className="bg-card border border-border/60 rounded-2xl p-6 shadow-sm flex items-center gap-5">
+          <div className="bg-destructive/10 p-4 rounded-full">
+            <TrendingDown className="w-8 h-8 text-destructive" />
+          </div>
+          <div>
+            <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+              Total Consolidado
+            </p>
+            <h3 className="text-3xl font-bold text-foreground">{formatCurrency(totalDespesas)}</h3>
+          </div>
+        </div>
       </div>
 
       <div className="bg-card border border-border/60 rounded-2xl shadow-sm overflow-hidden flex-1 flex flex-col">
