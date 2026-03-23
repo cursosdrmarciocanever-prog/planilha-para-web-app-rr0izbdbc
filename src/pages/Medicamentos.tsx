@@ -1,5 +1,15 @@
 import { useState, useEffect } from 'react'
-import { Pill, FileDown, Plus, Edit, Trash2, Calculator } from 'lucide-react'
+import {
+  Pill,
+  FileDown,
+  Plus,
+  Edit,
+  Trash2,
+  Calculator,
+  Settings2,
+  History as HistoryIcon,
+  TrendingUp,
+} from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,8 +28,11 @@ import { generatePDF, cn } from '@/lib/utils'
 import { Alert, AlertDescription } from '@/components/ui/alert'
 import { Badge } from '@/components/ui/badge'
 import { Switch } from '@/components/ui/switch'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover'
+import { SimuladorModal } from '@/components/SimuladorModal'
+import { HistoricoModal } from '@/components/HistoricoModal'
 
-interface Medicamento {
+export interface Medicamento {
   id: string
   nome: string
   categoria?: string
@@ -36,6 +49,16 @@ export default function Medicamentos() {
   const [medicamentos, setMedicamentos] = useState<Medicamento[]>([])
   const [loading, setLoading] = useState(true)
 
+  const [margemMinima, setMargemMinima] = useState<number>(() =>
+    Number(localStorage.getItem('margemMinima') || '30'),
+  )
+
+  // Modals state
+  const [simuladorOpen, setSimuladorOpen] = useState(false)
+  const [historicoOpen, setHistoricoOpen] = useState(false)
+  const [historicoId, setHistoricoId] = useState<string | null>(null)
+  const [historicoNome, setHistoricoNome] = useState('')
+
   // Form State
   const [editId, setEditId] = useState<string | null>(null)
   const [nome, setNome] = useState('')
@@ -47,6 +70,10 @@ export default function Medicamentos() {
   const [ativo, setAtivo] = useState(true)
 
   const { toast } = useToast()
+
+  useEffect(() => {
+    localStorage.setItem('margemMinima', margemMinima.toString())
+  }, [margemMinima])
 
   const fetchMedicamentos = async () => {
     setLoading(true)
@@ -65,15 +92,12 @@ export default function Medicamentos() {
     fetchMedicamentos()
   }, [])
 
-  // Dynamic Handlers for Two-Way Sync between Preco Final and Margem
   const handleCustoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value
     setCusto(val)
     const c = parseFloat(val) || 0
     const m = parseFloat(margem) || 0
     const i = parseFloat(impostos) || 0
-
-    // When cost changes, we maintain the margin and recalculate the suggested price
     const novoPreco = c * (1 + (m + i) / 100)
     setPrecoFinal(novoPreco > 0 ? novoPreco.toFixed(2) : '')
   }
@@ -84,8 +108,6 @@ export default function Medicamentos() {
     const i = parseFloat(val) || 0
     const c = parseFloat(custo) || 0
     const p = parseFloat(precoFinal) || 0
-
-    // If a final price is set, recalculate margin to absorb the new tax
     if (c > 0 && p > 0) {
       const novaMargem = (p / c - 1) * 100 - i
       setMargem(novaMargem.toFixed(2))
@@ -99,7 +121,6 @@ export default function Medicamentos() {
     const c = parseFloat(custo) || 0
     const i = parseFloat(impostos) || 0
 
-    // Calculates Margin automatically based on the desired Final Price
     if (c > 0) {
       const novaMargem = (p / c - 1) * 100 - i
       setMargem(novaMargem.toFixed(2))
@@ -114,8 +135,6 @@ export default function Medicamentos() {
     const m = parseFloat(val) || 0
     const c = parseFloat(custo) || 0
     const i = parseFloat(impostos) || 0
-
-    // Reverses calculation: User types margin, suggests new Price
     const novoPreco = c * (1 + (m + i) / 100)
     setPrecoFinal(novoPreco > 0 ? novoPreco.toFixed(2) : '')
   }
@@ -144,18 +163,19 @@ export default function Medicamentos() {
     setOpen(true)
   }
 
+  const handleOpenHistorico = (m: Medicamento) => {
+    setHistoricoId(m.id)
+    setHistoricoNome(m.nome)
+    setHistoricoOpen(true)
+  }
+
   const handleSave = async () => {
     if (!nome) {
-      toast({
-        title: 'Atenção',
-        description: 'O nome do medicamento é obrigatório.',
-        variant: 'destructive',
-      })
+      toast({ title: 'Atenção', description: 'O nome é obrigatório.', variant: 'destructive' })
       return
     }
 
     const pFinalNum = parseFloat(precoFinal || '0')
-
     const payload = {
       nome,
       categoria,
@@ -163,7 +183,7 @@ export default function Medicamentos() {
       custo_aquisicao: parseFloat(custo || '0'),
       margem_lucro: parseFloat(margem || '0'),
       impostos: parseFloat(impostos || '0'),
-      preco_venda_sugerido: pFinalNum, // Keep synced with final price in this new model
+      preco_venda_sugerido: pFinalNum,
       preco_venda_final: pFinalNum,
     }
 
@@ -184,7 +204,7 @@ export default function Medicamentos() {
       if (error)
         toast({ title: 'Erro', description: 'Falha ao cadastrar.', variant: 'destructive' })
       else {
-        toast({ title: 'Sucesso', description: 'Medicamento cadastrado com sucesso.' })
+        toast({ title: 'Sucesso', description: 'Medicamento cadastrado.' })
         fetchMedicamentos()
         setOpen(false)
       }
@@ -219,11 +239,46 @@ export default function Medicamentos() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                size="icon"
+                className="shrink-0"
+                title="Configurar Margem Mínima"
+              >
+                <Settings2 className="w-4 h-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-72">
+              <div className="space-y-3">
+                <h4 className="font-medium">Configuração de Alerta</h4>
+                <p className="text-xs text-muted-foreground">
+                  Defina a margem de lucro mínima segura. Itens abaixo deste valor serão destacados.
+                </p>
+                <div className="flex items-center gap-3">
+                  <Label className="shrink-0">Mínima (%)</Label>
+                  <Input
+                    type="number"
+                    value={margemMinima}
+                    onChange={(e) => setMargemMinima(Number(e.target.value) || 0)}
+                  />
+                </div>
+              </div>
+            </PopoverContent>
+          </Popover>
+          <Button
+            onClick={() => setSimuladorOpen(true)}
+            variant="secondary"
+            className="flex-1 md:flex-none gap-2"
+          >
+            <TrendingUp className="w-4 h-4" /> Simulador
+          </Button>
           <Button onClick={generatePDF} variant="outline" className="flex-1 md:flex-none gap-2">
-            <FileDown className="w-4 h-4" /> Gerar PDF
+            <FileDown className="w-4 h-4" /> PDF
           </Button>
           <Button onClick={handleOpenNew} className="flex-1 md:flex-none gap-2">
-            <Plus className="w-4 h-4" /> Novo Medicamento
+            <Plus className="w-4 h-4" /> Novo
           </Button>
         </div>
       </div>
@@ -246,14 +301,9 @@ export default function Medicamentos() {
             <div className="bg-primary/5 p-6 rounded-full mb-6">
               <Pill className="w-16 h-16 text-primary/40" strokeWidth={1.5} />
             </div>
-            <h3 className="text-2xl font-bold text-foreground mb-3">
-              Nenhum medicamento cadastrado
-            </h3>
-            <p className="text-muted-foreground text-[16px] max-w-sm text-center">
-              Adicione os medicamentos e insumos para calcular preços ideais de forma automatizada.
-            </p>
-            <Button onClick={handleOpenNew} className="mt-8 gap-2">
-              <Plus className="w-4 h-4" /> Cadastrar Primeiro Medicamento
+            <h3 className="text-2xl font-bold mb-3">Nenhum medicamento</h3>
+            <Button onClick={handleOpenNew} className="mt-4 gap-2">
+              <Plus className="w-4 h-4" /> Cadastrar Primeiro
             </Button>
           </div>
         ) : (
@@ -267,20 +317,31 @@ export default function Medicamentos() {
                   : m.preco_venda_final > 0
                     ? 100
                     : 0
+              const isAbaixoMargem = margemReal < margemMinima && m.ativo !== false
 
               return (
                 <Card
                   key={m.id}
                   className={cn(
-                    'relative group border-border/60 shadow-sm hover:shadow-md transition-all overflow-hidden bg-background flex flex-col',
+                    'relative group border-border/60 shadow-sm hover:shadow-md transition-all flex flex-col',
                     m.ativo === false && 'opacity-60 grayscale-[0.5]',
+                    isAbaixoMargem &&
+                      'border-destructive/50 shadow-destructive/10 bg-destructive/5',
                   )}
                 >
                   <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity print:hidden">
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-primary bg-background/80 backdrop-blur-sm"
+                      className="h-8 w-8 text-muted-foreground hover:text-primary bg-background/80"
+                      onClick={() => handleOpenHistorico(m)}
+                    >
+                      <HistoryIcon className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      className="h-8 w-8 text-muted-foreground hover:text-primary bg-background/80"
                       onClick={() => handleOpenEdit(m)}
                     >
                       <Edit className="w-4 h-4" />
@@ -288,7 +349,7 @@ export default function Medicamentos() {
                     <Button
                       variant="ghost"
                       size="icon"
-                      className="h-8 w-8 text-muted-foreground hover:text-destructive bg-background/80 backdrop-blur-sm"
+                      className="h-8 w-8 text-muted-foreground hover:text-destructive bg-background/80"
                       onClick={() => handleDelete(m.id)}
                     >
                       <Trash2 className="w-4 h-4" />
@@ -296,7 +357,7 @@ export default function Medicamentos() {
                   </div>
 
                   <CardHeader className="pb-2 pt-5 px-5">
-                    <div className="pr-16">
+                    <div className="pr-24">
                       <CardTitle className="text-lg font-bold line-clamp-2" title={m.nome}>
                         {m.nome}
                       </CardTitle>
@@ -311,6 +372,14 @@ export default function Medicamentos() {
                             Inativo
                           </Badge>
                         )}
+                        {isAbaixoMargem && (
+                          <Badge
+                            variant="destructive"
+                            className="font-medium text-[10px] animate-pulse"
+                          >
+                            Margem Baixa
+                          </Badge>
+                        )}
                       </div>
                     </div>
                   </CardHeader>
@@ -319,20 +388,18 @@ export default function Medicamentos() {
                     <div className="grid grid-cols-2 gap-y-3 gap-x-4 mb-4">
                       <div>
                         <p className="text-xs text-muted-foreground font-medium mb-1">Custo (R$)</p>
-                        <p className="font-semibold text-foreground">
-                          {formatCurrency(m.custo_aquisicao)}
-                        </p>
+                        <p className="font-semibold">{formatCurrency(m.custo_aquisicao)}</p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground font-medium mb-1">
                           Impostos (%)
                         </p>
-                        <p className="font-semibold text-foreground">{m.impostos}%</p>
+                        <p className="font-semibold">{m.impostos}%</p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground font-medium mb-1">Margem (%)</p>
                         <p
-                          className={`font-semibold ${margemReal >= 0 ? 'text-green-600' : 'text-destructive'}`}
+                          className={`font-semibold ${isAbaixoMargem ? 'text-destructive' : margemReal >= 0 ? 'text-green-600' : 'text-destructive'}`}
                         >
                           {margemReal.toFixed(1)}%
                         </p>
@@ -366,6 +433,19 @@ export default function Medicamentos() {
           </div>
         )}
       </Card>
+
+      <SimuladorModal
+        open={simuladorOpen}
+        onOpenChange={setSimuladorOpen}
+        medicamentos={medicamentos}
+        onSuccess={fetchMedicamentos}
+      />
+      <HistoricoModal
+        open={historicoOpen}
+        onOpenChange={setHistoricoOpen}
+        medicamentoId={historicoId}
+        medicamentoNome={historicoNome}
+      />
 
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[500px]">
@@ -403,31 +483,39 @@ export default function Medicamentos() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Custo de Aquisição (R$)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={custo}
-                  onChange={handleCustoChange}
-                />
+                <Input type="number" step="0.01" value={custo} onChange={handleCustoChange} />
               </div>
               <div className="space-y-2">
                 <Label>Impostos (%)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder="6.00"
-                  value={impostos}
-                  onChange={handleImpostosChange}
-                />
+                <Input type="number" step="0.01" value={impostos} onChange={handleImpostosChange} />
               </div>
             </div>
 
-            <Alert className="bg-primary/5 border-primary/20 py-4 flex flex-col gap-3 mt-2">
+            <Alert
+              className={cn(
+                'border py-4 flex flex-col gap-3 mt-2',
+                (parseFloat(margem) || 0) < margemMinima
+                  ? 'bg-destructive/10 border-destructive/50'
+                  : 'bg-primary/5 border-primary/20',
+              )}
+            >
               <div className="flex items-center gap-2">
-                <Calculator className="h-4 w-4 text-primary" />
-                <AlertDescription className="text-sm font-semibold text-foreground">
-                  Calculadora de Precificação
+                <Calculator
+                  className={cn(
+                    'h-4 w-4',
+                    (parseFloat(margem) || 0) < margemMinima ? 'text-destructive' : 'text-primary',
+                  )}
+                />
+                <AlertDescription
+                  className={cn(
+                    'text-sm font-semibold',
+                    (parseFloat(margem) || 0) < margemMinima
+                      ? 'text-destructive'
+                      : 'text-foreground',
+                  )}
+                >
+                  Calculadora de Precificação{' '}
+                  {(parseFloat(margem) || 0) < margemMinima && '- Abaixo da margem segura!'}
                 </AlertDescription>
               </div>
 
@@ -439,7 +527,6 @@ export default function Medicamentos() {
                   <Input
                     type="number"
                     step="0.01"
-                    placeholder="0.00"
                     value={precoFinal}
                     onChange={handlePrecoFinalChange}
                     className="border-primary/50 focus-visible:ring-primary font-bold text-primary h-11 text-lg"
@@ -452,17 +539,16 @@ export default function Medicamentos() {
                   <Input
                     type="number"
                     step="0.01"
-                    placeholder="0.00"
                     value={margem}
                     onChange={handleMargemChange}
-                    className="h-11 font-semibold"
+                    className={cn(
+                      'h-11 font-semibold',
+                      (parseFloat(margem) || 0) < margemMinima &&
+                        'text-destructive border-destructive focus-visible:ring-destructive',
+                    )}
                   />
                 </div>
               </div>
-              <p className="text-[11px] text-muted-foreground leading-tight">
-                Ajuste o <strong>Preço de Venda</strong> para calcular a margem automaticamente, ou
-                altere a <strong>Margem</strong> para sugerir um novo preço.
-              </p>
             </Alert>
           </div>
           <DialogFooter className="mt-6">
