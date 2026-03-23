@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect } from 'react'
 import { Pill, FileDown, Plus, Edit, Trash2, Calculator } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -65,13 +65,60 @@ export default function Medicamentos() {
     fetchMedicamentos()
   }, [])
 
-  const precoSugerido = useMemo(() => {
-    const c = parseFloat(custo) || 0
+  // Dynamic Handlers for Two-Way Sync between Preco Final and Margem
+  const handleCustoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    setCusto(val)
+    const c = parseFloat(val) || 0
     const m = parseFloat(margem) || 0
     const i = parseFloat(impostos) || 0
-    // Markup sobre o custo: Custo * (1 + Margem% + Impostos%)
-    return c * (1 + (m + i) / 100)
-  }, [custo, margem, impostos])
+
+    // When cost changes, we maintain the margin and recalculate the suggested price
+    const novoPreco = c * (1 + (m + i) / 100)
+    setPrecoFinal(novoPreco > 0 ? novoPreco.toFixed(2) : '')
+  }
+
+  const handleImpostosChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    setImpostos(val)
+    const i = parseFloat(val) || 0
+    const c = parseFloat(custo) || 0
+    const p = parseFloat(precoFinal) || 0
+
+    // If a final price is set, recalculate margin to absorb the new tax
+    if (c > 0 && p > 0) {
+      const novaMargem = (p / c - 1) * 100 - i
+      setMargem(novaMargem.toFixed(2))
+    }
+  }
+
+  const handlePrecoFinalChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    setPrecoFinal(val)
+    const p = parseFloat(val) || 0
+    const c = parseFloat(custo) || 0
+    const i = parseFloat(impostos) || 0
+
+    // Calculates Margin automatically based on the desired Final Price
+    if (c > 0) {
+      const novaMargem = (p / c - 1) * 100 - i
+      setMargem(novaMargem.toFixed(2))
+    } else if (c === 0 && p > 0) {
+      setMargem('100')
+    }
+  }
+
+  const handleMargemChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value
+    setMargem(val)
+    const m = parseFloat(val) || 0
+    const c = parseFloat(custo) || 0
+    const i = parseFloat(impostos) || 0
+
+    // Reverses calculation: User types margin, suggests new Price
+    const novoPreco = c * (1 + (m + i) / 100)
+    setPrecoFinal(novoPreco > 0 ? novoPreco.toFixed(2) : '')
+  }
 
   const handleOpenNew = () => {
     setEditId(null)
@@ -107,6 +154,8 @@ export default function Medicamentos() {
       return
     }
 
+    const pFinalNum = parseFloat(precoFinal || '0')
+
     const payload = {
       nome,
       categoria,
@@ -114,8 +163,8 @@ export default function Medicamentos() {
       custo_aquisicao: parseFloat(custo || '0'),
       margem_lucro: parseFloat(margem || '0'),
       impostos: parseFloat(impostos || '0'),
-      preco_venda_sugerido: precoSugerido,
-      preco_venda_final: parseFloat(precoFinal || precoSugerido.toString()),
+      preco_venda_sugerido: pFinalNum, // Keep synced with final price in this new model
+      preco_venda_final: pFinalNum,
     }
 
     if (editId) {
@@ -166,7 +215,7 @@ export default function Medicamentos() {
             <Pill className="w-8 h-8 text-primary" /> Precificação de Medicamentos
           </h1>
           <p className="text-muted-foreground mt-2 text-lg">
-            Gerencie custos, impostos, margens e preços finais dos seus insumos e medicamentos.
+            Gerencie custos e calcule automaticamente as margens de lucro dos insumos.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
@@ -223,7 +272,7 @@ export default function Medicamentos() {
                 <Card
                   key={m.id}
                   className={cn(
-                    'relative group border-border/60 shadow-sm hover:shadow-md transition-all overflow-hidden bg-background',
+                    'relative group border-border/60 shadow-sm hover:shadow-md transition-all overflow-hidden bg-background flex flex-col',
                     m.ativo === false && 'opacity-60 grayscale-[0.5]',
                   )}
                 >
@@ -266,7 +315,7 @@ export default function Medicamentos() {
                     </div>
                   </CardHeader>
 
-                  <CardContent className="p-5 pt-2">
+                  <CardContent className="p-5 pt-2 flex-1 flex flex-col justify-end">
                     <div className="grid grid-cols-2 gap-y-3 gap-x-4 mb-4">
                       <div>
                         <p className="text-xs text-muted-foreground font-medium mb-1">Custo (R$)</p>
@@ -281,35 +330,29 @@ export default function Medicamentos() {
                         <p className="font-semibold text-foreground">{m.impostos}%</p>
                       </div>
                       <div>
-                        <p className="text-xs text-muted-foreground font-medium mb-1">
-                          Margem Alvo
+                        <p className="text-xs text-muted-foreground font-medium mb-1">Margem (%)</p>
+                        <p
+                          className={`font-semibold ${margemReal >= 0 ? 'text-green-600' : 'text-destructive'}`}
+                        >
+                          {margemReal.toFixed(1)}%
                         </p>
-                        <p className="font-semibold text-foreground">{m.margem_lucro}%</p>
                       </div>
                       <div>
                         <p className="text-xs text-muted-foreground font-medium mb-1">
-                          Margem Real
+                          Lucro Líquido
                         </p>
                         <p
-                          className={`font-semibold ${margemReal >= m.margem_lucro ? 'text-green-600' : 'text-amber-500'}`}
+                          className={`font-semibold ${lucroReal >= 0 ? 'text-green-600' : 'text-destructive'}`}
                         >
-                          {margemReal.toFixed(1)}%
+                          {formatCurrency(lucroReal)}
                         </p>
                       </div>
                     </div>
 
                     <div className="pt-3 border-t border-border/50 flex justify-between items-center bg-secondary/20 -mx-5 px-5 pb-1 mt-2">
-                      <div>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                          Sugerido
-                        </p>
-                        <p className="text-sm font-medium text-muted-foreground line-through decoration-muted-foreground/50">
-                          {formatCurrency(m.preco_venda_sugerido)}
-                        </p>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-primary">
-                          Preço Final
+                      <div className="text-right w-full flex justify-between items-center">
+                        <p className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
+                          Preço de Venda
                         </p>
                         <p className="text-lg font-bold text-primary">
                           {formatCurrency(m.preco_venda_final)}
@@ -365,7 +408,7 @@ export default function Medicamentos() {
                   step="0.01"
                   placeholder="0.00"
                   value={custo}
-                  onChange={(e) => setCusto(e.target.value)}
+                  onChange={handleCustoChange}
                 />
               </div>
               <div className="space-y-2">
@@ -375,44 +418,52 @@ export default function Medicamentos() {
                   step="0.01"
                   placeholder="6.00"
                   value={impostos}
-                  onChange={(e) => setImpostos(e.target.value)}
+                  onChange={handleImpostosChange}
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Margem de Lucro Desejada (%)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                placeholder="50.00"
-                value={margem}
-                onChange={(e) => setMargem(e.target.value)}
-              />
-            </div>
+            <Alert className="bg-primary/5 border-primary/20 py-4 flex flex-col gap-3 mt-2">
+              <div className="flex items-center gap-2">
+                <Calculator className="h-4 w-4 text-primary" />
+                <AlertDescription className="text-sm font-semibold text-foreground">
+                  Calculadora de Precificação
+                </AlertDescription>
+              </div>
 
-            <Alert className="bg-primary/5 border-primary/20 py-3">
-              <Calculator className="h-4 w-4 text-primary" />
-              <AlertDescription className="text-sm font-medium text-foreground ml-2">
-                Preço de Venda Sugerido:{' '}
-                <span className="font-bold text-primary ml-1">{formatCurrency(precoSugerido)}</span>
-              </AlertDescription>
-            </Alert>
-
-            <div className="space-y-2 pt-2 border-t border-border/50">
-              <Label className="text-primary font-bold">Preço de Venda Final (R$)</Label>
-              <Input
-                type="number"
-                step="0.01"
-                placeholder="0.00"
-                value={precoFinal}
-                onChange={(e) => setPrecoFinal(e.target.value)}
-                className="border-primary/50 focus-visible:ring-primary h-12 text-lg font-semibold"
-              />
-              <p className="text-xs text-muted-foreground">
-                Se deixado em branco, assumirá o preço sugerido de {formatCurrency(precoSugerido)}.
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label className="text-[11px] text-primary font-bold uppercase tracking-wider">
+                    Preço de Venda (R$)
+                  </Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={precoFinal}
+                    onChange={handlePrecoFinalChange}
+                    className="border-primary/50 focus-visible:ring-primary font-bold text-primary h-11 text-lg"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-[11px] text-muted-foreground font-bold uppercase tracking-wider">
+                    Margem de Lucro (%)
+                  </Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    placeholder="0.00"
+                    value={margem}
+                    onChange={handleMargemChange}
+                    className="h-11 font-semibold"
+                  />
+                </div>
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-tight">
+                Ajuste o <strong>Preço de Venda</strong> para calcular a margem automaticamente, ou
+                altere a <strong>Margem</strong> para sugerir um novo preço.
               </p>
-            </div>
+            </Alert>
           </div>
           <DialogFooter className="mt-6">
             <Button onClick={handleSave} className="w-full sm:w-auto min-w-[120px]">

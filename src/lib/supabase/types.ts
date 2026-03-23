@@ -312,6 +312,8 @@ export type Database = {
       }
       medicamentos_precificacao: {
         Row: {
+          ativo: boolean | null
+          categoria: string | null
           created_at: string | null
           custo_aquisicao: number
           id: string
@@ -321,8 +323,11 @@ export type Database = {
           preco_venda_final: number
           preco_venda_sugerido: number
           updated_at: string | null
+          user_id: string | null
         }
         Insert: {
+          ativo?: boolean | null
+          categoria?: string | null
           created_at?: string | null
           custo_aquisicao?: number
           id?: string
@@ -332,8 +337,11 @@ export type Database = {
           preco_venda_final?: number
           preco_venda_sugerido?: number
           updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
+          ativo?: boolean | null
+          categoria?: string | null
           created_at?: string | null
           custo_aquisicao?: number
           id?: string
@@ -343,6 +351,7 @@ export type Database = {
           preco_venda_final?: number
           preco_venda_sugerido?: number
           updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
@@ -921,6 +930,9 @@ export const Constants = {
 //   preco_venda_final: numeric (not null, default: 0)
 //   created_at: timestamp with time zone (nullable, default: now())
 //   updated_at: timestamp with time zone (nullable, default: now())
+//   user_id: uuid (nullable)
+//   categoria: text (nullable)
+//   ativo: boolean (nullable, default: true)
 // Table: ocupacao_salas
 //   id: uuid (not null, default: gen_random_uuid())
 //   sala_id: uuid (nullable)
@@ -1031,6 +1043,7 @@ export const Constants = {
 //   PRIMARY KEY medicamentos_pkey: PRIMARY KEY (id)
 // Table: medicamentos_precificacao
 //   PRIMARY KEY medicamentos_precificacao_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY medicamentos_precificacao_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 // Table: ocupacao_salas
 //   FOREIGN KEY ocupacao_salas_paciente_id_fkey: FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE SET NULL
 //   PRIMARY KEY ocupacao_salas_pkey: PRIMARY KEY (id)
