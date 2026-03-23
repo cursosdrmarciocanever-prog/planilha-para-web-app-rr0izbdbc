@@ -25,6 +25,10 @@ import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Skeleton } from '@/components/ui/skeleton'
 
+import { CostDistributionChart } from '@/components/despesas/CostDistributionChart'
+import { MonthlyComparisonChart } from '@/components/despesas/MonthlyComparisonChart'
+import { BreakEvenProjection } from '@/components/despesas/BreakEvenProjection'
+
 interface Despesa {
   id: string
   data_vencimento: string
@@ -156,17 +160,31 @@ export default function Despesas() {
         </Button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-card border border-border/60 rounded-2xl p-6 shadow-sm flex items-center gap-5">
-          <div className="bg-destructive/10 p-4 rounded-full">
-            <TrendingDown className="w-8 h-8 text-destructive" />
+      {/* DASHBOARD GM METRICS */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="bg-card border border-border/60 rounded-2xl p-6 shadow-sm flex items-center gap-5">
+            <div className="bg-destructive/10 p-4 rounded-full">
+              <TrendingDown className="w-8 h-8 text-destructive" />
+            </div>
+            <div>
+              <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-1">
+                Total Consolidado
+              </p>
+              <h3 className="text-3xl font-bold text-foreground">
+                {formatCurrency(totalDespesas)}
+              </h3>
+            </div>
           </div>
-          <div>
-            <p className="text-sm font-semibold text-muted-foreground uppercase tracking-wider mb-1">
-              Total Consolidado
-            </p>
-            <h3 className="text-3xl font-bold text-foreground">{formatCurrency(totalDespesas)}</h3>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <CostDistributionChart despesas={despesas} />
+            <MonthlyComparisonChart despesas={despesas} />
           </div>
+        </div>
+
+        <div className="lg:col-span-1">
+          <BreakEvenProjection totalDespesas={totalDespesas} />
         </div>
       </div>
 
