@@ -106,7 +106,9 @@ export default function RegistroTaxaSala() {
               m.valor = overrides[m.id]
             }
           })
-        } catch (e) {}
+        } catch (e) {
+          // Ignora erro de parse silenciosamente
+        }
       }
 
       setValores(mapped)
