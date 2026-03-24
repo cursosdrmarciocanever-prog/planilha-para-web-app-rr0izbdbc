@@ -14,7 +14,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
 import { DateRange } from 'react-day-picker'
-import { startOfMonth, endOfMonth, format, parseISO } from 'date-fns'
+import { startOfMonth, endOfMonth, format } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Bar, BarChart, CartesianGrid, XAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { ChartContainer, ChartTooltipContent } from '@/components/ui/chart'
@@ -22,18 +22,9 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Calendar } from '@/components/ui/calendar'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from '@/components/ui/dialog'
 import { cn, generatePDF } from '@/lib/utils'
 import { useDashboardData } from '@/hooks/use-dashboard'
 import { SystemAlerts } from '@/components/SystemAlerts'
-import { useLembretes } from '@/hooks/use-lembretes'
 
 interface MetricCardProps {
   title: string
@@ -130,7 +121,6 @@ export default function Index() {
   })
 
   const { metrics, chartData, loading, error } = useDashboardData(date)
-  const { selectedConta, setSelectedConta } = useLembretes()
 
   const formatCurrency = (val: number | undefined | null) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val ?? 0)
@@ -142,43 +132,6 @@ export default function Index() {
 
   return (
     <div className="p-6 md:p-10 animate-fade-in print:p-0">
-      <Dialog open={!!selectedConta} onOpenChange={(open) => !open && setSelectedConta(null)}>
-        <DialogContent className="sm:max-w-[425px]">
-          <DialogHeader>
-            <DialogTitle>Conta a Pagar</DialogTitle>
-            <DialogDescription>Detalhes do lembrete de vencimento.</DialogDescription>
-          </DialogHeader>
-          {selectedConta && (
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <span className="font-semibold text-right text-sm">Descrição:</span>
-                <span className="col-span-3 text-sm">{selectedConta.descricao}</span>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <span className="font-semibold text-right text-sm">Valor:</span>
-                <span className="col-span-3 font-bold text-rose-600">
-                  {formatCurrency(selectedConta.valor)}
-                </span>
-              </div>
-              <div className="grid grid-cols-4 items-center gap-4">
-                <span className="font-semibold text-right text-sm">Vencimento:</span>
-                <span className="col-span-3 text-sm">
-                  {selectedConta.data_vencimento
-                    ? format(parseISO(selectedConta.data_vencimento), 'dd/MM/yyyy')
-                    : 'N/A'}
-                </span>
-              </div>
-            </div>
-          )}
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setSelectedConta(null)}>
-              Fechar
-            </Button>
-            <Button onClick={() => (window.location.href = '/despesas')}>Ir para Despesas</Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
       <div className="print:hidden">
         <SystemAlerts />
       </div>

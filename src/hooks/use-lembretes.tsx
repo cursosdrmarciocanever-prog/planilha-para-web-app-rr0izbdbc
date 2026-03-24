@@ -67,7 +67,7 @@ export function useLembretes() {
         if (hasPermission) {
           try {
             const notification = new Notification(title, {
-              body,
+              body: body + '\n(Clique para Ver Detalhes)',
               icon: '/favicon.ico',
             })
 
