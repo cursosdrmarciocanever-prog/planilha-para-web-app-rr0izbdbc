@@ -14,7 +14,15 @@ import {
   parseISO,
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight, Plus, CalendarRange, FileText, Loader2 } from 'lucide-react'
+import {
+  ChevronLeft,
+  ChevronRight,
+  Plus,
+  CalendarRange,
+  FileText,
+  Loader2,
+  Mail,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
@@ -47,6 +55,7 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()))
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date())
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isSendingEmail, setIsSendingEmail] = useState(false)
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
   const [reportMonth, setReportMonth] = useState((new Date().getMonth() + 1).toString())
   const [reportYear, setReportYear] = useState(new Date().getFullYear().toString())
@@ -143,6 +152,61 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
       toast({ title: 'Erro', description: 'Falha ao gerar relatório.', variant: 'destructive' })
     } finally {
       setIsGenerating(false)
+    }
+  }
+
+  const handleTestEmail = async () => {
+    setIsSendingEmail(true)
+    try {
+      const contaInternet = contas.find((c) => c.descricao === 'Internet Fixa')
+
+      if (!contaInternet) {
+        toast({
+          title: 'Conta não encontrada',
+          description: 'A conta "Internet Fixa" não foi encontrada para realizar o teste.',
+          variant: 'destructive',
+        })
+        return
+      }
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/enviar_email_lembrete`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({
+            conta_fixa_id: contaInternet.id,
+            usuario_id: contaInternet.usuario_id || session?.user?.id,
+          }),
+        },
+      )
+
+      const result = await response.json()
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Erro desconhecido ao enviar e-mail')
+      }
+
+      toast({
+        title: 'Sucesso',
+        description: 'E-mail de teste enviado com sucesso para a conta "Internet Fixa".',
+      })
+    } catch (error: any) {
+      console.error(error)
+      toast({
+        title: 'Erro no envio',
+        description: `Falha ao enviar e-mail de teste: ${error.message}`,
+        variant: 'destructive',
+      })
+    } finally {
+      setIsSendingEmail(false)
     }
   }
 
@@ -277,15 +341,30 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
       </Card>
 
       {/* Painel Lateral */}
-      <Card className="w-full xl:w-[400px] shrink-0 rounded-3xl shadow-sm border-border/60 flex flex-col bg-card overflow-hidden">
-        <CardHeader className="p-5 border-b border-border/40 bg-secondary/20 flex-row justify-between items-center space-y-0">
+      <Card className="w-full xl:w-[450px] shrink-0 rounded-3xl shadow-sm border-border/60 flex flex-col bg-card overflow-hidden">
+        <CardHeader className="p-5 border-b border-border/40 bg-secondary/20 flex-row justify-between items-center space-y-0 flex-wrap gap-3">
           <div>
             <CardTitle className="text-lg font-bold text-foreground">Contas do Mês</CardTitle>
             <p className="text-xs text-muted-foreground mt-1 capitalize">
               {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
             </p>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap justify-end">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleTestEmail}
+              disabled={isSendingEmail}
+              className="h-9 gap-1 sm:gap-2 rounded-full px-3 sm:px-4 shadow-sm"
+              title="Testar Envio de E-mail"
+            >
+              {isSendingEmail ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <Mail className="w-4 h-4" />
+              )}
+              <span className="hidden sm:inline">Testar E-mail</span>
+            </Button>
             <Button
               variant="outline"
               size="sm"
