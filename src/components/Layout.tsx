@@ -1,8 +1,11 @@
 import { Outlet } from 'react-router-dom'
 import { SidebarProvider, SidebarInset, SidebarTrigger } from '@/components/ui/sidebar'
 import { AppSidebar } from './AppSidebar'
+import { useLembretes } from '@/hooks/use-lembretes'
 
 export default function Layout() {
+  useLembretes()
+
   return (
     <div className="min-h-screen bg-background text-foreground flex w-full">
       <SidebarProvider>

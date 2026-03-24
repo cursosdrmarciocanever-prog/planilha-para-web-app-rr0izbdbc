@@ -112,6 +112,39 @@ export type Database = {
           },
         ]
       }
+      contas_fixas: {
+        Row: {
+          categoria: string | null
+          criado_em: string
+          data_vencimento: string
+          descricao: string
+          frequencia: string | null
+          id: string
+          status: string
+          valor: number
+        }
+        Insert: {
+          categoria?: string | null
+          criado_em?: string
+          data_vencimento: string
+          descricao: string
+          frequencia?: string | null
+          id?: string
+          status?: string
+          valor?: number
+        }
+        Update: {
+          categoria?: string | null
+          criado_em?: string
+          data_vencimento?: string
+          descricao?: string
+          frequencia?: string | null
+          id?: string
+          status?: string
+          valor?: number
+        }
+        Relationships: []
+      }
       despesas: {
         Row: {
           categoria: string | null
@@ -966,6 +999,15 @@ export const Constants = {
 //   arquivo_pdf_url: text (nullable)
 //   proxima_consulta_agendada: timestamp without time zone (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: contas_fixas
+//   id: uuid (not null, default: gen_random_uuid())
+//   descricao: text (not null)
+//   valor: numeric (not null, default: 0)
+//   data_vencimento: date (not null)
+//   status: text (not null, default: 'Pendente'::text)
+//   categoria: text (nullable)
+//   frequencia: text (nullable, default: 'Mensal'::text)
+//   criado_em: timestamp with time zone (not null, default: now())
 // Table: despesas
 //   id: uuid (not null, default: gen_random_uuid())
 //   categoria: text (nullable)
@@ -1140,6 +1182,10 @@ export const Constants = {
 // Table: consultas
 //   FOREIGN KEY consultas_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
 //   PRIMARY KEY consultas_pkey: PRIMARY KEY (id)
+// Table: contas_fixas
+//   CHECK contas_fixas_frequencia_check: CHECK ((frequencia = ANY (ARRAY['Mensal'::text, 'Bimestral'::text, 'Trimestral'::text, 'Anual'::text, 'Única'::text])))
+//   PRIMARY KEY contas_fixas_pkey: PRIMARY KEY (id)
+//   CHECK contas_fixas_status_check: CHECK ((status = ANY (ARRAY['Pendente'::text, 'Pago'::text, 'Vencido'::text])))
 // Table: despesas
 //   PRIMARY KEY despesas_pkey: PRIMARY KEY (id)
 // Table: exames_laboratoriais
@@ -1213,6 +1259,10 @@ export const Constants = {
 //     WITH CHECK: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = consultas.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
 //   Policy "Medica UPDATE consultas" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = consultas.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
+// Table: contas_fixas
+//   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: despesas
 //   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -1375,6 +1425,9 @@ export const Constants = {
 // Table: consultas
 //   CREATE INDEX idx_consultas_data_consulta ON public.consultas USING btree (data_consulta)
 //   CREATE INDEX idx_consultas_gestante_id ON public.consultas USING btree (gestante_id)
+// Table: contas_fixas
+//   CREATE INDEX idx_contas_fixas_data_vencimento ON public.contas_fixas USING btree (data_vencimento)
+//   CREATE INDEX idx_contas_fixas_status ON public.contas_fixas USING btree (status)
 // Table: despesas
 //   CREATE INDEX idx_despesas_data_vencimento ON public.despesas USING btree (data_vencimento)
 //   CREATE INDEX idx_despesas_status ON public.despesas USING btree (status)
