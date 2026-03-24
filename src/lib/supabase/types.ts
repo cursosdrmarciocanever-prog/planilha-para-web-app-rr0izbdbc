@@ -326,6 +326,41 @@ export type Database = {
         }
         Relationships: []
       }
+      lembretes_contas: {
+        Row: {
+          conta_id: string | null
+          criado_em: string
+          id: string
+          lido: boolean | null
+          notificado: boolean | null
+          tipo: string | null
+        }
+        Insert: {
+          conta_id?: string | null
+          criado_em?: string
+          id?: string
+          lido?: boolean | null
+          notificado?: boolean | null
+          tipo?: string | null
+        }
+        Update: {
+          conta_id?: string | null
+          criado_em?: string
+          id?: string
+          lido?: boolean | null
+          notificado?: boolean | null
+          tipo?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: 'lembretes_contas_conta_id_fkey'
+            columns: ['conta_id']
+            isOneToOne: false
+            referencedRelation: 'contas_fixas'
+            referencedColumns: ['id']
+          },
+        ]
+      }
       medicamento_historico: {
         Row: {
           created_at: string | null
@@ -1053,6 +1088,13 @@ export const Constants = {
 //   data_ultima_menstruacao: date (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
 //   foto_perfil_url: text (nullable)
+// Table: lembretes_contas
+//   id: uuid (not null, default: gen_random_uuid())
+//   conta_id: uuid (nullable)
+//   tipo: text (nullable)
+//   lido: boolean (nullable, default: false)
+//   notificado: boolean (nullable, default: false)
+//   criado_em: timestamp with time zone (not null, default: now())
 // Table: medicamento_historico
 //   id: uuid (not null, default: gen_random_uuid())
 //   medicamento_id: uuid (nullable)
@@ -1200,6 +1242,10 @@ export const Constants = {
 //   PRIMARY KEY gestantes_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY gestantes_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 //   UNIQUE gestantes_user_id_key: UNIQUE (user_id)
+// Table: lembretes_contas
+//   FOREIGN KEY lembretes_contas_conta_id_fkey: FOREIGN KEY (conta_id) REFERENCES contas_fixas(id) ON DELETE CASCADE
+//   PRIMARY KEY lembretes_contas_pkey: PRIMARY KEY (id)
+//   CHECK lembretes_contas_tipo_check: CHECK ((tipo = ANY (ARRAY['vencida'::text, 'proxima'::text])))
 // Table: medicamento_historico
 //   FOREIGN KEY medicamento_historico_medicamento_id_fkey: FOREIGN KEY (medicamento_id) REFERENCES medicamentos_precificacao(id) ON DELETE CASCADE
 //   PRIMARY KEY medicamento_historico_pkey: PRIMARY KEY (id)
@@ -1290,6 +1336,10 @@ export const Constants = {
 //     USING: ((user_id = auth.uid()) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
 //   Policy "Invited view gestante" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = ac.id) AND (ac.email = (auth.jwt() ->> 'email'::text)))))
+// Table: lembretes_contas
+//   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: medicamento_historico
 //   Policy "Allow authenticated access to medicamento_historico" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -1433,6 +1483,9 @@ export const Constants = {
 //   CREATE INDEX idx_despesas_status ON public.despesas USING btree (status)
 // Table: gestantes
 //   CREATE UNIQUE INDEX gestantes_user_id_key ON public.gestantes USING btree (user_id)
+// Table: lembretes_contas
+//   CREATE INDEX idx_lembretes_contas_conta_id ON public.lembretes_contas USING btree (conta_id)
+//   CREATE INDEX idx_lembretes_contas_notificado ON public.lembretes_contas USING btree (notificado)
 // Table: ocupacao_salas
 //   CREATE INDEX idx_ocupacao_salas_horario_inicio ON public.ocupacao_salas USING btree (horario_inicio)
 //   CREATE INDEX idx_ocupacao_salas_paciente_id ON public.ocupacao_salas USING btree (paciente_id)
