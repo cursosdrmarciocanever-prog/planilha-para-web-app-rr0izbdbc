@@ -15,13 +15,13 @@ import {
   parseISO,
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight, Plus, AlertCircle } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, AlertCircle, CalendarRange } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
 
-export function ContasAPagarTab({ despesas, onOpenNew, onEdit }: any) {
+export function ContasAPagarTab({ contas, onOpenNew, onEdit }: any) {
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()))
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date())
 
@@ -33,17 +33,17 @@ export function ContasAPagarTab({ despesas, onOpenNew, onEdit }: any) {
 
   const expensesByDate = useMemo(() => {
     const map = new Map<string, any[]>()
-    despesas.forEach((d: any) => {
+    contas.forEach((d: any) => {
       if (!d.data_vencimento) return
       const dateStr = format(parseISO(d.data_vencimento), 'yyyy-MM-dd')
       if (!map.has(dateStr)) map.set(dateStr, [])
       map.get(dateStr)!.push(d)
     })
     return map
-  }, [despesas])
+  }, [contas])
 
   const selectedMonthExpenses = useMemo(() => {
-    return despesas
+    return contas
       .filter((d: any) => {
         if (!d.data_vencimento) return false
         const dDate = parseISO(d.data_vencimento)
@@ -53,7 +53,7 @@ export function ContasAPagarTab({ despesas, onOpenNew, onEdit }: any) {
         (a: any, b: any) =>
           parseISO(a.data_vencimento).getTime() - parseISO(b.data_vencimento).getTime(),
       )
-  }, [despesas, currentMonth])
+  }, [contas, currentMonth])
 
   return (
     <div className="flex flex-col xl:flex-row gap-6 animate-fade-in-up">
@@ -126,9 +126,10 @@ export function ContasAPagarTab({ despesas, onOpenNew, onEdit }: any) {
                   {dayExpenses.map((d) => {
                     const isPaid = d.status === 'Pago'
                     const isOverdue =
-                      !isPaid &&
-                      isBefore(parseISO(d.data_vencimento), new Date()) &&
-                      !isToday(parseISO(d.data_vencimento))
+                      d.status === 'Vencido' ||
+                      (!isPaid &&
+                        isBefore(parseISO(d.data_vencimento), new Date()) &&
+                        !isToday(parseISO(d.data_vencimento)))
 
                     return (
                       <div
@@ -176,7 +177,7 @@ export function ContasAPagarTab({ despesas, onOpenNew, onEdit }: any) {
             {selectedMonthExpenses.length === 0 ? (
               <div className="p-10 text-center text-muted-foreground flex flex-col items-center justify-center h-full min-h-[300px]">
                 <div className="bg-secondary/50 p-4 rounded-full mb-4">
-                  <AlertCircle className="w-8 h-8 opacity-40" />
+                  <CalendarRange className="w-8 h-8 opacity-40" />
                 </div>
                 <p className="text-base font-medium text-foreground">Nenhuma conta agendada</p>
                 <p className="text-sm mt-1">Não há vencimentos para o mês selecionado.</p>
@@ -186,9 +187,10 @@ export function ContasAPagarTab({ despesas, onOpenNew, onEdit }: any) {
                 {selectedMonthExpenses.map((d: any) => {
                   const isPaid = d.status === 'Pago'
                   const isOverdue =
-                    !isPaid &&
-                    isBefore(parseISO(d.data_vencimento), new Date()) &&
-                    !isToday(parseISO(d.data_vencimento))
+                    d.status === 'Vencido' ||
+                    (!isPaid &&
+                      isBefore(parseISO(d.data_vencimento), new Date()) &&
+                      !isToday(parseISO(d.data_vencimento)))
 
                   return (
                     <div
@@ -197,13 +199,18 @@ export function ContasAPagarTab({ despesas, onOpenNew, onEdit }: any) {
                       onClick={() => onEdit(d)}
                     >
                       <div className="flex-1 min-w-0">
-                        <p className="text-[15px] font-semibold text-foreground truncate group-hover:text-primary transition-colors">
+                        <p className="text-[15px] font-semibold text-foreground truncate group-hover:text-primary transition-colors flex items-center gap-2">
                           {d.descricao}
                         </p>
                         <div className="flex items-center gap-2 mt-1.5">
                           <span className="text-xs font-medium text-muted-foreground bg-secondary/50 px-2 py-0.5 rounded-md">
                             {format(parseISO(d.data_vencimento), 'dd/MM')}
                           </span>
+                          {d.frequencia && d.frequencia !== 'Única' && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-md font-medium border border-border/50 text-muted-foreground">
+                              {d.frequencia}
+                            </span>
+                          )}
                           <span
                             className={cn(
                               'text-[10px] px-2 py-0.5 rounded-md font-bold uppercase tracking-wider shadow-sm',

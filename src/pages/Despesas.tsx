@@ -41,63 +41,76 @@ interface Despesa {
   status: string
 }
 
+interface ContaFixa extends Despesa {
+  frequencia: string
+}
+
 const CATEGORIAS = ['Fixas', 'Variáveis', 'Pessoal', 'Impostos', 'Marketing']
+const FREQUENCIAS = ['Única', 'Mensal', 'Bimestral', 'Trimestral', 'Anual']
 
 export default function Despesas() {
+  const [activeTab, setActiveTab] = useState('lancamentos')
   const [despesas, setDespesas] = useState<Despesa[]>([])
+  const [contasFixas, setContasFixas] = useState<ContaFixa[]>([])
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
 
   // Form State
   const [editId, setEditId] = useState<string | null>(null)
+  const [editType, setEditType] = useState<'despesa' | 'conta_fixa'>('despesa')
   const [dataVencimento, setDataVencimento] = useState('')
   const [descricao, setDescricao] = useState('')
   const [categoria, setCategoria] = useState('')
   const [valor, setValor] = useState('')
   const [status, setStatus] = useState('Pendente')
+  const [frequencia, setFrequencia] = useState('Mensal')
 
   const { toast } = useToast()
 
-  const fetchDespesas = async () => {
+  const fetchDados = async () => {
     setLoading(true)
-    const { data, error } = await supabase
-      .from('despesas')
-      .select('id, data_vencimento, descricao, categoria, valor, status')
-      .order('data_vencimento', { ascending: false })
+    const [despesasRes, contasRes] = await Promise.all([
+      supabase
+        .from('despesas')
+        .select('id, data_vencimento, descricao, categoria, valor, status')
+        .order('data_vencimento', { ascending: false }),
+      supabase
+        .from('contas_fixas')
+        .select('id, data_vencimento, descricao, categoria, valor, status, frequencia')
+        .order('data_vencimento', { ascending: false }),
+    ])
 
-    if (error) {
-      toast({
-        title: 'Erro',
-        description: 'Não foi possível carregar as despesas.',
-        variant: 'destructive',
-      })
-    } else {
-      setDespesas((data as Despesa[]) || [])
-    }
+    if (!despesasRes.error) setDespesas(despesasRes.data as Despesa[])
+    if (!contasRes.error) setContasFixas(contasRes.data as ContaFixa[])
     setLoading(false)
   }
 
   useEffect(() => {
-    fetchDespesas()
+    fetchDados()
   }, [])
 
   const handleOpenNew = () => {
+    const isContaFixa = activeTab === 'calendario'
     setEditId(null)
+    setEditType(isContaFixa ? 'conta_fixa' : 'despesa')
     setDataVencimento(format(new Date(), 'yyyy-MM-dd'))
     setDescricao('')
     setCategoria('')
     setValor('')
     setStatus('Pendente')
+    setFrequencia(isContaFixa ? 'Mensal' : 'Única')
     setOpen(true)
   }
 
-  const handleOpenEdit = (despesa: Despesa) => {
-    setEditId(despesa.id)
-    setDataVencimento(despesa.data_vencimento || '')
-    setDescricao(despesa.descricao || '')
-    setCategoria(despesa.categoria || '')
-    setValor(despesa.valor.toString())
-    setStatus(despesa.status || 'Pendente')
+  const handleOpenEdit = (item: any, type: 'despesa' | 'conta_fixa') => {
+    setEditId(item.id)
+    setEditType(type)
+    setDataVencimento(item.data_vencimento || '')
+    setDescricao(item.descricao || '')
+    setCategoria(item.categoria || '')
+    setValor(item.valor.toString())
+    setStatus(item.status || 'Pendente')
+    if (type === 'conta_fixa') setFrequencia(item.frequencia || 'Mensal')
     setOpen(true)
   }
 
@@ -107,7 +120,7 @@ export default function Despesas() {
       return
     }
 
-    const payload = {
+    const payload: any = {
       data_vencimento: dataVencimento,
       descricao,
       categoria,
@@ -115,34 +128,35 @@ export default function Despesas() {
       status,
     }
 
-    if (editId) {
-      const { error } = await supabase.from('despesas').update(payload).eq('id', editId)
-      if (error)
-        toast({ title: 'Erro', description: 'Falha ao atualizar.', variant: 'destructive' })
-      else {
-        toast({ title: 'Sucesso', description: 'Despesa/Conta atualizada com sucesso.' })
-        fetchDespesas()
-        setOpen(false)
-      }
+    const table = editType === 'conta_fixa' ? 'contas_fixas' : 'despesas'
+    if (editType === 'conta_fixa') payload.frequencia = frequencia
+
+    const query = editId
+      ? supabase.from(table).update(payload).eq('id', editId)
+      : supabase.from(table).insert([payload])
+
+    const { error } = await query
+
+    if (error) {
+      toast({ title: 'Erro', description: 'Falha ao salvar o registro.', variant: 'destructive' })
     } else {
-      const { error } = await supabase.from('despesas').insert([payload])
-      if (error)
-        toast({ title: 'Erro', description: 'Falha ao cadastrar.', variant: 'destructive' })
-      else {
-        toast({ title: 'Sucesso', description: 'Despesa/Conta cadastrada com sucesso.' })
-        fetchDespesas()
-        setOpen(false)
-      }
+      toast({ title: 'Sucesso', description: 'Registro salvo com sucesso.' })
+      fetchDados()
+      setOpen(false)
     }
   }
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Tem certeza que deseja excluir esta despesa?')) return
-    const { error } = await supabase.from('despesas').delete().eq('id', id)
-    if (error) toast({ title: 'Erro', description: 'Falha ao excluir.', variant: 'destructive' })
-    else {
-      toast({ title: 'Sucesso', description: 'Despesa excluída com sucesso.' })
-      fetchDespesas()
+  const handleDelete = async (id: string, type: 'despesa' | 'conta_fixa' = 'despesa') => {
+    if (!confirm('Tem certeza que deseja excluir este registro?')) return
+    const table = type === 'conta_fixa' ? 'contas_fixas' : 'despesas'
+    const { error } = await supabase.from(table).delete().eq('id', id)
+
+    if (error) {
+      toast({ title: 'Erro', description: 'Falha ao excluir.', variant: 'destructive' })
+    } else {
+      toast({ title: 'Sucesso', description: 'Registro excluído com sucesso.' })
+      fetchDados()
+      if (open) setOpen(false)
     }
   }
 
@@ -164,11 +178,12 @@ export default function Despesas() {
           </p>
         </div>
         <Button onClick={handleOpenNew} className="gap-2 rounded-full shadow-sm">
-          <Plus className="w-4 h-4" /> Nova Despesa
+          <Plus className="w-4 h-4" />{' '}
+          {activeTab === 'calendario' ? 'Nova Conta Fixa' : 'Nova Despesa'}
         </Button>
       </div>
 
-      <Tabs defaultValue="lancamentos" className="w-full flex flex-col gap-6">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col gap-6">
         <TabsList className="h-auto p-1.5 bg-secondary/40 rounded-2xl w-full sm:w-fit inline-flex flex-wrap shadow-sm border border-border/50">
           <TabsTrigger
             value="lancamentos"
@@ -191,7 +206,6 @@ export default function Despesas() {
             value="lancamentos"
             className="mt-0 outline-none space-y-8 animate-fade-in-up"
           >
-            {/* DASHBOARD GM METRICS */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
                 <div className="bg-card border border-border/60 rounded-3xl p-6 shadow-sm flex items-center gap-5">
@@ -297,7 +311,7 @@ export default function Despesas() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => handleOpenEdit(d)}
+                                onClick={() => handleOpenEdit(d, 'despesa')}
                                 className="h-8 w-8 text-muted-foreground hover:text-primary rounded-full"
                               >
                                 <Edit className="h-4 w-4" />
@@ -305,7 +319,7 @@ export default function Despesas() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => handleDelete(d.id)}
+                                onClick={() => handleDelete(d.id, 'despesa')}
                                 className="h-8 w-8 text-muted-foreground hover:text-destructive rounded-full"
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -323,9 +337,9 @@ export default function Despesas() {
 
           <TabsContent value="calendario" className="mt-0 outline-none w-full">
             <ContasAPagarTab
-              despesas={despesas}
+              contas={contasFixas}
               onOpenNew={handleOpenNew}
-              onEdit={handleOpenEdit}
+              onEdit={(d: any) => handleOpenEdit(d, 'conta_fixa')}
             />
           </TabsContent>
         </div>
@@ -334,7 +348,15 @@ export default function Despesas() {
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="sm:max-w-[450px]">
           <DialogHeader>
-            <DialogTitle>{editId ? 'Editar Despesa' : 'Nova Despesa / Conta'}</DialogTitle>
+            <DialogTitle>
+              {editId
+                ? editType === 'conta_fixa'
+                  ? 'Editar Conta Fixa'
+                  : 'Editar Despesa'
+                : editType === 'conta_fixa'
+                  ? 'Nova Conta Fixa'
+                  : 'Nova Despesa'}
+            </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 pt-4">
             <div className="grid grid-cols-2 gap-4">
@@ -356,6 +378,7 @@ export default function Despesas() {
                   <SelectContent>
                     <SelectItem value="Pendente">Pendente</SelectItem>
                     <SelectItem value="Pago">Pago</SelectItem>
+                    <SelectItem value="Vencido">Vencido</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -400,9 +423,39 @@ export default function Despesas() {
               </div>
             </div>
 
-            <Button onClick={handleSave} className="w-full mt-4 rounded-full h-11">
-              {editId ? 'Salvar Alterações' : 'Cadastrar Conta'}
-            </Button>
+            {editType === 'conta_fixa' && (
+              <div className="space-y-2">
+                <Label>Frequência</Label>
+                <Select value={frequencia} onValueChange={setFrequencia}>
+                  <SelectTrigger className="bg-secondary/20">
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {FREQUENCIAS.map((freq) => (
+                      <SelectItem key={freq} value={freq}>
+                        {freq}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            <div className="flex gap-3 pt-2 mt-4 border-t border-border/40">
+              {editId && (
+                <Button
+                  variant="outline"
+                  className="text-destructive hover:bg-destructive/10 hover:text-destructive h-11"
+                  onClick={() => handleDelete(editId, editType)}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" />
+                  Excluir
+                </Button>
+              )}
+              <Button onClick={handleSave} className="flex-1 rounded-full h-11">
+                {editId ? 'Salvar Alterações' : 'Cadastrar'}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
