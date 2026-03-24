@@ -162,7 +162,11 @@ export default function Medicamentos() {
     setOpen(true)
   }
 
-  const handleOpenEdit = (m: Medicamento) => {
+  const handleOpenEdit = (m: Medicamento, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
     setEditId(m.id)
     setNome(m.nome)
     setCategoria(m.categoria || '')
@@ -175,7 +179,11 @@ export default function Medicamentos() {
     setOpen(true)
   }
 
-  const handleOpenHistorico = (m: Medicamento) => {
+  const handleOpenHistorico = (m: Medicamento, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
     setHistoricoId(m.id)
     setHistoricoNome(m.nome)
     setHistoricoOpen(true)
@@ -224,14 +232,24 @@ export default function Medicamentos() {
     }
   }
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async (id: string, e?: React.MouseEvent) => {
+    if (e) {
+      e.preventDefault()
+      e.stopPropagation()
+    }
     if (!confirm('Deseja excluir este medicamento?')) return
     const { error } = await supabase
       .from('medicamentos_precificacao' as any)
       .delete()
       .eq('id', id)
-    if (error) toast({ title: 'Erro', description: 'Falha ao excluir.', variant: 'destructive' })
-    else {
+    if (error) {
+      console.error('Erro ao excluir medicamento:', error)
+      toast({
+        title: 'Erro',
+        description: `Falha ao excluir: ${error.message || 'Erro desconhecido'}`,
+        variant: 'destructive',
+      })
+    } else {
       toast({ title: 'Sucesso', description: 'Medicamento excluído.' })
       fetchMedicamentos()
     }
@@ -463,12 +481,12 @@ export default function Medicamentos() {
                     isRiscoEstoque && 'border-orange-500/50 shadow-orange-500/10 bg-orange-500/5',
                   )}
                 >
-                  <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity print:hidden">
+                  <div className="absolute top-3 right-3 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity print:hidden z-10">
                     <Button
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-muted-foreground hover:text-primary bg-background/80"
-                      onClick={() => handleOpenHistorico(m)}
+                      onClick={(e) => handleOpenHistorico(m, e)}
                     >
                       <HistoryIcon className="w-4 h-4" />
                     </Button>
@@ -476,7 +494,7 @@ export default function Medicamentos() {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-muted-foreground hover:text-primary bg-background/80"
-                      onClick={() => handleOpenEdit(m)}
+                      onClick={(e) => handleOpenEdit(m, e)}
                     >
                       <Edit className="w-4 h-4" />
                     </Button>
@@ -484,7 +502,7 @@ export default function Medicamentos() {
                       variant="ghost"
                       size="icon"
                       className="h-8 w-8 text-muted-foreground hover:text-destructive bg-background/80"
-                      onClick={() => handleDelete(m.id)}
+                      onClick={(e) => handleDelete(m.id, e)}
                     >
                       <Trash2 className="w-4 h-4" />
                     </Button>

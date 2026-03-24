@@ -132,7 +132,8 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
       )
 
       if (!response.ok) {
-        throw new Error('Falha ao gerar o relatório')
+        const errData = await response.json().catch(() => null)
+        throw new Error(errData?.error || 'Falha ao gerar o relatório')
       }
 
       const blob = await response.blob()
@@ -147,9 +148,13 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
 
       toast({ title: 'Sucesso', description: 'Relatório gerado com sucesso.' })
       setIsReportModalOpen(false)
-    } catch (error) {
+    } catch (error: any) {
       console.error(error)
-      toast({ title: 'Erro', description: 'Falha ao gerar relatório.', variant: 'destructive' })
+      toast({
+        title: 'Erro',
+        description: error.message || 'Falha ao gerar relatório.',
+        variant: 'destructive',
+      })
     } finally {
       setIsGenerating(false)
     }
@@ -158,12 +163,13 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
   const handleTestEmail = async () => {
     setIsSendingEmail(true)
     try {
-      const contaInternet = contas.find((c) => c.descricao === 'Internet Fixa')
+      // Pega qualquer conta para realizar o teste (de preferência as do usuário logado)
+      const contaTeste = contas.length > 0 ? contas[0] : null
 
-      if (!contaInternet) {
+      if (!contaTeste) {
         toast({
-          title: 'Conta não encontrada',
-          description: 'A conta "Internet Fixa" não foi encontrada para realizar o teste.',
+          title: 'Nenhuma conta encontrada',
+          description: 'Cadastre pelo menos uma conta para realizar o teste de e-mail.',
           variant: 'destructive',
         })
         return
@@ -182,8 +188,8 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
             Authorization: `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`,
           },
           body: JSON.stringify({
-            conta_fixa_id: contaInternet.id,
-            usuario_id: contaInternet.usuario_id || session?.user?.id,
+            conta_fixa_id: contaTeste.id,
+            usuario_id: contaTeste.usuario_id || session?.user?.id,
           }),
         },
       )
@@ -196,7 +202,7 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
 
       toast({
         title: 'Sucesso',
-        description: 'E-mail de teste enviado com sucesso para a conta "Internet Fixa".',
+        description: `E-mail de teste enviado com sucesso (Conta: ${contaTeste.descricao}).`,
       })
     } catch (error: any) {
       console.error(error)

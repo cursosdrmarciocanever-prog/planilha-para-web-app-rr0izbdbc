@@ -1,12 +1,21 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Target, CheckCircle2, AlertCircle } from 'lucide-react'
 
 export function BreakEvenProjection({ totalDespesas }: { totalDespesas: number }) {
-  const [ticketMedio, setTicketMedio] = useState<string>('350')
-  const [diasTrabalhados, setDiasTrabalhados] = useState<string>('22')
+  const [ticketMedio, setTicketMedio] = useState<string>(
+    () => localStorage.getItem('breakEvenTicket') || '350',
+  )
+  const [diasTrabalhados, setDiasTrabalhados] = useState<string>(
+    () => localStorage.getItem('breakEvenDias') || '22',
+  )
+
+  useEffect(() => {
+    localStorage.setItem('breakEvenTicket', ticketMedio)
+    localStorage.setItem('breakEvenDias', diasTrabalhados)
+  }, [ticketMedio, diasTrabalhados])
 
   const ticket = parseFloat(ticketMedio) || 0
   const dias = parseInt(diasTrabalhados) || 1
