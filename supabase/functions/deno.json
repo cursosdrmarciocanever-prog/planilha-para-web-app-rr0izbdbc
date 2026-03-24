@@ -1,6 +1,7 @@
 {
   "_versions": {
     "generate-signed-url": 1,
-    "verificar_contas_vencidas": 3
+    "verificar_contas_vencidas": 4,
+    "enviar_email_lembrete": 1
   }
 }
