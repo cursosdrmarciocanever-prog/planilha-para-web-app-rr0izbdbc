@@ -21,6 +21,7 @@ import {
 } from '@/components/ui/table'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
+import { useAuth } from '@/hooks/use-auth'
 import { format, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -43,12 +44,14 @@ interface Despesa {
 
 interface ContaFixa extends Despesa {
   frequencia: string
+  usuario_id?: string
 }
 
 const CATEGORIAS = ['Fixas', 'Variáveis', 'Pessoal', 'Impostos', 'Marketing']
 const FREQUENCIAS = ['Única', 'Mensal', 'Bimestral', 'Trimestral', 'Anual']
 
 export default function Despesas() {
+  const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('lancamentos')
   const [despesas, setDespesas] = useState<Despesa[]>([])
   const [contasFixas, setContasFixas] = useState<ContaFixa[]>([])
@@ -76,7 +79,7 @@ export default function Despesas() {
         .order('data_vencimento', { ascending: false }),
       supabase
         .from('contas_fixas')
-        .select('id, data_vencimento, descricao, categoria, valor, status, frequencia')
+        .select('id, data_vencimento, descricao, categoria, valor, status, frequencia, usuario_id')
         .order('data_vencimento', { ascending: false }),
     ])
 
@@ -129,7 +132,13 @@ export default function Despesas() {
     }
 
     const table = editType === 'conta_fixa' ? 'contas_fixas' : 'despesas'
-    if (editType === 'conta_fixa') payload.frequencia = frequencia
+
+    if (editType === 'conta_fixa') {
+      payload.frequencia = frequencia
+      if (user) {
+        payload.usuario_id = user.id
+      }
+    }
 
     const query = editId
       ? supabase.from(table).update(payload).eq('id', editId)
