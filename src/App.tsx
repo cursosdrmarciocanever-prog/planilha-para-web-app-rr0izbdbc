@@ -17,6 +17,7 @@ import TaxaSala from './pages/TaxaSala'
 import Medicamentos from './pages/Medicamentos'
 import Importar from './pages/Importar'
 import Despesas from './pages/Despesas'
+import Monitoramento from './pages/Monitoramento'
 
 function PrintHandler() {
   const location = useLocation()
@@ -61,6 +62,7 @@ const App = () => (
               <Route path="/taxa" element={<TaxaSala />} />
               <Route path="/medicamentos" element={<Medicamentos />} />
               <Route path="/importar" element={<Importar />} />
+              <Route path="/monitoramento" element={<Monitoramento />} />
             </Route>
           </Route>
         </Routes>

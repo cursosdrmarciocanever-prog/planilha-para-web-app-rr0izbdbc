@@ -12,6 +12,7 @@ import {
   Upload,
   Receipt,
   Pill,
+  Activity,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -36,6 +37,7 @@ const navItems = [
   { label: 'Precisão', path: '/precisao', icon: Target },
   { label: 'Taxa de Sala', path: '/taxa', icon: Building },
   { label: 'Medicamentos', path: '/medicamentos', icon: Pill },
+  { label: 'Monitoramento', path: '/monitoramento', icon: Activity },
   { label: 'Importar Dados', path: '/importar', icon: Upload },
 ]
 
