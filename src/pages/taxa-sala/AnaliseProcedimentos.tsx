@@ -18,6 +18,7 @@ import {
   Stethoscope,
   Loader2,
   Calendar,
+  Activity,
 } from 'lucide-react'
 import { ProcedimentoTaxa } from '@/types/taxa-sala'
 import {
