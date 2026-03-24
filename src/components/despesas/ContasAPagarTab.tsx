@@ -18,6 +18,21 @@ import { ChevronLeft, ChevronRight, Plus, CalendarRange, FileText, Loader2 } fro
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
+import { Label } from '@/components/ui/label'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
@@ -32,6 +47,10 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()))
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date())
   const [isGenerating, setIsGenerating] = useState(false)
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
+  const [reportMonth, setReportMonth] = useState((new Date().getMonth() + 1).toString())
+  const [reportYear, setReportYear] = useState(new Date().getFullYear().toString())
+
   const { toast } = useToast()
 
   const monthStart = startOfMonth(currentMonth)
@@ -84,8 +103,8 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
   const handleGenerateReport = async () => {
     setIsGenerating(true)
     try {
-      const mes = currentMonth.getMonth() + 1
-      const ano = currentMonth.getFullYear()
+      const mes = parseInt(reportMonth)
+      const ano = parseInt(reportYear)
 
       const {
         data: { session },
@@ -111,13 +130,14 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `Relatorio_Contas_${mes.toString().padStart(2, '0')}_${ano}.pdf`
+      a.download = `relatorio_contas_${mes.toString().padStart(2, '0')}_${ano}.pdf`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
       document.body.removeChild(a)
 
       toast({ title: 'Sucesso', description: 'Relatório gerado com sucesso.' })
+      setIsReportModalOpen(false)
     } catch (error) {
       console.error(error)
       toast({ title: 'Erro', description: 'Falha ao gerar relatório.', variant: 'destructive' })
@@ -269,16 +289,11 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
             <Button
               variant="outline"
               size="sm"
-              onClick={handleGenerateReport}
-              disabled={isGenerating}
+              onClick={() => setIsReportModalOpen(true)}
               className="h-9 gap-1 sm:gap-2 rounded-full px-3 sm:px-4 shadow-sm"
               title="Gerar Relatório PDF"
             >
-              {isGenerating ? (
-                <Loader2 className="w-4 h-4 animate-spin" />
-              ) : (
-                <FileText className="w-4 h-4" />
-              )}
+              <FileText className="w-4 h-4" />
               <span className="hidden sm:inline">Relatório PDF</span>
             </Button>
             <Button
@@ -382,6 +397,68 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
           </ScrollArea>
         </CardContent>
       </Card>
+
+      <Dialog open={isReportModalOpen} onOpenChange={setIsReportModalOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Gerar Relatório de Contas</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Mês</Label>
+                <Select value={reportMonth} onValueChange={setReportMonth}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o mês" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 12 }).map((_, i) => (
+                      <SelectItem key={i + 1} value={(i + 1).toString()} className="capitalize">
+                        {format(new Date(2000, i, 1), 'MMMM', { locale: ptBR })}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Ano</Label>
+                <Select value={reportYear} onValueChange={setReportYear}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Selecione o ano" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Array.from({ length: 5 }).map((_, i) => {
+                      const year = new Date().getFullYear() - 2 + i
+                      return (
+                        <SelectItem key={year} value={year.toString()}>
+                          {year}
+                        </SelectItem>
+                      )
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsReportModalOpen(false)}
+              className="rounded-full"
+            >
+              Cancelar
+            </Button>
+            <Button onClick={handleGenerateReport} disabled={isGenerating} className="rounded-full">
+              {isGenerating ? (
+                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+              ) : (
+                <FileText className="w-4 h-4 mr-2" />
+              )}
+              Gerar PDF
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
