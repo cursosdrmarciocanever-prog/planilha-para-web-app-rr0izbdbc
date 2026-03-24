@@ -1,5 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Activity, RefreshCw, CheckCircle2, AlertCircle, Clock, ServerCrash } from 'lucide-react'
+import {
+  Activity,
+  RefreshCw,
+  CheckCircle2,
+  AlertCircle,
+  Clock,
+  ServerCrash,
+  Play,
+  Loader2,
+} from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
@@ -30,6 +39,7 @@ import { format, parseISO, subDays, subHours } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { supabase } from '@/lib/supabase/client'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useToast } from '@/hooks/use-toast'
 
 interface LogAutomacao {
   id: string
@@ -40,10 +50,12 @@ interface LogAutomacao {
 }
 
 export default function Monitoramento() {
+  const { toast } = useToast()
   const [logs, setLogs] = useState<LogAutomacao[]>([])
   const [totalCount, setTotalCount] = useState(0)
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
+  const [executing, setExecuting] = useState(false)
 
   // Filters
   const [period, setPeriod] = useState('24h')
@@ -111,6 +123,31 @@ export default function Monitoramento() {
     fetchLogs(true)
   }
 
+  const handleExecuteAutomation = async () => {
+    try {
+      setExecuting(true)
+      const { data, error } = await supabase.functions.invoke('agendar_lembretes_automaticos')
+
+      if (error || data?.error) {
+        throw new Error(error?.message || data?.error || 'Erro desconhecido ao executar automação')
+      }
+
+      toast({
+        title: 'Automação executada',
+        description: data?.message || 'A rotina foi processada com sucesso.',
+      })
+    } catch (err: any) {
+      toast({
+        title: 'Erro na execução',
+        description: err.message,
+        variant: 'destructive',
+      })
+    } finally {
+      setExecuting(false)
+      fetchLogs(true)
+    }
+  }
+
   const totalPages = Math.ceil(totalCount / pageSize)
 
   const renderStatusBadge = (status: string) => {
@@ -150,15 +187,29 @@ export default function Monitoramento() {
             Acompanhe o histórico de execução das tarefas automáticas do sistema.
           </p>
         </div>
-        <Button
-          onClick={handleRefresh}
-          variant="outline"
-          className="gap-2 rounded-full shadow-sm bg-background"
-          disabled={loading || refreshing}
-        >
-          <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
-          Atualizar Dados
-        </Button>
+        <div className="flex flex-col sm:flex-row gap-3 w-full md:w-auto">
+          <Button
+            onClick={handleExecuteAutomation}
+            className="gap-2 rounded-full shadow-sm w-full sm:w-auto"
+            disabled={executing || loading || refreshing}
+          >
+            {executing ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              <Play className="w-4 h-4 fill-current" />
+            )}
+            Executar Automação Agora
+          </Button>
+          <Button
+            onClick={handleRefresh}
+            variant="outline"
+            className="gap-2 rounded-full shadow-sm bg-background w-full sm:w-auto"
+            disabled={loading || refreshing || executing}
+          >
+            <RefreshCw className={`w-4 h-4 ${refreshing ? 'animate-spin' : ''}`} />
+            Atualizar Dados
+          </Button>
+        </div>
       </div>
 
       <Card className="border-border/60 shadow-sm rounded-3xl bg-card mb-6 overflow-hidden">
