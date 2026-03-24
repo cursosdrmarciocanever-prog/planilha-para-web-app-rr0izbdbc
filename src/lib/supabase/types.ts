@@ -1461,6 +1461,10 @@ export const Constants = {
 //   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
+//   Policy "Users can update their own profile" (UPDATE, PERMISSIVE) roles={public}
+//     USING: (auth.uid() = id)
+//   Policy "Users can view their own profile" (SELECT, PERMISSIVE) roles={public}
+//     USING: (auth.uid() = id)
 //   Policy "Users update own profile" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: ((auth.uid() = id) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
 //   Policy "Users view own profile" (SELECT, PERMISSIVE) roles={authenticated}

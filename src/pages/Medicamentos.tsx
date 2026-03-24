@@ -11,6 +11,7 @@ import {
   TrendingUp,
   RefreshCw,
   AlertTriangle,
+  Copy,
 } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -236,6 +237,96 @@ export default function Medicamentos() {
     }
   }
 
+  const handleSyncPrecisao = async () => {
+    if (
+      !confirm(
+        'Deseja copiar todos os valores de compra e venda da aba Precisão para cá?\n\nItens com o mesmo nome serão atualizados e novos itens serão criados.',
+      )
+    )
+      return
+
+    setLoading(true)
+    try {
+      const { data: produtos, error: errProd } = await supabase
+        .from('produtos_servicos')
+        .select('nome, custo_estimado, preco')
+
+      if (errProd) throw errProd
+
+      let atualizados = 0
+      let inseridos = 0
+
+      for (const prod of produtos || []) {
+        const med = medicamentos.find(
+          (m) => m.nome.toLowerCase().trim() === prod.nome.toLowerCase().trim(),
+        )
+
+        const novoCusto = prod.custo_estimado || 0
+        const novoPreco = prod.preco || 0
+
+        if (med) {
+          const impostos = med.impostos || 0
+          let novaMargem = 0
+          if (novoCusto > 0 && novoPreco > 0) {
+            novaMargem = (novoPreco / novoCusto - 1) * 100 - impostos
+          } else if (novoCusto === 0 && novoPreco > 0) {
+            novaMargem = 100
+          }
+
+          const { error: updateErr } = await supabase
+            .from('medicamentos_precificacao' as any)
+            .update({
+              custo_aquisicao: novoCusto,
+              custo_reposicao: novoCusto,
+              preco_venda_final: novoPreco,
+              preco_venda_sugerido: novoPreco,
+              margem_lucro: parseFloat(novaMargem.toFixed(2)),
+              updated_at: new Date().toISOString(),
+            })
+            .eq('id', med.id)
+
+          if (!updateErr) atualizados++
+        } else {
+          const impostos = 6 // Imposto padrão
+          let novaMargem = 0
+          if (novoCusto > 0 && novoPreco > 0) {
+            novaMargem = (novoPreco / novoCusto - 1) * 100 - impostos
+          } else if (novoCusto === 0 && novoPreco > 0) {
+            novaMargem = 100
+          }
+
+          const { error: insertErr } = await supabase
+            .from('medicamentos_precificacao' as any)
+            .insert([
+              {
+                nome: prod.nome,
+                categoria: 'Importado de Precisão',
+                custo_aquisicao: novoCusto,
+                custo_reposicao: novoCusto,
+                preco_venda_final: novoPreco,
+                preco_venda_sugerido: novoPreco,
+                margem_lucro: parseFloat(novaMargem.toFixed(2)),
+                impostos,
+                ativo: true,
+              },
+            ])
+
+          if (!insertErr) inseridos++
+        }
+      }
+
+      toast({
+        title: 'Cópia Concluída',
+        description: `${atualizados} itens atualizados e ${inseridos} novos itens importados da aba Precisão.`,
+      })
+      fetchMedicamentos()
+    } catch (error) {
+      console.error(error)
+      toast({ title: 'Erro', description: 'Falha ao copiar dados.', variant: 'destructive' })
+      setLoading(false)
+    }
+  }
+
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0)
 
@@ -280,6 +371,14 @@ export default function Medicamentos() {
             </PopoverContent>
           </Popover>
           <Button
+            onClick={handleSyncPrecisao}
+            variant="outline"
+            className="flex-1 md:flex-none gap-2 text-primary border-primary/20 hover:bg-primary/5"
+            title="Copiar valores de compra e venda da aba Precisão"
+          >
+            <Copy className="w-4 h-4" /> Importar Precisão
+          </Button>
+          <Button
             onClick={() => setReajusteOpen(true)}
             variant="outline"
             className="flex-1 md:flex-none gap-2"
@@ -321,9 +420,14 @@ export default function Medicamentos() {
               <Pill className="w-16 h-16 text-primary/40" strokeWidth={1.5} />
             </div>
             <h3 className="text-2xl font-bold mb-3">Nenhum medicamento</h3>
-            <Button onClick={handleOpenNew} className="mt-4 gap-2">
-              <Plus className="w-4 h-4" /> Cadastrar Primeiro
-            </Button>
+            <div className="flex gap-4 mt-4">
+              <Button onClick={handleSyncPrecisao} variant="outline" className="gap-2">
+                <Copy className="w-4 h-4" /> Importar de Precisão
+              </Button>
+              <Button onClick={handleOpenNew} className="gap-2">
+                <Plus className="w-4 h-4" /> Cadastrar Primeiro
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
