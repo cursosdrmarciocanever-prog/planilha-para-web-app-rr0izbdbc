@@ -386,6 +386,30 @@ export type Database = {
           },
         ]
       }
+      logs_automacao: {
+        Row: {
+          funcao: string
+          id: string
+          mensagem_erro: string | null
+          status: string
+          timestamp: string
+        }
+        Insert: {
+          funcao: string
+          id?: string
+          mensagem_erro?: string | null
+          status: string
+          timestamp?: string
+        }
+        Update: {
+          funcao?: string
+          id?: string
+          mensagem_erro?: string | null
+          status?: string
+          timestamp?: string
+        }
+        Relationships: []
+      }
       medicamento_historico: {
         Row: {
           created_at: string | null
@@ -1126,6 +1150,12 @@ export const Constants = {
 //   data_envio: timestamp with time zone (nullable)
 //   enviado: boolean (nullable, default: false)
 //   usuario_id: uuid (nullable)
+// Table: logs_automacao
+//   id: uuid (not null, default: gen_random_uuid())
+//   timestamp: timestamp with time zone (not null, default: now())
+//   funcao: text (not null)
+//   status: text (not null)
+//   mensagem_erro: text (nullable)
 // Table: medicamento_historico
 //   id: uuid (not null, default: gen_random_uuid())
 //   medicamento_id: uuid (nullable)
@@ -1281,6 +1311,8 @@ export const Constants = {
 //   CHECK lembretes_contas_tipo_check: CHECK ((tipo = ANY (ARRAY['vencida'::text, 'proxima'::text])))
 //   CHECK lembretes_contas_tipo_lembrete_check: CHECK ((tipo_lembrete = ANY (ARRAY['email'::text, 'push'::text, 'ambos'::text])))
 //   FOREIGN KEY lembretes_contas_usuario_id_fkey: FOREIGN KEY (usuario_id) REFERENCES auth.users(id) ON DELETE CASCADE
+// Table: logs_automacao
+//   PRIMARY KEY logs_automacao_pkey: PRIMARY KEY (id)
 // Table: medicamento_historico
 //   FOREIGN KEY medicamento_historico_medicamento_id_fkey: FOREIGN KEY (medicamento_id) REFERENCES medicamentos_precificacao(id) ON DELETE CASCADE
 //   PRIMARY KEY medicamento_historico_pkey: PRIMARY KEY (id)
@@ -1375,6 +1407,9 @@ export const Constants = {
 //   Policy "Users can manage their own lembretes_contas" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: (usuario_id = auth.uid())
 //     WITH CHECK: (usuario_id = auth.uid())
+// Table: logs_automacao
+//   Policy "Allow authenticated read access on logs_automacao" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: true
 // Table: medicamento_historico
 //   Policy "Allow authenticated access to medicamento_historico" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true

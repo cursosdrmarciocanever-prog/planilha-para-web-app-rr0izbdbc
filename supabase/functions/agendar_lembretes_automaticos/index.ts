@@ -28,7 +28,7 @@ Deno.serve(async (req: Request) => {
   }
 
   try {
-    // 1. Chamar verificar_contas_vencidas para identificar e atualizar contas próximas/vencidas
+    // 1. Chamar verificar_contas_vencidas para identificar e atualizar contas próximas (3 dias) ou vencidas
     const { data: verifyData, error: verifyError } = await supabase.functions.invoke(
       'verificar_contas_vencidas',
     )
@@ -46,7 +46,7 @@ Deno.serve(async (req: Request) => {
     // 2. Para cada conta processada, verificar se precisa enviar o email e chamar enviar_email_lembrete
     for (const conta of contasProcessadas) {
       if (conta.usuario_id) {
-        // Verifica se o lembrete específico já foi enviado para evitar envios duplicados diariamente
+        // Verifica se o lembrete específico já foi enviado para evitar envios duplicados
         const { data: lembrete } = await supabase
           .from('lembretes_contas')
           .select('id, enviado')
