@@ -1,8 +1,8 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
+import { createClient } from 'jsr:@supabase/supabase-js@2'
+import { jsPDF } from 'npm:jspdf@2.5.2'
+import autoTable from 'npm:jspdf-autotable@3.8.2'
 import { corsHeaders } from '../_shared/cors.ts'
-import { createClient } from '@supabase/supabase-js'
-import { jsPDF } from 'jspdf'
-import autoTable from 'jspdf-autotable'
 
 Deno.serve(async (req) => {
   if (req.method === 'OPTIONS') {
@@ -10,95 +10,137 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const supabaseUrl = Deno.env.get('SUPABASE_URL') ?? ''
-    const authHeader = req.headers.get('Authorization')!
-    const supabase = createClient(supabaseUrl, Deno.env.get('SUPABASE_ANON_KEY') ?? '', {
-      global: { headers: { Authorization: authHeader } },
-    })
+    const authHeader = req.headers.get('Authorization')
+    if (!authHeader) {
+      throw new Error('Missing Authorization header')
+    }
+
+    const supabaseClient = createClient(
+      Deno.env.get('SUPABASE_URL') ?? '',
+      Deno.env.get('SUPABASE_ANON_KEY') ?? '',
+      {
+        global: {
+          headers: { Authorization: authHeader },
+        },
+      },
+    )
 
     const { mes, ano } = await req.json()
 
     if (!mes || !ano) {
-      return new Response(JSON.stringify({ error: 'Mês e ano são obrigatórios' }), {
-        status: 400,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      })
+      throw new Error('Mês e ano são obrigatórios')
     }
 
-    // Calcula datas
-    const startDate = new Date(ano, mes - 1, 1).toISOString().split('T')[0]
-    const endDate = new Date(ano, mes, 0).toISOString().split('T')[0]
+    const startOfMonth = new Date(ano, mes - 1, 1).toISOString()
+    const endOfMonth = new Date(ano, mes, 0, 23, 59, 59).toISOString()
 
-    // Fetch contas
-    const { data: contas, error } = await supabase
+    const { data: despesas, error: despesasError } = await supabaseClient
+      .from('despesas')
+      .select('*')
+      .gte('data_vencimento', startOfMonth)
+      .lte('data_vencimento', endOfMonth)
+
+    if (despesasError) throw despesasError
+
+    const { data: contasFixas, error: contasFixasError } = await supabaseClient
       .from('contas_fixas')
       .select('*')
-      .gte('data_vencimento', startDate)
-      .lte('data_vencimento', endDate)
-      .order('data_vencimento', { ascending: true })
 
-    if (error) throw error
+    if (contasFixasError) throw contasFixasError
 
-    // Calcula totais
-    let totalPago = 0
-    let totalPendente = 0
-    let totalVencido = 0
-    const totaisPorCategoria: Record<string, number> = {}
+    const contasFiltradas = contasFixas
+      .filter((c) => {
+        if (!c.data_vencimento) return false
+        const dataVenc = new Date(c.data_vencimento)
 
-    for (const conta of contas || []) {
-      const valor = Number(conta.valor)
-      if (conta.status === 'Pago') totalPago += valor
-      else if (conta.status === 'Vencido') totalVencido += valor
-      else totalPendente += valor
+        if (c.frequencia === 'Única') {
+          return dataVenc.getMonth() + 1 === mes && dataVenc.getFullYear() === ano
+        }
 
-      const cat = conta.categoria || 'Sem Categoria'
-      totaisPorCategoria[cat] = (totaisPorCategoria[cat] || 0) + valor
-    }
+        return dataVenc <= new Date(ano, mes, 0)
+      })
+      .map((c) => {
+        if (c.frequencia !== 'Única' && c.data_vencimento) {
+          const d = new Date(c.data_vencimento)
+          d.setFullYear(ano)
+          d.setMonth(mes - 1)
+          return { ...c, data_vencimento: d.toISOString() }
+        }
+        return c
+      })
 
-    const formatCurrency = (val: number) =>
-      new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)
+    const todos = [
+      ...(despesas || []).map((d) => ({ ...d, tipo: 'Despesa' })),
+      ...(contasFiltradas || []).map((d) => ({ ...d, tipo: 'Conta Fixa' })),
+    ]
+
+    todos.sort((a, b) => {
+      const dateA = new Date(a.data_vencimento).getTime()
+      const dateB = new Date(b.data_vencimento).getTime()
+      return dateA - dateB
+    })
 
     const doc = new jsPDF()
 
     doc.setFontSize(18)
-    doc.text(`Relatório de Contas a Pagar - ${String(mes).padStart(2, '0')}/${ano}`, 14, 22)
+    doc.text(`Relatório de Contas - ${mes.toString().padStart(2, '0')}/${ano}`, 14, 22)
 
-    doc.setFontSize(12)
-    doc.text('Resumo por Status:', 14, 35)
-    doc.setFontSize(10)
-    doc.text(`Pago: ${formatCurrency(totalPago)}`, 14, 42)
-    doc.text(`Pendente: ${formatCurrency(totalPendente)}`, 14, 49)
-    doc.text(`Vencido: ${formatCurrency(totalVencido)}`, 14, 56)
+    doc.setFontSize(11)
+    doc.setTextColor(100)
+    doc.text(`Gerado em: ${new Date().toLocaleDateString('pt-BR')}`, 14, 30)
 
-    doc.setFontSize(12)
-    doc.text('Resumo por Categoria:', 100, 35)
-    doc.setFontSize(10)
-    let yCat = 42
-    for (const [cat, val] of Object.entries(totaisPorCategoria)) {
-      doc.text(`${cat}: ${formatCurrency(val)}`, 100, yCat)
-      yCat += 7
-    }
+    const tableData = todos.map((item) => {
+      const date = item.data_vencimento ? new Date(item.data_vencimento) : null
+      const dateStr = date
+        ? `${date.getUTCDate().toString().padStart(2, '0')}/${(date.getUTCMonth() + 1).toString().padStart(2, '0')}/${date.getUTCFullYear()}`
+        : '-'
 
-    const tableData = (contas || []).map((c) => [
-      c.data_vencimento.split('-').reverse().join('/'),
-      c.descricao,
-      c.categoria || '-',
-      c.status,
-      formatCurrency(Number(c.valor)),
+      return [
+        dateStr,
+        item.descricao || '-',
+        item.categoria || '-',
+        item.tipo || '-',
+        item.status || 'Pendente',
+        new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+          item.valor || 0,
+        ),
+      ]
+    })
+
+    const total = todos.reduce((acc, curr) => acc + (Number(curr.valor) || 0), 0)
+
+    tableData.push([
+      '',
+      '',
+      '',
+      '',
+      'TOTAL',
+      new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(total),
     ])
 
     autoTable(doc, {
-      startY: Math.max(yCat, 65) + 10,
-      head: [['Vencimento', 'Descrição', 'Categoria', 'Status', 'Valor']],
+      startY: 35,
+      head: [['Vencimento', 'Descrição', 'Categoria', 'Tipo', 'Status', 'Valor']],
       body: tableData,
-      theme: 'grid',
-      styles: { fontSize: 8 },
-      headStyles: { fillColor: [41, 128, 185] },
+      theme: 'striped',
+      headStyles: { fillColor: [15, 23, 42] },
+      styles: { fontSize: 9 },
+      columnStyles: {
+        5: { halign: 'right', fontStyle: 'bold' },
+      },
+      willDrawCell: function (data: any) {
+        if (data.row.index === tableData.length - 1) {
+          doc.setFont('helvetica', 'bold')
+          if (data.column.index === 4 || data.column.index === 5) {
+            doc.setTextColor(0, 0, 0)
+          }
+        }
+      },
     })
 
-    const pdfArrayBuffer = doc.output('arraybuffer')
+    const pdfBytes = doc.output('arraybuffer')
 
-    return new Response(pdfArrayBuffer, {
+    return new Response(pdfBytes, {
       headers: {
         ...corsHeaders,
         'Content-Type': 'application/pdf',
@@ -107,8 +149,8 @@ Deno.serve(async (req) => {
     })
   } catch (error: any) {
     return new Response(JSON.stringify({ error: error.message }), {
-      status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 400,
     })
   }
 })

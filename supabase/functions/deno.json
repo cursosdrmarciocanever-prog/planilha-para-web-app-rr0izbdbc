@@ -3,6 +3,6 @@
     "generate-signed-url": 1,
     "verificar_contas_vencidas": 5,
     "enviar_email_lembrete": 1,
-    "gerar_relatorio_contas": 1
+    "gerar_relatorio_contas": 2
   }
 }
