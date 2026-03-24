@@ -614,6 +614,8 @@ export type Database = {
           dias_mes: number | null
           horas_mes: number | null
           id: string
+          meta_faturamento: number | null
+          meta_horas: number | null
           nome: string
           status: string | null
           taxa_dia: number | null
@@ -624,6 +626,8 @@ export type Database = {
           dias_mes?: number | null
           horas_mes?: number | null
           id?: string
+          meta_faturamento?: number | null
+          meta_horas?: number | null
           nome: string
           status?: string | null
           taxa_dia?: number | null
@@ -634,6 +638,8 @@ export type Database = {
           dias_mes?: number | null
           horas_mes?: number | null
           id?: string
+          meta_faturamento?: number | null
+          meta_horas?: number | null
           nome?: string
           status?: string | null
           taxa_dia?: number | null
@@ -1088,6 +1094,8 @@ export const Constants = {
 //   created_at: timestamp with time zone (nullable, default: now())
 //   horas_mes: numeric (nullable, default: 220)
 //   dias_mes: numeric (nullable, default: 22)
+//   meta_faturamento: numeric (nullable, default: 0)
+//   meta_horas: numeric (nullable, default: 0)
 // Table: sintomas_observacoes
 //   id: uuid (not null, default: gen_random_uuid())
 //   gestante_id: uuid (nullable)

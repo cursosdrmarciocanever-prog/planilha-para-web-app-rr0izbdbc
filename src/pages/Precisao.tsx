@@ -1,10 +1,17 @@
 import { useState, useEffect } from 'react'
-import { FileDown, Plus, DollarSign, Edit, Trash2 } from 'lucide-react'
+import { FileDown, Plus, DollarSign, Edit, Trash2, Upload } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
@@ -27,6 +34,11 @@ export default function Precisao() {
   const [nome, setNome] = useState('')
   const [custoEstimado, setCustoEstimado] = useState('')
   const [precoVenda, setPrecoVenda] = useState('')
+
+  // Import State
+  const [importOpen, setImportOpen] = useState(false)
+  const [importText, setImportText] = useState('')
+  const [isImporting, setIsImporting] = useState(false)
 
   const { toast } = useToast()
 
@@ -110,10 +122,72 @@ export default function Precisao() {
     }
   }
 
+  const handleBulkImport = async () => {
+    if (!importText.trim()) return
+
+    const rows = importText
+      .split('\n')
+      .map((r) => r.trim())
+      .filter(Boolean)
+    const payload = rows.map((row) => {
+      // Tenta separar por tabulação (padrão de cópia do Excel/Sheets)
+      let cols = row.split('\t')
+
+      // Fallback para ponto e vírgula se não houver tabulação
+      if (cols.length === 1) {
+        cols = row.split(';')
+      }
+
+      // Fallback para separar o último número se tiver apenas um separador de espaço "Procedimento 150,00"
+      if (cols.length === 1) {
+        const match = row.match(/(.+?)\s+([\d.,R$\s]+)$/)
+        if (match) {
+          cols = [match[1], match[2]]
+        }
+      }
+
+      const nomeCol = cols[0]?.trim() || 'Serviço sem nome'
+      let precoCol = 0
+
+      if (cols.length > 1) {
+        // Limpa a string de preço (remove R$, espaços)
+        let priceStr = cols[cols.length - 1].replace(/[R$\s]/gi, '')
+
+        // Se tem vírgula, assume que é o separador decimal (padrão BR)
+        if (priceStr.includes(',')) {
+          priceStr = priceStr.replace(/\./g, '').replace(',', '.')
+        }
+
+        precoCol = parseFloat(priceStr) || 0
+      }
+
+      return {
+        nome: nomeCol,
+        preco: precoCol,
+        custo_estimado: 0,
+      }
+    })
+
+    if (payload.length === 0) return
+
+    setIsImporting(true)
+    const { error } = await supabase.from('produtos_servicos').insert(payload)
+    setIsImporting(false)
+
+    if (error) {
+      toast({ title: 'Erro', description: 'Falha ao importar os dados.', variant: 'destructive' })
+    } else {
+      toast({ title: 'Sucesso', description: `${payload.length} serviços importados com sucesso.` })
+      setImportOpen(false)
+      setImportText('')
+      fetchServicos()
+    }
+  }
+
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val || 0)
 
-  const handlePrint = generatePDF
+  const handlePrint = () => generatePDF('simples')
 
   return (
     <div className="p-6 md:p-10 animate-fade-in flex flex-col min-h-[calc(100vh-4rem)] lg:min-h-screen print:p-0 print:m-0">
@@ -126,6 +200,13 @@ export default function Precisao() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
+          <Button
+            onClick={() => setImportOpen(true)}
+            variant="outline"
+            className="flex-1 md:flex-none gap-2"
+          >
+            <Upload className="w-4 h-4" /> Importar Planilha
+          </Button>
           <Button onClick={handlePrint} variant="outline" className="flex-1 md:flex-none gap-2">
             <FileDown className="w-4 h-4" /> Gerar PDF
           </Button>
@@ -159,9 +240,14 @@ export default function Precisao() {
               Adicione seus serviços e produtos para começar a calcular preços e margens de forma
               inteligente.
             </p>
-            <Button onClick={handleOpenNew} className="mt-8 gap-2">
-              <Plus className="w-4 h-4" /> Cadastrar Primeiro Serviço
-            </Button>
+            <div className="flex gap-4 mt-8">
+              <Button onClick={() => setImportOpen(true)} variant="outline" className="gap-2">
+                <Upload className="w-4 h-4" /> Importar de Planilha
+              </Button>
+              <Button onClick={handleOpenNew} className="gap-2">
+                <Plus className="w-4 h-4" /> Cadastrar Manualmente
+              </Button>
+            </div>
           </div>
         ) : (
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
@@ -224,6 +310,7 @@ export default function Precisao() {
         )}
       </Card>
 
+      {/* Cadastrar / Editar Modal */}
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
@@ -261,6 +348,38 @@ export default function Precisao() {
             <Button onClick={handleSave} className="w-full mt-2">
               {editId ? 'Salvar Alterações' : 'Salvar Serviço'}
             </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
+
+      {/* Importar Planilha Modal */}
+      <Dialog open={importOpen} onOpenChange={setImportOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Importar Procedimentos</DialogTitle>
+            <DialogDescription>
+              Cole abaixo os dados da sua planilha (Excel, Google Sheets).
+              <br />O formato esperado é: <strong>Nome do Procedimento</strong> na primeira coluna e{' '}
+              <strong>Valor de Venda</strong> na última coluna.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 pt-4">
+            <div className="space-y-2">
+              <Textarea
+                placeholder={`Exemplo:\nConsulta de Rotina\t350,00\nRetorno\t200,00\nAvaliação\t500,00`}
+                className="min-h-[250px] font-mono text-sm leading-relaxed"
+                value={importText}
+                onChange={(e) => setImportText(e.target.value)}
+              />
+            </div>
+            <div className="flex justify-end gap-3 pt-2">
+              <Button variant="outline" onClick={() => setImportOpen(false)} disabled={isImporting}>
+                Cancelar
+              </Button>
+              <Button onClick={handleBulkImport} disabled={!importText.trim() || isImporting}>
+                {isImporting ? 'Importando...' : 'Importar Dados'}
+              </Button>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
