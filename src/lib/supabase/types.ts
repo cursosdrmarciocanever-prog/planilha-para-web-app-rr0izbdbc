@@ -331,30 +331,52 @@ export type Database = {
       }
       lembretes_contas: {
         Row: {
+          conta_fixa_id: string | null
           conta_id: string | null
           criado_em: string
+          data_envio: string | null
+          enviado: boolean | null
           id: string
           lido: boolean | null
           notificado: boolean | null
           tipo: string | null
+          tipo_lembrete: string | null
+          usuario_id: string | null
         }
         Insert: {
+          conta_fixa_id?: string | null
           conta_id?: string | null
           criado_em?: string
+          data_envio?: string | null
+          enviado?: boolean | null
           id?: string
           lido?: boolean | null
           notificado?: boolean | null
           tipo?: string | null
+          tipo_lembrete?: string | null
+          usuario_id?: string | null
         }
         Update: {
+          conta_fixa_id?: string | null
           conta_id?: string | null
           criado_em?: string
+          data_envio?: string | null
+          enviado?: boolean | null
           id?: string
           lido?: boolean | null
           notificado?: boolean | null
           tipo?: string | null
+          tipo_lembrete?: string | null
+          usuario_id?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: 'lembretes_contas_conta_fixa_id_fkey'
+            columns: ['conta_fixa_id']
+            isOneToOne: false
+            referencedRelation: 'contas_fixas'
+            referencedColumns: ['id']
+          },
           {
             foreignKeyName: 'lembretes_contas_conta_id_fkey'
             columns: ['conta_id']
@@ -1099,6 +1121,11 @@ export const Constants = {
 //   lido: boolean (nullable, default: false)
 //   notificado: boolean (nullable, default: false)
 //   criado_em: timestamp with time zone (not null, default: now())
+//   conta_fixa_id: uuid (nullable)
+//   tipo_lembrete: text (nullable)
+//   data_envio: timestamp with time zone (nullable)
+//   enviado: boolean (nullable, default: false)
+//   usuario_id: uuid (nullable)
 // Table: medicamento_historico
 //   id: uuid (not null, default: gen_random_uuid())
 //   medicamento_id: uuid (nullable)
@@ -1248,9 +1275,12 @@ export const Constants = {
 //   FOREIGN KEY gestantes_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 //   UNIQUE gestantes_user_id_key: UNIQUE (user_id)
 // Table: lembretes_contas
+//   FOREIGN KEY lembretes_contas_conta_fixa_id_fkey: FOREIGN KEY (conta_fixa_id) REFERENCES contas_fixas(id) ON DELETE CASCADE
 //   FOREIGN KEY lembretes_contas_conta_id_fkey: FOREIGN KEY (conta_id) REFERENCES contas_fixas(id) ON DELETE CASCADE
 //   PRIMARY KEY lembretes_contas_pkey: PRIMARY KEY (id)
 //   CHECK lembretes_contas_tipo_check: CHECK ((tipo = ANY (ARRAY['vencida'::text, 'proxima'::text])))
+//   CHECK lembretes_contas_tipo_lembrete_check: CHECK ((tipo_lembrete = ANY (ARRAY['email'::text, 'push'::text, 'ambos'::text])))
+//   FOREIGN KEY lembretes_contas_usuario_id_fkey: FOREIGN KEY (usuario_id) REFERENCES auth.users(id) ON DELETE CASCADE
 // Table: medicamento_historico
 //   FOREIGN KEY medicamento_historico_medicamento_id_fkey: FOREIGN KEY (medicamento_id) REFERENCES medicamentos_precificacao(id) ON DELETE CASCADE
 //   PRIMARY KEY medicamento_historico_pkey: PRIMARY KEY (id)
@@ -1342,9 +1372,9 @@ export const Constants = {
 //   Policy "Invited view gestante" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = ac.id) AND (ac.email = (auth.jwt() ->> 'email'::text)))))
 // Table: lembretes_contas
-//   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
+//   Policy "Users can manage their own lembretes_contas" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: (usuario_id = auth.uid())
+//     WITH CHECK: (usuario_id = auth.uid())
 // Table: medicamento_historico
 //   Policy "Allow authenticated access to medicamento_historico" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
