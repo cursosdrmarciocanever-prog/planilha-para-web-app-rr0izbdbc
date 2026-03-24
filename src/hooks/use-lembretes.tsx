@@ -1,11 +1,13 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
 import { useToast } from '@/hooks/use-toast'
+import React from 'react'
 
 export function useLembretes() {
   const { user } = useAuth()
   const { toast } = useToast()
+  const [selectedConta, setSelectedConta] = useState<any>(null)
 
   useEffect(() => {
     if (!user) return
@@ -13,7 +15,6 @@ export function useLembretes() {
     const checkLembretes = async () => {
       let hasPermission = false
 
-      // Pedir permissão para Notificações Web
       if ('Notification' in window) {
         if (Notification.permission === 'granted') {
           hasPermission = true
@@ -27,20 +28,22 @@ export function useLembretes() {
         }
       }
 
-      // Buscar lembretes ainda não notificados para o usuário logado
       const { data: lembretes, error } = await supabase
         .from('lembretes_contas')
         .select(`
           id,
-          tipo,
-          conta_id,
+          tipo_lembrete,
+          enviado,
+          conta_fixa_id,
           contas_fixas (
+            id,
             descricao,
             valor,
             data_vencimento
           )
         `)
-        .eq('notificado', false)
+        .in('tipo_lembrete', ['push', 'ambos'])
+        .eq('enviado', false)
         .order('criado_em', { ascending: true })
 
       if (error) {
@@ -56,42 +59,51 @@ export function useLembretes() {
         const conta = lembrete.contas_fixas as any
         if (!conta) continue
 
-        const isVencida = lembrete.tipo === 'vencida'
-        const title = isVencida ? 'Conta Vencida!' : 'Conta Próxima do Vencimento'
+        const title = 'Conta a Pagar'
         const formatter = new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' })
         const valorFormatado = formatter.format(conta.valor)
-        const body = `${conta.descricao} - ${valorFormatado}\nVencimento: ${conta.data_vencimento}`
+        const body = `${conta.descricao} - ${valorFormatado}`
 
-        // Disparar notificação nativa se permitido
         if (hasPermission) {
           try {
-            new Notification(title, {
+            const notification = new Notification(title, {
               body,
               icon: '/favicon.ico',
             })
+
+            notification.onclick = (event) => {
+              event.preventDefault()
+              window.focus()
+              setSelectedConta(conta)
+              notification.close()
+            }
           } catch (e) {
             console.error('Erro ao exibir notificação', e)
           }
         } else {
-          // Fallback para toast interno caso bloqueado ou não suportado
           toast({
             title,
             description: body,
-            variant: isVencida ? 'destructive' : 'default',
+            action: React.createElement(
+              'button',
+              {
+                onClick: () => setSelectedConta(conta),
+                className:
+                  'bg-primary text-primary-foreground hover:bg-primary/90 px-3 py-1 text-xs rounded-md font-medium',
+              },
+              'Ver Detalhes',
+            ),
           })
         }
 
         idsToUpdate.push(lembrete.id)
       }
 
-      // Marcar os lembretes como notificados para evitar spam
       if (idsToUpdate.length > 0) {
-        await supabase.from('lembretes_contas').update({ notificado: true }).in('id', idsToUpdate)
+        await supabase.from('lembretes_contas').update({ enviado: true }).in('id', idsToUpdate)
       }
     }
 
-    // Opcional: Acionar a Edge Function manualmente para garantir atualização imediata
-    // quando o usuário entra (útil caso o cronjob diário ainda não tenha rodado).
     const triggerVerificacao = async () => {
       try {
         await supabase.functions.invoke('verificar_contas_vencidas')
@@ -103,7 +115,6 @@ export function useLembretes() {
 
     triggerVerificacao()
 
-    // Inscrever para atualizações realtime na tabela de lembretes
     const channel = supabase
       .channel('lembretes_changes')
       .on(
@@ -119,4 +130,6 @@ export function useLembretes() {
       supabase.removeChannel(channel)
     }
   }, [user, toast])
+
+  return { selectedConta, setSelectedConta }
 }

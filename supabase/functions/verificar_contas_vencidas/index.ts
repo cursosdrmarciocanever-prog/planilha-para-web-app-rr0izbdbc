@@ -9,7 +9,6 @@ Deno.serve(async (req: Request) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    // Utilizamos o SERVICE_ROLE_KEY para ignorar RLS e processar contas de todos os usuários no cron job
     const supabaseKey =
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY')
 
@@ -19,7 +18,6 @@ Deno.serve(async (req: Request) => {
 
     const supabase = createClient(supabaseUrl, supabaseKey)
 
-    // 1) Buscar todas as contas pendentes
     const { data: contas, error: contasError } = await supabase
       .from('contas_fixas')
       .select('*')
@@ -35,7 +33,6 @@ Deno.serve(async (req: Request) => {
     for (const conta of contas) {
       if (!conta.data_vencimento) continue
 
-      // Converte a data YYYY-MM-DD para UTC à meia-noite
       const dueDate = new Date(`${conta.data_vencimento}T00:00:00Z`)
 
       const diffTime = dueDate.getTime() - today.getTime()
@@ -48,7 +45,6 @@ Deno.serve(async (req: Request) => {
         let statusUpdated = false
         let novoStatus = conta.status
 
-        // 2) Atualizar status para "Vencido" se a data passou
         if (isVencida && conta.status !== 'Vencido') {
           await supabase.from('contas_fixas').update({ status: 'Vencido' }).eq('id', conta.id)
 
@@ -58,7 +54,6 @@ Deno.serve(async (req: Request) => {
 
         const tipoCategoria = isVencida ? 'vencida' : 'proxima'
 
-        // Verifica se já existe lembrete desse tipo para não duplicar envios no mesmo período
         const { data: existing } = await supabase
           .from('lembretes_contas')
           .select('id')
@@ -69,15 +64,14 @@ Deno.serve(async (req: Request) => {
         let lembreteCriado = false
 
         if (!existing) {
-          // 3) Criar registros na tabela lembretes_contas com tipo_lembrete "email" e "push" (ambos)
           await supabase.from('lembretes_contas').insert({
-            conta_id: conta.id, // Retrocompatibilidade
+            conta_id: conta.id,
             conta_fixa_id: conta.id,
             tipo: tipoCategoria,
-            tipo_lembrete: 'ambos', // Envia via Email e Push conforme solicitado
+            tipo_lembrete: 'ambos',
             usuario_id: conta.usuario_id,
             data_envio: new Date().toISOString(),
-            enviado: true, // Marcado como processado pela Edge Function
+            enviado: false,
             notificado: false,
             lido: false,
           })
@@ -99,7 +93,6 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // 4) Retornar lista de contas para processar
     return new Response(
       JSON.stringify({
         success: true,
