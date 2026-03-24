@@ -14,11 +14,13 @@ import {
   parseISO,
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { ChevronLeft, ChevronRight, Plus, CalendarRange } from 'lucide-react'
+import { ChevronLeft, ChevronRight, Plus, CalendarRange, FileText, Loader2 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { cn } from '@/lib/utils'
+import { supabase } from '@/lib/supabase/client'
+import { useToast } from '@/hooks/use-toast'
 
 interface ContasAPagarTabProps {
   contas: any[]
@@ -29,6 +31,8 @@ interface ContasAPagarTabProps {
 export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabProps) {
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()))
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date())
+  const [isGenerating, setIsGenerating] = useState(false)
+  const { toast } = useToast()
 
   const monthStart = startOfMonth(currentMonth)
   const monthEnd = endOfMonth(monthStart)
@@ -75,6 +79,51 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
     const isPending = !isPaid && !isOverdue && !isSoon
 
     return { isPaid, isOverdue, isSoon, isPending, diffDays }
+  }
+
+  const handleGenerateReport = async () => {
+    setIsGenerating(true)
+    try {
+      const mes = currentMonth.getMonth() + 1
+      const ano = currentMonth.getFullYear()
+
+      const {
+        data: { session },
+      } = await supabase.auth.getSession()
+
+      const response = await fetch(
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gerar_relatorio_contas`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${session?.access_token ?? import.meta.env.VITE_SUPABASE_ANON_KEY}`,
+          },
+          body: JSON.stringify({ mes, ano }),
+        },
+      )
+
+      if (!response.ok) {
+        throw new Error('Falha ao gerar o relatório')
+      }
+
+      const blob = await response.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `Relatorio_Contas_${mes.toString().padStart(2, '0')}_${ano}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      window.URL.revokeObjectURL(url)
+      document.body.removeChild(a)
+
+      toast({ title: 'Sucesso', description: 'Relatório gerado com sucesso.' })
+    } catch (error) {
+      console.error(error)
+      toast({ title: 'Erro', description: 'Falha ao gerar relatório.', variant: 'destructive' })
+    } finally {
+      setIsGenerating(false)
+    }
   }
 
   return (
@@ -216,9 +265,31 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
               {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
             </p>
           </div>
-          <Button size="sm" onClick={onOpenNew} className="h-9 gap-2 rounded-full px-4 shadow-sm">
-            <Plus className="w-4 h-4" /> Nova Conta
-          </Button>
+          <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleGenerateReport}
+              disabled={isGenerating}
+              className="h-9 gap-1 sm:gap-2 rounded-full px-3 sm:px-4 shadow-sm"
+              title="Gerar Relatório PDF"
+            >
+              {isGenerating ? (
+                <Loader2 className="w-4 h-4 animate-spin" />
+              ) : (
+                <FileText className="w-4 h-4" />
+              )}
+              <span className="hidden sm:inline">Relatório PDF</span>
+            </Button>
+            <Button
+              size="sm"
+              onClick={onOpenNew}
+              className="h-9 gap-1 sm:gap-2 rounded-full px-3 sm:px-4 shadow-sm"
+            >
+              <Plus className="w-4 h-4" /> <span className="hidden sm:inline">Nova Conta</span>
+              <span className="sm:hidden">Nova</span>
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="p-0 flex-1 flex flex-col">
           <ScrollArea className="h-[600px] xl:h-auto xl:flex-1">
