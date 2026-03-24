@@ -3,30 +3,34 @@ import { createClient } from 'npm:@supabase/supabase-js@2.45.0'
 import { corsHeaders } from '../_shared/cors.ts'
 
 Deno.serve(async (req: Request) => {
+  // Tratamento de CORS para chamadas do browser
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
   }
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    // Utiliza SERVICE_ROLE_KEY para acesso full (incluindo auth.admin e bypass do RLS)
+    // Necessário SERVICE_ROLE_KEY para usar auth.admin e acessar profiles bypassando RLS (se necessário no background)
     const supabaseKey =
       Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY')
     const resendApiKey = Deno.env.get('RESEND_API_KEY')
 
     if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Variáveis SUPABASE_URL ou chaves do Supabase ausentes.')
+      throw new Error('Variáveis SUPABASE_URL ou chaves do Supabase ausentes nos secrets.')
     }
 
     if (!resendApiKey) {
-      throw new Error('Variável RESEND_API_KEY não configurada nos secrets.')
+      throw new Error('Variável RESEND_API_KEY não configurada nos secrets do Supabase.')
     }
 
     const supabase = createClient(supabaseUrl, supabaseKey)
-    const { conta_fixa_id, usuario_id } = await req.json()
+    const body = await req.json()
+    const { conta_fixa_id, usuario_id } = body
 
     if (!conta_fixa_id || !usuario_id) {
-      throw new Error('Parâmetros conta_fixa_id e usuario_id são obrigatórios.')
+      throw new Error(
+        'Parâmetros conta_fixa_id e usuario_id são obrigatórios no corpo da requisição.',
+      )
     }
 
     // 1) Buscar dados da conta no Supabase
@@ -37,19 +41,21 @@ Deno.serve(async (req: Request) => {
       .single()
 
     if (contaError || !conta) {
-      throw new Error(`Erro ao buscar dados da conta: ${contaError?.message || 'Não encontrada'}`)
+      throw new Error(
+        `Erro ao buscar dados da conta (ID: ${conta_fixa_id}): ${contaError?.message || 'Conta não encontrada'}`,
+      )
     }
 
-    // 1.1) Buscar dados do usuário (email)
+    // 1.1) Buscar e-mail do usuário
     let userEmail = ''
 
-    // Tentativa principal usando admin API (requer service_role key)
+    // Tenta usar auth.admin (requer SERVICE_ROLE_KEY)
     const { data: userData, error: userError } = await supabase.auth.admin.getUserById(usuario_id)
 
     if (userData?.user?.email) {
       userEmail = userData.user.email
     } else {
-      // Fallback: tentar buscar na tabela pública de profiles
+      // Fallback: tentar buscar na tabela profiles (se existir e for acessível)
       const { data: profile } = await supabase
         .from('profiles')
         .select('email')
@@ -62,22 +68,23 @@ Deno.serve(async (req: Request) => {
     }
 
     if (!userEmail) {
-      throw new Error('E-mail do usuário não foi encontrado no Supabase.')
+      throw new Error(`E-mail do usuário (ID: ${usuario_id}) não encontrado no banco de dados.`)
     }
 
-    // Formatar valores para a mensagem
+    // Formatar valores para exibição no corpo do email
     const valorFormatado = new Intl.NumberFormat('pt-BR', {
       style: 'currency',
       currency: 'BRL',
-    }).format(conta.valor)
+    }).format(conta.valor || 0)
 
-    const dataVencimentoFormatada = new Date(
-      `${conta.data_vencimento}T00:00:00Z`,
-    ).toLocaleDateString('pt-BR')
+    const dataVencimentoFormatada = conta.data_vencimento
+      ? new Date(`${conta.data_vencimento}T00:00:00Z`).toLocaleDateString('pt-BR')
+      : 'Não definida'
 
+    // URL principal da aplicação
     const linkParaPagar = 'https://planilha-para-web-app-dd61d.goskip.app/'
 
-    // 2) Usar API do Resend para disparar o e-mail
+    // 2) Disparar e-mail via API do Resend
     const resendRes = await fetch('https://api.resend.com/emails', {
       method: 'POST',
       headers: {
@@ -85,26 +92,26 @@ Deno.serve(async (req: Request) => {
         Authorization: `Bearer ${resendApiKey}`,
       },
       body: JSON.stringify({
-        from: 'Lembretes <onboarding@resend.dev>', // Domínio de testes do Resend (atualizar quando adicionar o domínio customizado)
+        from: 'Lembretes Financeiros <onboarding@resend.dev>', // Usando domínio de testes padrão do Resend
         to: userEmail,
         subject: `Lembrete: Conta a Pagar - ${conta.descricao}`,
         html: `
           <div style="font-family: Arial, sans-serif; color: #333; line-height: 1.6; max-width: 600px; margin: 0 auto; border: 1px solid #e5e7eb; border-radius: 8px; padding: 20px;">
             <h2 style="color: #2563eb; margin-top: 0;">Lembrete de Vencimento</h2>
             <p>Olá,</p>
-            <p>Este é um lembrete importante sobre a conta <strong>${conta.descricao}</strong>.</p>
+            <p>Este é um lembrete automático importante referente à sua conta <strong>${conta.descricao}</strong>.</p>
             
             <div style="background-color: #f9fafb; padding: 15px; border-radius: 6px; margin: 20px 0;">
-              <p style="margin: 5px 0; font-size: 16px;"><strong>Valor:</strong> ${valorFormatado}</p>
+              <p style="margin: 5px 0; font-size: 16px;"><strong>Valor Original:</strong> ${valorFormatado}</p>
               <p style="margin: 5px 0; font-size: 16px;"><strong>Data de Vencimento:</strong> ${dataVencimentoFormatada}</p>
             </div>
             
             <div style="text-align: center; margin: 30px 0;">
-              <a href="${linkParaPagar}" style="display: inline-block; padding: 12px 24px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Acessar o Sistema</a>
+              <a href="${linkParaPagar}" style="display: inline-block; padding: 12px 24px; background-color: #2563eb; color: #ffffff; text-decoration: none; border-radius: 6px; font-weight: bold; font-size: 16px;">Acessar o Sistema para Pagamento</a>
             </div>
             
             <p style="font-size: 14px; color: #6b7280; margin-bottom: 0;">
-              Atenciosamente,<br>Sua Gestão Financeira
+              Atenciosamente,<br>Seu Assistente Financeiro
             </p>
           </div>
         `,
@@ -114,7 +121,7 @@ Deno.serve(async (req: Request) => {
     const resendData = await resendRes.json()
 
     if (!resendRes.ok) {
-      throw new Error(`Erro retornado pela API do Resend: ${JSON.stringify(resendData)}`)
+      throw new Error(`Falha no provedor de E-mail (Resend): ${JSON.stringify(resendData)}`)
     }
 
     // 3) Atualizar a tabela lembretes_contas com enviado = true
@@ -129,9 +136,10 @@ Deno.serve(async (req: Request) => {
 
     if (updateError) {
       console.warn(
-        'Aviso: O E-mail foi enviado, mas ocorreu um erro ao atualizar o status na tabela lembretes_contas:',
+        'Aviso: O E-mail foi disparado com sucesso, mas ocorreu um erro ao atualizar o status na tabela lembretes_contas:',
         updateError,
       )
+      // Não lançamos erro aqui para não invalidar o envio que já ocorreu.
     }
 
     // 4) Retornar status de sucesso
@@ -142,6 +150,7 @@ Deno.serve(async (req: Request) => {
         email_id: resendData.id,
       }),
       {
+        status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       },
     )
