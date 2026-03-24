@@ -388,25 +388,31 @@ export type Database = {
       }
       logs_automacao: {
         Row: {
+          criado_em: string
           funcao: string
           id: string
           mensagem_erro: string | null
-          status: string
+          status: Database['public']['Enums']['log_status_enum']
           timestamp: string
+          usuario_id: string | null
         }
         Insert: {
+          criado_em?: string
           funcao: string
           id?: string
           mensagem_erro?: string | null
-          status: string
+          status: Database['public']['Enums']['log_status_enum']
           timestamp?: string
+          usuario_id?: string | null
         }
         Update: {
+          criado_em?: string
           funcao?: string
           id?: string
           mensagem_erro?: string | null
-          status?: string
+          status?: Database['public']['Enums']['log_status_enum']
           timestamp?: string
+          usuario_id?: string | null
         }
         Relationships: []
       }
@@ -921,7 +927,7 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      log_status_enum: 'sucesso' | 'erro' | 'pendente'
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1046,7 +1052,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      log_status_enum: ['sucesso', 'erro', 'pendente'],
+    },
   },
 } as const
 
@@ -1154,8 +1162,10 @@ export const Constants = {
 //   id: uuid (not null, default: gen_random_uuid())
 //   timestamp: timestamp with time zone (not null, default: now())
 //   funcao: text (not null)
-//   status: text (not null)
+//   status: log_status_enum (not null)
 //   mensagem_erro: text (nullable)
+//   usuario_id: uuid (nullable)
+//   criado_em: timestamp with time zone (not null, default: now())
 // Table: medicamento_historico
 //   id: uuid (not null, default: gen_random_uuid())
 //   medicamento_id: uuid (nullable)
@@ -1313,6 +1323,7 @@ export const Constants = {
 //   FOREIGN KEY lembretes_contas_usuario_id_fkey: FOREIGN KEY (usuario_id) REFERENCES auth.users(id) ON DELETE CASCADE
 // Table: logs_automacao
 //   PRIMARY KEY logs_automacao_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY logs_automacao_usuario_id_fkey: FOREIGN KEY (usuario_id) REFERENCES auth.users(id) ON DELETE CASCADE
 // Table: medicamento_historico
 //   FOREIGN KEY medicamento_historico_medicamento_id_fkey: FOREIGN KEY (medicamento_id) REFERENCES medicamentos_precificacao(id) ON DELETE CASCADE
 //   PRIMARY KEY medicamento_historico_pkey: PRIMARY KEY (id)
@@ -1408,8 +1419,8 @@ export const Constants = {
 //     USING: (usuario_id = auth.uid())
 //     WITH CHECK: (usuario_id = auth.uid())
 // Table: logs_automacao
-//   Policy "Allow authenticated read access on logs_automacao" (SELECT, PERMISSIVE) roles={authenticated}
-//     USING: true
+//   Policy "Users can view their own logs" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: (usuario_id = auth.uid())
 // Table: medicamento_historico
 //   Policy "Allow authenticated access to medicamento_historico" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true

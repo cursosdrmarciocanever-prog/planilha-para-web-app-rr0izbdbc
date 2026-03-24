@@ -1,10 +1,10 @@
 {
   "_versions": {
     "generate-signed-url": 2,
-    "verificar_contas_vencidas": 9,
+    "verificar_contas_vencidas": 10,
     "enviar_email_lembrete": 5,
     "gerar_relatorio_contas": 3,
-    "agendar_lembretes_automaticos": 4,
-    "registrar_log": 1
+    "agendar_lembretes_automaticos": 5,
+    "registrar_log": 2
   }
 }

@@ -19,23 +19,39 @@ Deno.serve(async (req: Request) => {
 
   const supabase = createClient(supabaseUrl, supabaseKey)
 
+  // Helper para chamar a Edge Function registrar_log
   async function logAutomacao(status: string, mensagem_erro: string | null = null) {
-    await supabase.from('logs_automacao').insert({
-      funcao: 'agendar_lembretes_automaticos',
-      status,
-      mensagem_erro,
-    })
+    try {
+      await supabase.functions.invoke('registrar_log', {
+        body: {
+          funcao: 'agendar_lembretes_automaticos',
+          status,
+          mensagem_erro,
+        },
+      })
+    } catch (e) {
+      console.error('Falha ao invocar registrar_log:', e)
+    }
   }
 
   try {
-    // 1. Chamar verificar_contas_vencidas para identificar e atualizar contas próximas (3 dias) ou vencidas
+    // 1) Quando inicia (status: 'pendente')
+    await logAutomacao('pendente')
+
+    // 2. Chamar verificar_contas_vencidas para identificar e atualizar contas próximas (3 dias) ou vencidas
     const { data: verifyData, error: verifyError } = await supabase.functions.invoke(
       'verificar_contas_vencidas',
     )
 
     if (verifyError) {
       throw new Error(
-        `Erro ao verificar contas: ${verifyError.message || JSON.stringify(verifyError)}`,
+        `Erro ao invocar verificar_contas_vencidas: ${verifyError.message || JSON.stringify(verifyError)}`,
+      )
+    }
+
+    if (!verifyData?.success) {
+      throw new Error(
+        `A verificação de contas falhou: ${verifyData?.error || 'Erro desconhecido na função verificar_contas_vencidas'}`,
       )
     }
 
@@ -43,7 +59,7 @@ Deno.serve(async (req: Request) => {
     let emailsEnviados = 0
     let falhasEnvio = 0
 
-    // 2. Para cada conta processada, verificar se precisa enviar o email e chamar enviar_email_lembrete
+    // 3. Para cada conta processada, verificar se precisa enviar o email e chamar enviar_email_lembrete
     for (const conta of contasProcessadas) {
       if (conta.usuario_id) {
         // Verifica se o lembrete específico já foi enviado para evitar envios duplicados
@@ -72,7 +88,7 @@ Deno.serve(async (req: Request) => {
       }
     }
 
-    // 3. Registrar logs de execução
+    // 4) Se conseguir chamar verificar_contas_vencidas e processar tudo (status: 'sucesso')
     const msgSucesso = `Contas processadas: ${contasProcessadas.length}. Emails enviados: ${emailsEnviados}. Falhas: ${falhasEnvio}.`
     await logAutomacao('sucesso', msgSucesso)
 
@@ -87,7 +103,9 @@ Deno.serve(async (req: Request) => {
       },
     )
   } catch (error: any) {
+    // 5) Se houver erro em qualquer etapa (status: 'erro')
     await logAutomacao('erro', error.message || 'Erro desconhecido')
+
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
