@@ -139,7 +139,7 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
       const url = window.URL.createObjectURL(blob)
       const a = document.createElement('a')
       a.href = url
-      a.download = `relatorio_contas_${mes.toString().padStart(2, '0')}_${ano}.pdf`
+      a.download = `relatorio_contas_${mes}_${ano}.pdf`
       document.body.appendChild(a)
       a.click()
       window.URL.revokeObjectURL(url)
