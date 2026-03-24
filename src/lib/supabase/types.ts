@@ -121,6 +121,7 @@ export type Database = {
           frequencia: string | null
           id: string
           status: string
+          usuario_id: string | null
           valor: number
         }
         Insert: {
@@ -131,6 +132,7 @@ export type Database = {
           frequencia?: string | null
           id?: string
           status?: string
+          usuario_id?: string | null
           valor?: number
         }
         Update: {
@@ -141,6 +143,7 @@ export type Database = {
           frequencia?: string | null
           id?: string
           status?: string
+          usuario_id?: string | null
           valor?: number
         }
         Relationships: []
@@ -1043,6 +1046,7 @@ export const Constants = {
 //   categoria: text (nullable)
 //   frequencia: text (nullable, default: 'Mensal'::text)
 //   criado_em: timestamp with time zone (not null, default: now())
+//   usuario_id: uuid (nullable, default: auth.uid())
 // Table: despesas
 //   id: uuid (not null, default: gen_random_uuid())
 //   categoria: text (nullable)
@@ -1228,6 +1232,7 @@ export const Constants = {
 //   CHECK contas_fixas_frequencia_check: CHECK ((frequencia = ANY (ARRAY['Mensal'::text, 'Bimestral'::text, 'Trimestral'::text, 'Anual'::text, 'Única'::text])))
 //   PRIMARY KEY contas_fixas_pkey: PRIMARY KEY (id)
 //   CHECK contas_fixas_status_check: CHECK ((status = ANY (ARRAY['Pendente'::text, 'Pago'::text, 'Vencido'::text])))
+//   FOREIGN KEY contas_fixas_usuario_id_fkey: FOREIGN KEY (usuario_id) REFERENCES auth.users(id) ON DELETE CASCADE
 // Table: despesas
 //   PRIMARY KEY despesas_pkey: PRIMARY KEY (id)
 // Table: exames_laboratoriais
@@ -1306,9 +1311,9 @@ export const Constants = {
 //   Policy "Medica UPDATE consultas" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = consultas.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
 // Table: contas_fixas
-//   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
-//     USING: true
-//     WITH CHECK: true
+//   Policy "Users can manage their own contas_fixas" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: (usuario_id = auth.uid())
+//     WITH CHECK: (usuario_id = auth.uid())
 // Table: despesas
 //   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true

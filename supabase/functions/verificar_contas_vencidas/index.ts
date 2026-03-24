@@ -61,7 +61,11 @@ Deno.serve(async (req: Request) => {
         if (!existing) {
           await supabase.from('lembretes_contas').insert({
             conta_id: conta.id,
+            conta_fixa_id: conta.id,
             tipo: 'vencida',
+            tipo_lembrete: 'push',
+            usuario_id: conta.usuario_id,
+            data_envio: new Date().toISOString(),
           })
           remindersCount++
         }
@@ -76,7 +80,11 @@ Deno.serve(async (req: Request) => {
         if (!existing) {
           await supabase.from('lembretes_contas').insert({
             conta_id: conta.id,
+            conta_fixa_id: conta.id,
             tipo: 'proxima',
+            tipo_lembrete: 'push',
+            usuario_id: conta.usuario_id,
+            data_envio: new Date().toISOString(),
           })
           remindersCount++
         }
