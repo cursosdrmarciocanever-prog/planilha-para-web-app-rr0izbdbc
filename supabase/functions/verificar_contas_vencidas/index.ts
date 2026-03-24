@@ -80,6 +80,7 @@ Deno.serve(async (req: Request) => {
 
         contasProcessadas.push({
           id: conta.id,
+          usuario_id: conta.usuario_id,
           descricao: conta.descricao,
           valor: conta.valor,
           data_vencimento: conta.data_vencimento,
