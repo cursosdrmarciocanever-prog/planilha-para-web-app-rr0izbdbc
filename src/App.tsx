@@ -18,6 +18,7 @@ import Medicamentos from './pages/Medicamentos'
 import Importar from './pages/Importar'
 import Despesas from './pages/Despesas'
 import Monitoramento from './pages/Monitoramento'
+import Faturamento from './pages/Faturamento'
 
 function PrintHandler() {
   const location = useLocation()
@@ -54,6 +55,7 @@ const App = () => (
           <Route element={<ProtectedRoute />}>
             <Route element={<Layout />}>
               <Route path="/" element={<Index />} />
+              <Route path="/faturamento" element={<Faturamento />} />
               <Route path="/diario" element={<Diario />} />
               <Route path="/raio-x" element={<RaioX />} />
               <Route path="/despesas" element={<Despesas />} />

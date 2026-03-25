@@ -13,6 +13,7 @@ import {
   Receipt,
   Pill,
   Activity,
+  DollarSign,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -30,6 +31,7 @@ import { useAuth } from '@/hooks/use-auth'
 
 const navItems = [
   { label: 'Painel', path: '/', icon: LayoutDashboard },
+  { label: 'Faturamento', path: '/faturamento', icon: DollarSign },
   { label: 'Diário', path: '/diario', icon: Calendar },
   { label: 'Raio-X Financeiro', path: '/raio-x', icon: TrendingUp },
   { label: 'Despesas', path: '/despesas', icon: Receipt },

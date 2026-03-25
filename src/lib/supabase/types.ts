@@ -178,6 +178,39 @@ export type Database = {
         }
         Relationships: []
       }
+      diario_atendimentos: {
+        Row: {
+          created_at: string | null
+          data: string
+          forma_pagamento: string
+          id: string
+          paciente_nome: string
+          user_id: string | null
+          valor_consulta: number | null
+          valor_procedimento: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          data?: string
+          forma_pagamento: string
+          id?: string
+          paciente_nome: string
+          user_id?: string | null
+          valor_consulta?: number | null
+          valor_procedimento?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          data?: string
+          forma_pagamento?: string
+          id?: string
+          paciente_nome?: string
+          user_id?: string | null
+          valor_consulta?: number | null
+          valor_procedimento?: number | null
+        }
+        Relationships: []
+      }
       exames_laboratoriais: {
         Row: {
           arquivo_pdf_url: string | null
@@ -1109,6 +1142,15 @@ export const Constants = {
 //   status: text (nullable)
 //   created_at: timestamp with time zone (nullable, default: now())
 //   descricao: text (nullable)
+// Table: diario_atendimentos
+//   id: uuid (not null, default: gen_random_uuid())
+//   data: date (not null, default: CURRENT_DATE)
+//   paciente_nome: text (not null)
+//   valor_consulta: numeric (nullable, default: 0)
+//   valor_procedimento: numeric (nullable, default: 0)
+//   forma_pagamento: text (not null)
+//   created_at: timestamp with time zone (nullable, default: now())
+//   user_id: uuid (nullable)
 // Table: exames_laboratoriais
 //   id: uuid (not null, default: gen_random_uuid())
 //   gestante_id: uuid (nullable)
@@ -1302,6 +1344,9 @@ export const Constants = {
 //   FOREIGN KEY contas_fixas_usuario_id_fkey: FOREIGN KEY (usuario_id) REFERENCES auth.users(id) ON DELETE CASCADE
 // Table: despesas
 //   PRIMARY KEY despesas_pkey: PRIMARY KEY (id)
+// Table: diario_atendimentos
+//   PRIMARY KEY diario_atendimentos_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY diario_atendimentos_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 // Table: exames_laboratoriais
 //   FOREIGN KEY exames_laboratoriais_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
 //   PRIMARY KEY exames_laboratoriais_pkey: PRIMARY KEY (id)
@@ -1389,6 +1434,10 @@ export const Constants = {
 //     WITH CHECK: (usuario_id = auth.uid())
 // Table: despesas
 //   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
+// Table: diario_atendimentos
+//   Policy "Allow authenticated users full access on diario_atendimentos" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
 // Table: exames_laboratoriais
