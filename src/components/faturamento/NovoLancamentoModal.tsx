@@ -28,6 +28,7 @@ export function NovoLancamentoModal({ open, onOpenChange, onSuccess, initialData
   const [descricao, setDescricao] = useState('')
   const [valor, setValor] = useState('')
   const [formaPagamento, setFormaPagamento] = useState('PIX')
+  const [statusPagamento, setStatusPagamento] = useState('Confirmado')
   const [observacoes, setObservacoes] = useState('')
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
@@ -41,6 +42,7 @@ export function NovoLancamentoModal({ open, onOpenChange, onSuccess, initialData
         setDescricao(initialData.descricao || '')
         setValor(initialData.valor.toString())
         setFormaPagamento(initialData.forma_pagamento || 'PIX')
+        setStatusPagamento(initialData.status_pagamento || 'Confirmado')
         setObservacoes(initialData.observacoes || '')
       } else {
         setDataAtendimento(format(new Date(), 'yyyy-MM-dd'))
@@ -49,6 +51,7 @@ export function NovoLancamentoModal({ open, onOpenChange, onSuccess, initialData
         setDescricao('')
         setValor('')
         setFormaPagamento('PIX')
+        setStatusPagamento('Confirmado')
         setObservacoes('')
       }
     }
@@ -72,6 +75,7 @@ export function NovoLancamentoModal({ open, onOpenChange, onSuccess, initialData
       descricao,
       valor: parseFloat(valor),
       forma_pagamento: formaPagamento,
+      status_pagamento: statusPagamento,
       observacoes,
     }
 
@@ -103,7 +107,7 @@ export function NovoLancamentoModal({ open, onOpenChange, onSuccess, initialData
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[550px] rounded-2xl">
+      <DialogContent className="sm:max-w-[550px] rounded-2xl overflow-y-auto max-h-[90vh]">
         <DialogHeader>
           <DialogTitle className="text-xl">
             {initialData ? 'Editar Lançamento' : 'Novo Lançamento'}
@@ -182,6 +186,19 @@ export function NovoLancamentoModal({ open, onOpenChange, onSuccess, initialData
                 </SelectContent>
               </Select>
             </div>
+          </div>
+
+          <div className="space-y-2">
+            <Label className="text-foreground/80 font-medium">Status de Pagamento *</Label>
+            <Select value={statusPagamento} onValueChange={setStatusPagamento}>
+              <SelectTrigger className="bg-secondary/30 h-11">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Confirmado">Confirmado</SelectItem>
+                <SelectItem value="Pendente">Pendente</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="space-y-2">

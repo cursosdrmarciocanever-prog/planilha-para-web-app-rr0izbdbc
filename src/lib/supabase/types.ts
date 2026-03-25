@@ -362,6 +362,45 @@ export type Database = {
         }
         Relationships: []
       }
+      lancamentos_pacientes: {
+        Row: {
+          created_at: string | null
+          data_atendimento: string | null
+          descricao: string | null
+          forma_pagamento: string | null
+          id: string
+          nome_paciente: string
+          observacoes: string | null
+          tipo: string | null
+          user_id: string | null
+          valor: number
+        }
+        Insert: {
+          created_at?: string | null
+          data_atendimento?: string | null
+          descricao?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          nome_paciente: string
+          observacoes?: string | null
+          tipo?: string | null
+          user_id?: string | null
+          valor?: number
+        }
+        Update: {
+          created_at?: string | null
+          data_atendimento?: string | null
+          descricao?: string | null
+          forma_pagamento?: string | null
+          id?: string
+          nome_paciente?: string
+          observacoes?: string | null
+          tipo?: string | null
+          user_id?: string | null
+          valor?: number
+        }
+        Relationships: []
+      }
       lembretes_contas: {
         Row: {
           conta_fixa_id: string | null
@@ -1188,6 +1227,17 @@ export const Constants = {
 //   data_ultima_menstruacao: date (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
 //   foto_perfil_url: text (nullable)
+// Table: lancamentos_pacientes
+//   id: uuid (not null, default: gen_random_uuid())
+//   created_at: timestamp with time zone (nullable, default: now())
+//   data_atendimento: date (nullable, default: CURRENT_DATE)
+//   nome_paciente: text (not null)
+//   tipo: text (nullable)
+//   descricao: text (nullable)
+//   valor: numeric (not null, default: 0)
+//   forma_pagamento: text (nullable)
+//   observacoes: text (nullable)
+//   user_id: uuid (nullable)
 // Table: lembretes_contas
 //   id: uuid (not null, default: gen_random_uuid())
 //   conta_id: uuid (nullable)
@@ -1359,6 +1409,10 @@ export const Constants = {
 //   PRIMARY KEY gestantes_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY gestantes_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 //   UNIQUE gestantes_user_id_key: UNIQUE (user_id)
+// Table: lancamentos_pacientes
+//   PRIMARY KEY lancamentos_pacientes_pkey: PRIMARY KEY (id)
+//   CHECK lancamentos_pacientes_tipo_check: CHECK ((tipo = ANY (ARRAY['Consulta'::text, 'Procedimento'::text])))
+//   FOREIGN KEY lancamentos_pacientes_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE SET NULL
 // Table: lembretes_contas
 //   FOREIGN KEY lembretes_contas_conta_fixa_id_fkey: FOREIGN KEY (conta_fixa_id) REFERENCES contas_fixas(id) ON DELETE CASCADE
 //   FOREIGN KEY lembretes_contas_conta_id_fkey: FOREIGN KEY (conta_id) REFERENCES contas_fixas(id) ON DELETE CASCADE
@@ -1463,6 +1517,10 @@ export const Constants = {
 //     USING: ((user_id = auth.uid()) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
 //   Policy "Invited view gestante" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = ac.id) AND (ac.email = (auth.jwt() ->> 'email'::text)))))
+// Table: lancamentos_pacientes
+//   Policy "Allow authenticated access on lancamentos_pacientes" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: lembretes_contas
 //   Policy "Users can manage their own lembretes_contas" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: (usuario_id = auth.uid())
