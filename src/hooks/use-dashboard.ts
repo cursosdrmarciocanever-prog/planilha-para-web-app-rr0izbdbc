@@ -31,18 +31,27 @@ export function useDashboardData(date: DateRange | undefined) {
     setError(null)
 
     try {
+      const { data: userData } = await supabase.auth.getUser()
+      const userId = userData?.user?.id
+
       const fromDate = date.from
       const toDate = date.to || date.from
 
       const startDay = format(fromDate, 'yyyy-MM-dd')
       const endDay = format(toDate, 'yyyy-MM-dd')
 
-      const [registrosRes, despesasRes, funcionariosRes] = await Promise.all([
-        supabase
-          .from('registros_diarios')
-          .select('data, faturamento_total, bilheteria, total_consultas')
-          .gte('data', startDay)
-          .lte('data', endDay),
+      let queryLanc = supabase
+        .from('lancamentos_pacientes')
+        .select('data_atendimento, valor, nome_paciente, tipo')
+        .gte('data_atendimento', startDay)
+        .lte('data_atendimento', endDay)
+
+      if (userId) {
+        queryLanc = queryLanc.eq('user_id', userId)
+      }
+
+      const [lancamentosRes, despesasRes, funcionariosRes] = await Promise.all([
+        queryLanc,
         supabase
           .from('despesas')
           .select('valor')
@@ -52,28 +61,34 @@ export function useDashboardData(date: DateRange | undefined) {
       ])
 
       let faturamento = 0
-      let bilheteriaVal = 0
-      let despesasVal = 0
-      let totalConsultas = 0
+      let totalDespesas = 0
+      let pacientesSet = new Set<string>()
+      let totalLancamentos = 0
 
       const faturamentoDia: Record<string, number> = {}
       const pacientesDia: Record<string, number> = {}
 
-      if (registrosRes.data) {
-        registrosRes.data.forEach((r: any) => {
-          const day = r.data
-          const faturamentoVal = Number(r.faturamento_total ?? 0)
-          const bilheteriaDia = Number(r.bilheteria ?? 0)
-          const consultasDia = Number(r.total_consultas ?? 0)
+      if (lancamentosRes.data) {
+        lancamentosRes.data.forEach((l: any) => {
+          const day = l.data_atendimento
+          const valorVal = Number(l.valor ?? 0)
 
-          faturamento += faturamentoVal
-          bilheteriaVal += bilheteriaDia
-          totalConsultas += consultasDia
+          faturamento += valorVal
+          if (l.nome_paciente) {
+            pacientesSet.add(l.nome_paciente.trim().toLowerCase())
+          }
+          totalLancamentos++
 
-          faturamentoDia[day] = (faturamentoDia[day] ?? 0) + faturamentoVal
-          pacientesDia[day] = (pacientesDia[day] ?? 0) + consultasDia
+          faturamentoDia[day] = (faturamentoDia[day] ?? 0) + valorVal
+
+          if (!l.tipo || l.tipo.toLowerCase() === 'consulta') {
+            pacientesDia[day] = (pacientesDia[day] ?? 0) + 1
+          }
         })
       }
+
+      const totalPacientes = pacientesSet.size
+      const bilheteriaVal = totalLancamentos > 0 ? faturamento / totalLancamentos : 0
 
       // Calculate span of months to include employee costs
       const months = eachMonthOfInterval({
@@ -87,19 +102,19 @@ export function useDashboardData(date: DateRange | undefined) {
           funcionariosRes.data.reduce((acc, f) => acc + Number(f.salario_base || 0), 0) * 1.4744
       }
 
-      despesasVal += funcMonthlyCost * months.length
+      totalDespesas += funcMonthlyCost * months.length
 
       if (despesasRes.data) {
         despesasRes.data.forEach((d: any) => {
-          despesasVal += Number(d.valor ?? 0)
+          totalDespesas += Number(d.valor ?? 0)
         })
       }
 
-      const margem = faturamento > 0 ? ((faturamento - despesasVal) / faturamento) * 100 : 0
+      const margem = faturamento > 0 ? ((faturamento - totalDespesas) / faturamento) * 100 : 0
 
       setMetrics({
         faturamentoTotal: faturamento,
-        totalPacientes: totalConsultas,
+        totalPacientes: totalPacientes,
         bilheteria: bilheteriaVal,
         margemLucro: margem,
       })
@@ -134,8 +149,10 @@ export function useDashboardData(date: DateRange | undefined) {
 
     const channel = supabase
       .channel('dashboard_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'registros_diarios' }, () =>
-        fetchData(),
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'lancamentos_pacientes' },
+        () => fetchData(),
       )
       .on('postgres_changes', { event: '*', schema: 'public', table: 'despesas' }, () =>
         fetchData(),

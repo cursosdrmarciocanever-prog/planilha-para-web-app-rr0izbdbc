@@ -232,14 +232,14 @@ export default function Index() {
             title="Total de Pacientes"
             icon={Users}
             value={metrics.totalPacientes ?? 0}
-            subtitle="Atendidos no período"
+            subtitle="Pacientes únicos atendidos"
             loading={loading}
           />
           <MetricCard
-            title="Bilheteria"
+            title="Ticket Médio"
             icon={Target}
             value={formatCurrency(metrics.bilheteria)}
-            subtitle="No período selecionado"
+            subtitle="Média por lançamento"
             loading={loading}
           />
           <MetricCard
