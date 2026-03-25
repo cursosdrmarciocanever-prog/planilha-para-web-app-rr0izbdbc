@@ -20,65 +20,70 @@ import {
   FormMessage,
 } from '@/components/ui/form'
 import { Input } from '@/components/ui/input'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select'
 import { DatePicker } from '@/components/ui/date-picker'
-import { createRegistro } from '@/services/registros_diarios'
+import { createDiarioAtendimento } from '@/services/diario_atendimentos'
 import { useToast } from '@/hooks/use-toast'
 
 const formSchema = z.object({
   data: z.date({ required_error: 'A data é obrigatória.' }),
-  faturamento_total: z.coerce.number().min(0),
-  total_consultas: z.coerce.number().int().min(0),
-  total_servicos: z.coerce.number().int().min(0),
-  bilheteria: z.coerce.number().min(0),
+  paciente_nome: z.string().min(1, 'O nome do paciente é obrigatório.'),
+  valor_consulta: z.coerce.number().min(0),
+  valor_procedimento: z.coerce.number().min(0),
+  forma_pagamento: z.string().min(1, 'Selecione uma forma de pagamento.'),
 })
 
-export function RegistroFormDialog({ onSuccess }: { onSuccess: () => void }) {
+export function NovoAtendimentoDialog({ onSuccess }: { onSuccess: () => void }) {
   const [open, setOpen] = useState(false)
   const { toast } = useToast()
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      faturamento_total: 0,
-      total_consultas: 0,
-      total_servicos: 0,
-      bilheteria: 0,
+      data: new Date(),
+      paciente_nome: '',
+      valor_consulta: 0,
+      valor_procedimento: 0,
+      forma_pagamento: 'PIX',
     },
   })
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!values.data) {
-      form.setError('data', { type: 'manual', message: 'A data é obrigatória.' })
-      return
-    }
-
     try {
       const year = values.data.getFullYear()
       const month = String(values.data.getMonth() + 1).padStart(2, '0')
       const day = String(values.data.getDate()).padStart(2, '0')
 
-      await createRegistro({
+      await createDiarioAtendimento({
         data: `${year}-${month}-${day}`,
-        faturamento_total: values.faturamento_total,
-        total_consultas: values.total_consultas,
-        total_servicos: values.total_servicos,
-        bilheteria: values.bilheteria,
+        paciente_nome: values.paciente_nome,
+        valor_consulta: values.valor_consulta,
+        valor_procedimento: values.valor_procedimento,
+        forma_pagamento: values.forma_pagamento,
       })
 
-      toast({ title: 'Sucesso', description: 'Registro salvo com sucesso.' })
+      toast({ title: 'Sucesso', description: 'Atendimento registrado com sucesso.' })
       setOpen(false)
-      form.reset()
+      form.reset({
+        data: new Date(),
+        paciente_nome: '',
+        valor_consulta: 0,
+        valor_procedimento: 0,
+        forma_pagamento: 'PIX',
+      })
       onSuccess()
     } catch (error: any) {
-      if (error.code === '23505') {
-        toast({
-          title: 'Atenção',
-          description: 'Já existe um registro para esta data.',
-          variant: 'destructive',
-        })
-      } else {
-        toast({ title: 'Erro', description: 'Falha ao salvar o registro.', variant: 'destructive' })
-      }
+      toast({
+        title: 'Erro',
+        description: 'Falha ao registrar o atendimento.',
+        variant: 'destructive',
+      })
     }
   }
 
@@ -87,17 +92,17 @@ export function RegistroFormDialog({ onSuccess }: { onSuccess: () => void }) {
       open={open}
       onOpenChange={(isOpen) => {
         setOpen(isOpen)
-        if (isOpen) form.reset()
+        if (isOpen) form.reset({ ...form.getValues(), data: new Date() })
       }}
     >
       <DialogTrigger asChild>
         <Button className="flex-1 md:flex-none bg-[#3b5bdb] hover:bg-[#364fc7] text-white font-medium gap-2 shadow-sm rounded-lg h-10 px-4">
-          <Plus className="w-4 h-4" /> Novo Registro
+          <Plus className="w-4 h-4" /> Novo Atendimento
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
-          <DialogTitle>Novo Registro Diário</DialogTitle>
+          <DialogTitle>Registrar Novo Atendimento</DialogTitle>
         </DialogHeader>
         <Form {...form}>
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4 pt-2">
@@ -106,8 +111,21 @@ export function RegistroFormDialog({ onSuccess }: { onSuccess: () => void }) {
               name="data"
               render={({ field }) => (
                 <FormItem className="flex flex-col">
-                  <FormLabel>Data do Registro *</FormLabel>
+                  <FormLabel>Data do Atendimento *</FormLabel>
                   <DatePicker date={field.value} setDate={field.onChange} />
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="paciente_nome"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Nome do Paciente *</FormLabel>
+                  <FormControl>
+                    <Input placeholder="Ex: Maria Silva" {...field} />
+                  </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
@@ -115,10 +133,10 @@ export function RegistroFormDialog({ onSuccess }: { onSuccess: () => void }) {
             <div className="grid grid-cols-2 gap-4">
               <FormField
                 control={form.control}
-                name="faturamento_total"
+                name="valor_consulta"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Faturamento (R$)</FormLabel>
+                    <FormLabel>Valor Consulta (R$)</FormLabel>
                     <FormControl>
                       <Input type="number" step="0.01" {...field} />
                     </FormControl>
@@ -128,10 +146,10 @@ export function RegistroFormDialog({ onSuccess }: { onSuccess: () => void }) {
               />
               <FormField
                 control={form.control}
-                name="bilheteria"
+                name="valor_procedimento"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Bilheteria (R$)</FormLabel>
+                    <FormLabel>Valor Proced. (R$)</FormLabel>
                     <FormControl>
                       <Input type="number" step="0.01" {...field} />
                     </FormControl>
@@ -140,36 +158,31 @@ export function RegistroFormDialog({ onSuccess }: { onSuccess: () => void }) {
                 )}
               />
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="total_consultas"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Consultas</FormLabel>
+            <FormField
+              control={form.control}
+              name="forma_pagamento"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Forma de Pagamento *</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
                     <FormControl>
-                      <Input type="number" {...field} />
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione..." />
+                      </SelectTrigger>
                     </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-              <FormField
-                control={form.control}
-                name="total_servicos"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Serviços</FormLabel>
-                    <FormControl>
-                      <Input type="number" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+                    <SelectContent>
+                      <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                      <SelectItem value="PIX">PIX</SelectItem>
+                      <SelectItem value="Cartão">Cartão</SelectItem>
+                      <SelectItem value="Cheque">Cheque</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <Button type="submit" className="w-full mt-4">
-              Salvar Registro
+              Salvar Atendimento
             </Button>
           </form>
         </Form>
