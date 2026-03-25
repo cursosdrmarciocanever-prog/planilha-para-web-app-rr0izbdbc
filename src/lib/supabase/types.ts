@@ -371,6 +371,7 @@ export type Database = {
           id: string
           nome_paciente: string
           observacoes: string | null
+          status_pagamento: string | null
           tipo: string | null
           user_id: string | null
           valor: number
@@ -383,6 +384,7 @@ export type Database = {
           id?: string
           nome_paciente: string
           observacoes?: string | null
+          status_pagamento?: string | null
           tipo?: string | null
           user_id?: string | null
           valor?: number
@@ -395,6 +397,7 @@ export type Database = {
           id?: string
           nome_paciente?: string
           observacoes?: string | null
+          status_pagamento?: string | null
           tipo?: string | null
           user_id?: string | null
           valor?: number
@@ -1238,6 +1241,7 @@ export const Constants = {
 //   forma_pagamento: text (nullable)
 //   observacoes: text (nullable)
 //   user_id: uuid (nullable)
+//   status_pagamento: text (nullable, default: 'Confirmado'::text)
 // Table: lembretes_contas
 //   id: uuid (not null, default: gen_random_uuid())
 //   conta_id: uuid (nullable)

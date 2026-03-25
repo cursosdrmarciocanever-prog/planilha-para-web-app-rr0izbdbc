@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Plus, Download, FileDown, Search, Edit, Trash2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -20,7 +20,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { supabase } from '@/lib/supabase/client'
-import { format, parseISO } from 'date-fns'
+import { format, parseISO, endOfMonth } from 'date-fns'
 import { NovoLancamentoModal } from './NovoLancamentoModal'
 import { useToast } from '@/hooks/use-toast'
 import jsPDF from 'jspdf'
@@ -39,16 +39,25 @@ export function FaturamentoEntradas() {
 
   const { toast } = useToast()
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true)
+    const { data: userData } = await supabase.auth.getUser()
+    const userId = userData?.user?.id
+
     let query = supabase
       .from('lancamentos_pacientes')
       .select('*')
       .order('data_atendimento', { ascending: false })
 
+    if (userId) {
+      query = query.eq('user_id', userId)
+    }
+
     if (filtroMes) {
-      const start = `${filtroMes}-01`
-      const end = `${filtroMes}-31`
+      const [ano, mes] = filtroMes.split('-')
+      const dateObj = new Date(Number(ano), Number(mes) - 1, 1)
+      const start = format(dateObj, 'yyyy-MM-dd')
+      const end = format(endOfMonth(dateObj), 'yyyy-MM-dd')
       query = query.gte('data_atendimento', start).lte('data_atendimento', end)
     }
 
@@ -67,11 +76,26 @@ export function FaturamentoEntradas() {
     const { data } = await query
     setLancamentos(data || [])
     setLoading(false)
-  }
+  }, [filtroMes, filtroTipo, filtroStatus, buscaNome])
 
   useEffect(() => {
     loadData()
-  }, [filtroMes, filtroTipo, filtroStatus, buscaNome])
+
+    const channel = supabase
+      .channel('faturamento_entradas_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'lancamentos_pacientes' },
+        () => {
+          loadData()
+        },
+      )
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [loadData])
 
   const handleDelete = async (id: string) => {
     if (!confirm('Deseja excluir este lançamento?')) return

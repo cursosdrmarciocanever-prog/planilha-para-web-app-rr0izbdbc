@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Download } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -13,29 +13,44 @@ import {
 } from '@/components/ui/table'
 import { Badge } from '@/components/ui/badge'
 import { supabase } from '@/lib/supabase/client'
-import { format, parseISO } from 'date-fns'
+import { format, parseISO, endOfMonth } from 'date-fns'
 
 export function FaturamentoSaidas() {
   const [despesas, setDespesas] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [filtroMes, setFiltroMes] = useState(format(new Date(), 'yyyy-MM'))
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     setLoading(true)
     let query = supabase.from('despesas').select('*').order('data_vencimento', { ascending: false })
+
     if (filtroMes) {
-      const start = `${filtroMes}-01`
-      const end = `${filtroMes}-31`
+      const [ano, mes] = filtroMes.split('-')
+      const dateObj = new Date(Number(ano), Number(mes) - 1, 1)
+      const start = format(dateObj, 'yyyy-MM-dd')
+      const end = format(endOfMonth(dateObj), 'yyyy-MM-dd')
       query = query.gte('data_vencimento', start).lte('data_vencimento', end)
     }
+
     const { data } = await query
     setDespesas(data || [])
     setLoading(false)
-  }
+  }, [filtroMes])
 
   useEffect(() => {
     loadData()
-  }, [filtroMes])
+
+    const channel = supabase
+      .channel('faturamento_saidas_changes')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'despesas' }, () => {
+        loadData()
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [loadData])
 
   const exportCSV = () => {
     let csv = 'Data,Descrição,Categoria,Valor,Status\n'

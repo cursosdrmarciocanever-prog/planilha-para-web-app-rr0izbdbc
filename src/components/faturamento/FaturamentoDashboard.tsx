@@ -1,5 +1,8 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { RefreshCw } from 'lucide-react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Input } from '@/components/ui/input'
+import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase/client'
 import { startOfMonth, endOfMonth, format, subMonths } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -25,130 +28,166 @@ const COLORS = ['#0ea5e9', '#10b981', '#f59e0b', '#8b5cf6', '#ef4444', '#64748b'
 
 export function FaturamentoDashboard() {
   const [loading, setLoading] = useState(true)
+  const [mesFiltro, setMesFiltro] = useState(format(new Date(), 'yyyy-MM'))
   const [lancamentosMes, setLancamentosMes] = useState<any[]>([])
   const [despesasMes, setDespesasMes] = useState<any[]>([])
   const [chartData6m, setChartData6m] = useState<any[]>([])
   const [pieData, setPieData] = useState<any[]>([])
   const [lineData, setLineData] = useState<any[]>([])
 
-  useEffect(() => {
-    async function loadData() {
-      setLoading(true)
-      const currentMonthStart = format(startOfMonth(new Date()), 'yyyy-MM-dd')
-      const start6m = format(startOfMonth(subMonths(new Date(), 5)), 'yyyy-MM-dd')
-      const end = format(endOfMonth(new Date()), 'yyyy-MM-dd')
+  const loadData = useCallback(async () => {
+    setLoading(true)
 
-      const [resLancamentos, resDespesas] = await Promise.all([
-        supabase
-          .from('lancamentos_pacientes')
-          .select('*')
-          .gte('data_atendimento', start6m)
-          .lte('data_atendimento', end),
-        supabase
-          .from('despesas')
-          .select('*')
-          .gte('data_vencimento', start6m)
-          .lte('data_vencimento', end),
-      ])
+    const { data: userData } = await supabase.auth.getUser()
+    const userId = userData?.user?.id
 
-      const allLancamentos = resLancamentos.data || []
-      const allDespesas = resDespesas.data || []
+    const [ano, mes] = mesFiltro.split('-')
+    const dateObj = new Date(Number(ano), Number(mes) - 1, 1)
 
-      // KPIs do Mês Atual
-      const lancamentosAtual = allLancamentos.filter((l) => l.data_atendimento >= currentMonthStart)
-      const despesasAtual = allDespesas.filter((d) => d.data_vencimento >= currentMonthStart)
+    const currentMonthStart = format(startOfMonth(dateObj), 'yyyy-MM-dd')
+    const currentMonthEnd = format(endOfMonth(dateObj), 'yyyy-MM-dd')
+    const start6m = format(startOfMonth(subMonths(dateObj, 5)), 'yyyy-MM-dd')
 
-      setLancamentosMes(lancamentosAtual)
-      setDespesasMes(despesasAtual)
+    let queryLanc = supabase
+      .from('lancamentos_pacientes')
+      .select('*')
+      .gte('data_atendimento', start6m)
+      .lte('data_atendimento', currentMonthEnd)
 
-      // Gráficos de 6 Meses
-      const monthsMap: Record<string, any> = {}
-      for (let i = 5; i >= 0; i--) {
-        const m = startOfMonth(subMonths(new Date(), i))
-        const key = format(m, 'yyyy-MM')
-        const label = format(m, 'MMM/yy', { locale: ptBR })
-        monthsMap[key] = {
-          name: label,
-          sortKey: key,
-          entradas: 0,
-          saidas: 0,
-          countConsultas: 0,
-          countProcedimentos: 0,
-          faturamentoConsultas: 0,
-          faturamentoProcedimentos: 0,
+    if (userId) {
+      queryLanc = queryLanc.eq('user_id', userId)
+    }
+
+    const [resLancamentos, resDespesas] = await Promise.all([
+      queryLanc,
+      supabase
+        .from('despesas')
+        .select('*')
+        .gte('data_vencimento', start6m)
+        .lte('data_vencimento', currentMonthEnd),
+    ])
+
+    const allLancamentos = resLancamentos.data || []
+    const allDespesas = resDespesas.data || []
+
+    // KPIs do Mês Selecionado
+    const lancamentosAtual = allLancamentos.filter((l) => l.data_atendimento >= currentMonthStart)
+    const despesasAtual = allDespesas.filter((d) => d.data_vencimento >= currentMonthStart)
+
+    setLancamentosMes(lancamentosAtual)
+    setDespesasMes(despesasAtual)
+
+    // Gráficos de 6 Meses relativos ao mês selecionado
+    const monthsMap: Record<string, any> = {}
+    for (let i = 5; i >= 0; i--) {
+      const m = startOfMonth(subMonths(dateObj, i))
+      const key = format(m, 'yyyy-MM')
+      const label = format(m, 'MMM/yy', { locale: ptBR })
+      monthsMap[key] = {
+        name: label,
+        sortKey: key,
+        entradas: 0,
+        saidas: 0,
+        countConsultas: 0,
+        countProcedimentos: 0,
+        faturamentoConsultas: 0,
+        faturamentoProcedimentos: 0,
+      }
+    }
+
+    allLancamentos.forEach((l) => {
+      const key = l.data_atendimento.substring(0, 7)
+      if (monthsMap[key]) {
+        monthsMap[key].entradas += Number(l.valor || 0)
+        if (l.tipo === 'Consulta') {
+          monthsMap[key].countConsultas++
+          monthsMap[key].faturamentoConsultas += Number(l.valor || 0)
+        } else {
+          monthsMap[key].countProcedimentos++
+          monthsMap[key].faturamentoProcedimentos += Number(l.valor || 0)
         }
       }
+    })
 
-      allLancamentos.forEach((l) => {
-        const key = l.data_atendimento.substring(0, 7)
-        if (monthsMap[key]) {
-          monthsMap[key].entradas += Number(l.valor)
-          if (l.tipo === 'Consulta') {
-            monthsMap[key].countConsultas++
-            monthsMap[key].faturamentoConsultas += Number(l.valor)
-          } else {
-            monthsMap[key].countProcedimentos++
-            monthsMap[key].faturamentoProcedimentos += Number(l.valor)
-          }
-        }
-      })
+    allDespesas.forEach((d) => {
+      const key = d.data_vencimento ? d.data_vencimento.substring(0, 7) : null
+      if (key && monthsMap[key]) {
+        monthsMap[key].saidas += Number(d.valor || 0)
+      }
+    })
 
-      allDespesas.forEach((d) => {
-        const key = d.data_vencimento ? d.data_vencimento.substring(0, 7) : null
-        if (key && monthsMap[key]) {
-          monthsMap[key].saidas += Number(d.valor)
-        }
-      })
+    const barData = Object.values(monthsMap).sort((a: any, b: any) =>
+      a.sortKey.localeCompare(b.sortKey),
+    )
 
-      const barData = Object.values(monthsMap).sort((a: any, b: any) =>
-        a.sortKey.localeCompare(b.sortKey),
-      )
+    const lineChartData = barData.map((d: any) => ({
+      name: d.name,
+      ticketGeral:
+        d.countConsultas + d.countProcedimentos > 0
+          ? d.entradas / (d.countConsultas + d.countProcedimentos)
+          : 0,
+      ticketConsultas: d.countConsultas > 0 ? d.faturamentoConsultas / d.countConsultas : 0,
+      ticketProcedimentos:
+        d.countProcedimentos > 0 ? d.faturamentoProcedimentos / d.countProcedimentos : 0,
+    }))
 
-      const lineChartData = barData.map((d: any) => ({
-        name: d.name,
-        ticketGeral:
-          d.countConsultas + d.countProcedimentos > 0
-            ? d.entradas / (d.countConsultas + d.countProcedimentos)
-            : 0,
-        ticketConsultas: d.countConsultas > 0 ? d.faturamentoConsultas / d.countConsultas : 0,
-        ticketProcedimentos:
-          d.countProcedimentos > 0 ? d.faturamentoProcedimentos / d.countProcedimentos : 0,
-      }))
+    // Gráfico de Pizza (Mês Selecionado)
+    const pieMap: Record<string, number> = {}
+    lancamentosAtual.forEach((l) => {
+      const p = l.forma_pagamento || 'Outro'
+      pieMap[p] = (pieMap[p] || 0) + Number(l.valor || 0)
+    })
+    const pieChartData = Object.keys(pieMap).map((k) => ({ name: k, value: pieMap[k] }))
 
-      // Gráfico de Pizza (Mês Atual)
-      const pieMap: Record<string, number> = {}
-      lancamentosAtual.forEach((l) => {
-        const p = l.forma_pagamento || 'Outro'
-        pieMap[p] = (pieMap[p] || 0) + Number(l.valor)
-      })
-      const pieChartData = Object.keys(pieMap).map((k) => ({ name: k, value: pieMap[k] }))
+    setChartData6m(barData)
+    setLineData(lineChartData)
+    setPieData(pieChartData)
 
-      setChartData6m(barData)
-      setLineData(lineChartData)
-      setPieData(pieChartData)
+    setLoading(false)
+  }, [mesFiltro])
 
-      setLoading(false)
-    }
+  useEffect(() => {
     loadData()
-  }, [])
 
-  const faturamentoTotal = lancamentosMes.reduce((acc, curr) => acc + Number(curr.valor), 0)
-  const totalDespesas = despesasMes.reduce((acc, curr) => acc + Number(curr.valor), 0)
+    const channel = supabase
+      .channel('faturamento_dashboard_changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'lancamentos_pacientes' },
+        () => {
+          loadData()
+        },
+      )
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'despesas' }, () => {
+        loadData()
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channel)
+    }
+  }, [loadData])
+
+  const faturamentoTotal = lancamentosMes.reduce((acc, curr) => acc + Number(curr.valor || 0), 0)
+  const totalDespesas = despesasMes.reduce((acc, curr) => acc + Number(curr.valor || 0), 0)
   const resultadoLiquido = faturamentoTotal - totalDespesas
 
   const valorConfirmado = lancamentosMes
-    .filter((l) => l.status_pagamento !== 'Pendente')
-    .reduce((acc, curr) => acc + Number(curr.valor), 0)
+    .filter((l) => l.status_pagamento === 'Confirmado' || !l.status_pagamento)
+    .reduce((acc, curr) => acc + Number(curr.valor || 0), 0)
   const valorPendente = lancamentosMes
     .filter((l) => l.status_pagamento === 'Pendente')
-    .reduce((acc, curr) => acc + Number(curr.valor), 0)
+    .reduce((acc, curr) => acc + Number(curr.valor || 0), 0)
 
   const consultas = lancamentosMes.filter((l) => l.tipo === 'Consulta')
-  const faturamentoConsultas = consultas.reduce((acc, curr) => acc + Number(curr.valor), 0)
+  const faturamentoConsultas = consultas.reduce((acc, curr) => acc + Number(curr.valor || 0), 0)
   const ticketConsultas = consultas.length > 0 ? faturamentoConsultas / consultas.length : 0
 
   const procedimentos = lancamentosMes.filter((l) => l.tipo === 'Procedimento')
-  const faturamentoProcedimentos = procedimentos.reduce((acc, curr) => acc + Number(curr.valor), 0)
+  const faturamentoProcedimentos = procedimentos.reduce(
+    (acc, curr) => acc + Number(curr.valor || 0),
+    0,
+  )
   const ticketProcedimentos =
     procedimentos.length > 0 ? faturamentoProcedimentos / procedimentos.length : 0
 
@@ -157,6 +196,30 @@ export function FaturamentoDashboard() {
 
   return (
     <div className="space-y-6 animate-fade-in-up">
+      {/* Controles de Filtro e Atualização */}
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4 print:hidden">
+        <div className="space-y-1.5 w-full max-w-[200px]">
+          <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
+            Mês de Análise
+          </label>
+          <Input
+            type="month"
+            value={mesFiltro}
+            onChange={(e) => setMesFiltro(e.target.value)}
+            className="h-11 rounded-xl bg-secondary/30"
+          />
+        </div>
+        <Button
+          variant="outline"
+          onClick={loadData}
+          disabled={loading}
+          className="h-11 px-6 rounded-xl gap-2 shadow-sm w-full sm:w-auto"
+        >
+          <RefreshCw className={`w-4 h-4 ${loading ? 'animate-spin' : ''}`} />
+          Atualizar Dados
+        </Button>
+      </div>
+
       {/* Top KPIs */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card className="bg-card shadow-sm border-border/60 md:col-span-1 col-span-2">
