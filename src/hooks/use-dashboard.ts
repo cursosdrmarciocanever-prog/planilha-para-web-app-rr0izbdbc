@@ -40,18 +40,18 @@ export function useDashboardData(date: DateRange | undefined) {
       const startDay = format(fromDate, 'yyyy-MM-dd')
       const endDay = format(toDate, 'yyyy-MM-dd')
 
-      let queryLanc = supabase
+      let queryLancamentos = supabase
         .from('lancamentos_pacientes')
         .select('data_atendimento, valor, nome_paciente, tipo')
         .gte('data_atendimento', startDay)
         .lte('data_atendimento', endDay)
 
       if (userId) {
-        queryLanc = queryLanc.eq('user_id', userId)
+        queryLancamentos = queryLancamentos.eq('user_id', userId)
       }
 
       const [lancamentosRes, despesasRes, funcionariosRes] = await Promise.all([
-        queryLanc,
+        queryLancamentos,
         supabase
           .from('despesas')
           .select('valor')
@@ -79,10 +79,12 @@ export function useDashboardData(date: DateRange | undefined) {
           }
           totalLancamentos++
 
-          faturamentoDia[day] = (faturamentoDia[day] ?? 0) + valorVal
+          if (day) {
+            faturamentoDia[day] = (faturamentoDia[day] ?? 0) + valorVal
 
-          if (!l.tipo || l.tipo.toLowerCase() === 'consulta') {
-            pacientesDia[day] = (pacientesDia[day] ?? 0) + 1
+            if (!l.tipo || l.tipo.toLowerCase() === 'consulta') {
+              pacientesDia[day] = (pacientesDia[day] ?? 0) + 1
+            }
           }
         })
       }
@@ -90,7 +92,7 @@ export function useDashboardData(date: DateRange | undefined) {
       const totalPacientes = pacientesSet.size
       const bilheteriaVal = totalLancamentos > 0 ? faturamento / totalLancamentos : 0
 
-      // Calculate span of months to include employee costs
+      // Calcula os custos fixos proporcionais aos meses do filtro
       const months = eachMonthOfInterval({
         start: startOfMonth(fromDate),
         end: startOfMonth(toDate),

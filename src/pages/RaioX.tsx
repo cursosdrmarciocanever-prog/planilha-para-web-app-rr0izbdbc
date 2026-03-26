@@ -40,12 +40,21 @@ export default function RaioX() {
     const endDay = format(dateRange.to || dateRange.from, 'yyyy-MM-dd')
 
     try {
-      const [registrosRes, despesasRes, funcionariosRes] = await Promise.all([
-        supabase
-          .from('registros_diarios')
-          .select('data, faturamento_total')
-          .gte('data', startDay)
-          .lte('data', endDay),
+      const { data: userData } = await supabase.auth.getUser()
+      const userId = userData?.user?.id
+
+      let queryLancamentos = supabase
+        .from('lancamentos_pacientes')
+        .select('data_atendimento, valor')
+        .gte('data_atendimento', startDay)
+        .lte('data_atendimento', endDay)
+
+      if (userId) {
+        queryLancamentos = queryLancamentos.eq('user_id', userId)
+      }
+
+      const [lancamentosRes, despesasRes, funcionariosRes] = await Promise.all([
+        queryLancamentos,
         supabase
           .from('despesas')
           .select('data_vencimento, valor')
@@ -75,13 +84,13 @@ export default function RaioX() {
         custos += funcMonthlyCost
       })
 
-      if (registrosRes.data) {
-        registrosRes.data.forEach((r) => {
-          const val = Number(r.faturamento_total || 0)
+      if (lancamentosRes.data) {
+        lancamentosRes.data.forEach((l) => {
+          const val = Number(l.valor || 0)
           faturamento += val
 
-          const month = r.data.substring(0, 7) // yyyy-MM
-          if (evolutionMap[month]) {
+          const month = l.data_atendimento?.substring(0, 7) // yyyy-MM
+          if (month && evolutionMap[month]) {
             evolutionMap[month].faturamento += val
           }
         })
@@ -132,7 +141,7 @@ export default function RaioX() {
       .channel('raiox_changes')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'registros_diarios' },
+        { event: '*', schema: 'public', table: 'lancamentos_pacientes' },
         fetchData,
       )
       .on('postgres_changes', { event: '*', schema: 'public', table: 'despesas' }, fetchData)
@@ -152,7 +161,7 @@ export default function RaioX() {
       value / 100,
     )
 
-  const handlePrint = generatePDF
+  const handlePrint = () => generatePDF('simples')
 
   return (
     <div className="p-6 md:p-10 animate-fade-in print:p-0 print:m-0">
@@ -161,7 +170,7 @@ export default function RaioX() {
         <div>
           <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Raio-X Financeiro</h1>
           <p className="text-slate-500 mt-1">
-            Análise completa da saúde financeira (inclui custos fixos de RH)
+            Análise completa da saúde financeira baseada nos lançamentos
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3 w-full md:w-auto">
