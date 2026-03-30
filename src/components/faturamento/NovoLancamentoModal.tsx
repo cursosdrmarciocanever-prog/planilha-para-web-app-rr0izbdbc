@@ -28,6 +28,7 @@ export function NovoLancamentoModal({ open, onOpenChange, onSuccess, initialData
   const [descricao, setDescricao] = useState('')
   const [valor, setValor] = useState('')
   const [formaPagamento, setFormaPagamento] = useState('PIX')
+  const [parcelas, setParcelas] = useState('2')
   const [statusPagamento, setStatusPagamento] = useState('Confirmado')
   const [observacoes, setObservacoes] = useState('')
   const [loading, setLoading] = useState(false)
@@ -42,6 +43,7 @@ export function NovoLancamentoModal({ open, onOpenChange, onSuccess, initialData
         setDescricao(initialData.descricao || '')
         setValor(initialData.valor.toString())
         setFormaPagamento(initialData.forma_pagamento || 'PIX')
+        setParcelas(initialData.parcelas ? initialData.parcelas.toString() : '2')
         setStatusPagamento(initialData.status_pagamento || 'Confirmado')
         setObservacoes(initialData.observacoes || '')
       } else {
@@ -51,6 +53,7 @@ export function NovoLancamentoModal({ open, onOpenChange, onSuccess, initialData
         setDescricao('')
         setValor('')
         setFormaPagamento('PIX')
+        setParcelas('2')
         setStatusPagamento('Confirmado')
         setObservacoes('')
       }
@@ -67,6 +70,15 @@ export function NovoLancamentoModal({ open, onOpenChange, onSuccess, initialData
       return
     }
 
+    if (formaPagamento === 'Cartão de Crédito Parcelado' && (!parcelas || parseInt(parcelas) < 2)) {
+      toast({
+        title: 'Atenção',
+        description: 'Informe um número de parcelas válido (mínimo 2).',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setLoading(true)
     const payload = {
       data_atendimento: dataAtendimento,
@@ -75,6 +87,7 @@ export function NovoLancamentoModal({ open, onOpenChange, onSuccess, initialData
       descricao,
       valor: parseFloat(valor),
       forma_pagamento: formaPagamento,
+      parcelas: formaPagamento === 'Cartão de Crédito Parcelado' ? parseInt(parcelas) : null,
       status_pagamento: statusPagamento,
       observacoes,
     }
@@ -179,14 +192,32 @@ export function NovoLancamentoModal({ open, onOpenChange, onSuccess, initialData
                 <SelectContent>
                   <SelectItem value="Dinheiro">Dinheiro</SelectItem>
                   <SelectItem value="PIX">PIX</SelectItem>
-                  <SelectItem value="Cartão de Crédito">Cartão de Crédito</SelectItem>
-                  <SelectItem value="Cartão de Débito">Cartão de Débito</SelectItem>
-                  <SelectItem value="Transferência">Transferência</SelectItem>
+                  <SelectItem value="Débito">Débito</SelectItem>
+                  <SelectItem value="Cartão de Crédito à Vista">
+                    Cartão de Crédito à Vista
+                  </SelectItem>
+                  <SelectItem value="Cartão de Crédito Parcelado">
+                    Cartão de Crédito Parcelado
+                  </SelectItem>
                   <SelectItem value="Cheque">Cheque</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
+
+          {formaPagamento === 'Cartão de Crédito Parcelado' && (
+            <div className="space-y-2">
+              <Label className="text-foreground/80 font-medium">Número de Parcelas *</Label>
+              <Input
+                type="number"
+                min="2"
+                max="24"
+                value={parcelas}
+                onChange={(e) => setParcelas(e.target.value)}
+                className="bg-secondary/30 h-11"
+              />
+            </div>
+          )}
 
           <div className="space-y-2">
             <Label className="text-foreground/80 font-medium">Status de Pagamento *</Label>

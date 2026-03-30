@@ -233,7 +233,13 @@ export default function Diario() {
                   <SelectItem value="Todos">Todos</SelectItem>
                   <SelectItem value="Dinheiro">Dinheiro</SelectItem>
                   <SelectItem value="PIX">PIX</SelectItem>
-                  <SelectItem value="Cartão">Cartão</SelectItem>
+                  <SelectItem value="Débito">Débito</SelectItem>
+                  <SelectItem value="Cartão de Crédito à Vista">
+                    Cartão de Crédito à Vista
+                  </SelectItem>
+                  <SelectItem value="Cartão de Crédito Parcelado">
+                    Cartão de Crédito Parcelado
+                  </SelectItem>
                   <SelectItem value="Cheque">Cheque</SelectItem>
                 </SelectContent>
               </Select>
@@ -374,7 +380,9 @@ export default function Diario() {
                         </TableCell>
                         <TableCell>
                           <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 uppercase tracking-wide">
-                            {r.forma_pagamento}
+                            {r.forma_pagamento === 'Cartão de Crédito Parcelado' && r.parcelas
+                              ? `Créd. Parcelado ${r.parcelas}x`
+                              : r.forma_pagamento}
                           </span>
                         </TableCell>
                         <TableCell className="text-right print:hidden p-2">

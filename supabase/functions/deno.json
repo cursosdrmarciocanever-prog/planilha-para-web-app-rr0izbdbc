@@ -5,6 +5,15 @@
     "enviar_email_lembrete": 9,
     "gerar_relatorio_contas": 7,
     "agendar_lembretes_automaticos": 6,
-    "registrar_log": 2
+    "registrar_log": 2,
+    "ai-classify-contacts": 3,
+    "ai-pipeline-monitor": 3,
+    "evolution-create-instance": 3,
+    "evolution-disconnect": 3,
+    "evolution-get-qr": 3,
+    "evolution-send-message": 3,
+    "evolution-sync-contacts": 3,
+    "evolution-sync-messages": 3,
+    "evolution-webhook": 3
   }
 }

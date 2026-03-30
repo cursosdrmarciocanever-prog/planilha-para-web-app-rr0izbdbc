@@ -37,6 +37,13 @@ const formSchema = z.object({
   valor_consulta: z.coerce.number().min(0),
   valor_procedimento: z.coerce.number().min(0),
   forma_pagamento: z.string().min(1, 'Selecione uma forma de pagamento.'),
+  parcelas: z.coerce
+    .number()
+    .min(2, 'Mínimo de 2 parcelas')
+    .max(24, 'Máximo de 24 parcelas')
+    .optional()
+    .or(z.literal(0))
+    .or(z.nan()),
 })
 
 export function NovoAtendimentoDialog({ onSuccess }: { onSuccess: () => void }) {
@@ -51,10 +58,21 @@ export function NovoAtendimentoDialog({ onSuccess }: { onSuccess: () => void }) 
       valor_consulta: 0,
       valor_procedimento: 0,
       forma_pagamento: 'PIX',
+      parcelas: undefined,
     },
   })
 
+  const formaPagamento = form.watch('forma_pagamento')
+
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    if (
+      values.forma_pagamento === 'Cartão de Crédito Parcelado' &&
+      (!values.parcelas || values.parcelas < 2)
+    ) {
+      form.setError('parcelas', { type: 'manual', message: 'Mínimo de 2 parcelas.' })
+      return
+    }
+
     try {
       const year = values.data.getFullYear()
       const month = String(values.data.getMonth() + 1).padStart(2, '0')
@@ -66,6 +84,8 @@ export function NovoAtendimentoDialog({ onSuccess }: { onSuccess: () => void }) 
         valor_consulta: values.valor_consulta,
         valor_procedimento: values.valor_procedimento,
         forma_pagamento: values.forma_pagamento,
+        parcelas:
+          values.forma_pagamento === 'Cartão de Crédito Parcelado' ? Number(values.parcelas) : null,
       })
 
       toast({ title: 'Sucesso', description: 'Atendimento registrado com sucesso.' })
@@ -76,6 +96,7 @@ export function NovoAtendimentoDialog({ onSuccess }: { onSuccess: () => void }) 
         valor_consulta: 0,
         valor_procedimento: 0,
         forma_pagamento: 'PIX',
+        parcelas: undefined,
       })
       onSuccess()
     } catch (error: any) {
@@ -173,7 +194,13 @@ export function NovoAtendimentoDialog({ onSuccess }: { onSuccess: () => void }) 
                     <SelectContent>
                       <SelectItem value="Dinheiro">Dinheiro</SelectItem>
                       <SelectItem value="PIX">PIX</SelectItem>
-                      <SelectItem value="Cartão">Cartão</SelectItem>
+                      <SelectItem value="Débito">Débito</SelectItem>
+                      <SelectItem value="Cartão de Crédito à Vista">
+                        Cartão de Crédito à Vista
+                      </SelectItem>
+                      <SelectItem value="Cartão de Crédito Parcelado">
+                        Cartão de Crédito Parcelado
+                      </SelectItem>
                       <SelectItem value="Cheque">Cheque</SelectItem>
                     </SelectContent>
                   </Select>
@@ -181,6 +208,28 @@ export function NovoAtendimentoDialog({ onSuccess }: { onSuccess: () => void }) 
                 </FormItem>
               )}
             />
+            {formaPagamento === 'Cartão de Crédito Parcelado' && (
+              <FormField
+                control={form.control}
+                name="parcelas"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Número de Parcelas *</FormLabel>
+                    <FormControl>
+                      <Input
+                        type="number"
+                        min="2"
+                        max="24"
+                        {...field}
+                        value={field.value || ''}
+                        onChange={(e) => field.onChange(parseInt(e.target.value))}
+                      />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <Button type="submit" className="w-full mt-4">
               Salvar Atendimento
             </Button>
