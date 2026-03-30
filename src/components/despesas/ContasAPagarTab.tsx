@@ -1,4 +1,4 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import {
   startOfMonth,
   endOfMonth,
@@ -52,7 +52,11 @@ interface ContasAPagarTabProps {
   onEdit: (conta: any) => void
 }
 
-export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabProps) {
+export function ContasAPagarTab({
+  contas: initialContas,
+  onOpenNew,
+  onEdit,
+}: ContasAPagarTabProps) {
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()))
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date())
   const [isGenerating, setIsGenerating] = useState(false)
@@ -60,8 +64,46 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
   const [reportMonth, setReportMonth] = useState((new Date().getMonth() + 1).toString())
   const [reportYear, setReportYear] = useState(new Date().getFullYear().toString())
+  const [localContas, setLocalContas] = useState<any[]>(initialContas || [])
 
   const { toast } = useToast()
+
+  useEffect(() => {
+    fetchData()
+
+    const channelDespesas = supabase
+      .channel('despesas_calendar_changes')
+      .on('postgres', { event: '*', schema: 'public', table: 'despesas' }, () => {
+        fetchData()
+      })
+      .subscribe()
+
+    const channelContasFixas = supabase
+      .channel('contas_fixas_calendar_changes')
+      .on('postgres', { event: '*', schema: 'public', table: 'contas_fixas' }, () => {
+        fetchData()
+      })
+      .subscribe()
+
+    return () => {
+      supabase.removeChannel(channelDespesas)
+      supabase.removeChannel(channelContasFixas)
+    }
+  }, [])
+
+  const fetchData = async () => {
+    const [despesasRes, contasFixasRes] = await Promise.all([
+      supabase.from('despesas').select('*'),
+      supabase.from('contas_fixas').select('*'),
+    ])
+
+    const allData = [
+      ...(despesasRes.data || []).map((d) => ({ ...d, _table: 'despesas' })),
+      ...(contasFixasRes.data || []).map((c) => ({ ...c, _table: 'contas_fixas' })),
+    ]
+
+    setLocalContas(allData)
+  }
 
   const monthStart = startOfMonth(currentMonth)
   const monthEnd = endOfMonth(monthStart)
@@ -71,17 +113,17 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
 
   const expensesByDate = useMemo(() => {
     const map = new Map<string, any[]>()
-    contas.forEach((d: any) => {
+    localContas.forEach((d: any) => {
       if (!d.data_vencimento) return
       const dateStr = format(parseISO(d.data_vencimento), 'yyyy-MM-dd')
       if (!map.has(dateStr)) map.set(dateStr, [])
       map.get(dateStr)!.push(d)
     })
     return map
-  }, [contas])
+  }, [localContas])
 
   const selectedMonthExpenses = useMemo(() => {
-    return contas
+    return localContas
       .filter((d: any) => {
         if (!d.data_vencimento) return false
         const dDate = parseISO(d.data_vencimento)
@@ -91,7 +133,7 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
         (a: any, b: any) =>
           parseISO(a.data_vencimento).getTime() - parseISO(b.data_vencimento).getTime(),
       )
-  }, [contas, currentMonth])
+  }, [localContas, currentMonth])
 
   const getStatusInfo = (d: any) => {
     const today = new Date()
@@ -102,7 +144,7 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
     const diffTime = dDate.getTime() - today.getTime()
     const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24))
 
-    const isPaid = d.status === 'Pago'
+    const isPaid = d.status === 'Pago' || d.status === 'Confirmado'
     const isOverdue = d.status === 'Vencido' || (!isPaid && diffDays < 0)
     const isSoon = !isPaid && !isOverdue && diffDays >= 0 && diffDays <= 3
     const isPending = !isPaid && !isOverdue && !isSoon
@@ -164,13 +206,13 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
   const handleTestEmail = async () => {
     setIsSendingEmail(true)
     try {
-      // Pega qualquer conta para realizar o teste (de preferência as do usuário logado)
-      const contaTeste = contas.length > 0 ? contas[0] : null
+      // Pega qualquer conta para realizar o teste (deve ser contas_fixas devido ao requisito da edge function)
+      const contaTeste = localContas.find((c: any) => c._table === 'contas_fixas')
 
       if (!contaTeste) {
         toast({
           title: 'Nenhuma conta encontrada',
-          description: 'Cadastre pelo menos uma conta para realizar o teste de e-mail.',
+          description: 'Cadastre pelo menos uma Conta Fixa para realizar o teste de e-mail.',
           variant: 'destructive',
         })
         return

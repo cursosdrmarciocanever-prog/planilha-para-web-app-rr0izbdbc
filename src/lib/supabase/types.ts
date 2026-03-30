@@ -225,6 +225,7 @@ export type Database = {
       contas_fixas: {
         Row: {
           categoria: string | null
+          conta_pagamento: string | null
           criado_em: string
           data_vencimento: string
           descricao: string
@@ -236,6 +237,7 @@ export type Database = {
         }
         Insert: {
           categoria?: string | null
+          conta_pagamento?: string | null
           criado_em?: string
           data_vencimento: string
           descricao: string
@@ -247,6 +249,7 @@ export type Database = {
         }
         Update: {
           categoria?: string | null
+          conta_pagamento?: string | null
           criado_em?: string
           data_vencimento?: string
           descricao?: string
@@ -261,6 +264,7 @@ export type Database = {
       despesas: {
         Row: {
           categoria: string | null
+          conta_pagamento: string | null
           created_at: string | null
           data_vencimento: string | null
           descricao: string | null
@@ -270,6 +274,7 @@ export type Database = {
         }
         Insert: {
           categoria?: string | null
+          conta_pagamento?: string | null
           created_at?: string | null
           data_vencimento?: string | null
           descricao?: string | null
@@ -279,6 +284,7 @@ export type Database = {
         }
         Update: {
           categoria?: string | null
+          conta_pagamento?: string | null
           created_at?: string | null
           data_vencimento?: string | null
           descricao?: string | null
@@ -1514,6 +1520,7 @@ export const Constants = {
 //   frequencia: text (nullable, default: 'Mensal'::text)
 //   criado_em: timestamp with time zone (not null, default: now())
 //   usuario_id: uuid (nullable, default: auth.uid())
+//   conta_pagamento: text (nullable, default: 'Carnê Leão / Unicred'::text)
 // Table: despesas
 //   id: uuid (not null, default: gen_random_uuid())
 //   categoria: text (nullable)
@@ -1522,6 +1529,7 @@ export const Constants = {
 //   status: text (nullable)
 //   created_at: timestamp with time zone (nullable, default: now())
 //   descricao: text (nullable)
+//   conta_pagamento: text (nullable, default: 'Carnê Leão / Unicred'::text)
 // Table: diario_atendimentos
 //   id: uuid (not null, default: gen_random_uuid())
 //   data: date (not null, default: CURRENT_DATE)
