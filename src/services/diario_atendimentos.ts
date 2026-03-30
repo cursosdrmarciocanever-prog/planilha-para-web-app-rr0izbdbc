@@ -54,6 +54,17 @@ export async function deleteDiarioAtendimento(id: string) {
   if (error) throw error
 }
 
+export async function updateDiarioAtendimento(id: string, payload: Partial<DiarioAtendimento>) {
+  const { data, error } = await supabase
+    .from('diario_atendimentos')
+    .update(payload)
+    .eq('id', id)
+    .select()
+    .single()
+  if (error) throw error
+  return data
+}
+
 export async function createDiarioAtendimento(payload: Partial<DiarioAtendimento>) {
   const { data: userData } = await supabase.auth.getUser()
   const { data, error } = await supabase

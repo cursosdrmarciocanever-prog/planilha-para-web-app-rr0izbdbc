@@ -295,8 +295,10 @@ export type Database = {
           data: string
           forma_pagamento: string
           id: string
+          nota_fiscal: string | null
           paciente_nome: string
           parcelas: number | null
+          recibo: string | null
           user_id: string | null
           valor_consulta: number | null
           valor_procedimento: number | null
@@ -307,8 +309,10 @@ export type Database = {
           data?: string
           forma_pagamento: string
           id?: string
+          nota_fiscal?: string | null
           paciente_nome: string
           parcelas?: number | null
+          recibo?: string | null
           user_id?: string | null
           valor_consulta?: number | null
           valor_procedimento?: number | null
@@ -319,8 +323,10 @@ export type Database = {
           data?: string
           forma_pagamento?: string
           id?: string
+          nota_fiscal?: string | null
           paciente_nome?: string
           parcelas?: number | null
+          recibo?: string | null
           user_id?: string | null
           valor_consulta?: number | null
           valor_procedimento?: number | null
@@ -1527,6 +1533,8 @@ export const Constants = {
 //   user_id: uuid (nullable)
 //   parcelas: integer (nullable)
 //   conta_recebimento: text (nullable, default: 'Carnê Leão / Unicred'::text)
+//   recibo: text (nullable)
+//   nota_fiscal: text (nullable)
 // Table: exames_laboratoriais
 //   id: uuid (not null, default: gen_random_uuid())
 //   gestante_id: uuid (nullable)

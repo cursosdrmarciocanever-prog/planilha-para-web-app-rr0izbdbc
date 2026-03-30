@@ -24,10 +24,11 @@ import {
 import { DatePickerWithRange } from '@/components/ui/date-range-picker'
 import { useToast } from '@/hooks/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
-import { generatePDF } from '@/lib/utils'
+import { generatePDF, cn } from '@/lib/utils'
 import {
   getDiarioAtendimentos,
   deleteDiarioAtendimento,
+  updateDiarioAtendimento,
   DiarioAtendimento,
 } from '@/services/diario_atendimentos'
 import { NovoAtendimentoDialog } from '@/components/diario/NovoAtendimentoDialog'
@@ -122,6 +123,23 @@ export default function Diario() {
       } catch (error) {
         toast({ title: 'Erro', description: 'Falha ao excluir.', variant: 'destructive' })
       }
+    }
+  }
+
+  const toggleDocument = async (
+    id: string,
+    field: 'recibo' | 'nota_fiscal',
+    currentValue: string | null | undefined,
+  ) => {
+    const newValue = currentValue === 'Sim' ? 'Não' : 'Sim'
+
+    setRegistros((prev) => prev.map((r) => (r.id === id ? { ...r, [field]: newValue } : r)))
+
+    try {
+      await updateDiarioAtendimento(id, { [field]: newValue })
+    } catch (error) {
+      toast({ title: 'Erro', description: 'Falha ao atualizar documento.', variant: 'destructive' })
+      setRegistros((prev) => prev.map((r) => (r.id === id ? { ...r, [field]: currentValue } : r)))
     }
   }
 
@@ -357,6 +375,9 @@ export default function Diario() {
                       </TableHead>
                       <TableHead className="text-right font-bold text-slate-800">Total</TableHead>
                       <TableHead className="font-semibold text-slate-700">Pagamento</TableHead>
+                      <TableHead className="font-semibold text-slate-700 print:hidden">
+                        Documentos
+                      </TableHead>
                       <TableHead className="w-[60px] print:hidden"></TableHead>
                     </TableRow>
                   </TableHeader>
@@ -401,6 +422,35 @@ export default function Diario() {
                               </span>
                             )}
                           </div>
+                        </TableCell>
+                        <TableCell className="print:hidden">
+                          {r.conta_recebimento === 'Conta Jurídica / Sicoob' ? (
+                            <button
+                              onClick={() => toggleDocument(r.id, 'nota_fiscal', r.nota_fiscal)}
+                              className={cn(
+                                'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors cursor-pointer border',
+                                r.nota_fiscal === 'Sim'
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                  : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200',
+                              )}
+                            >
+                              NF: {r.nota_fiscal === 'Sim' ? 'Sim' : 'Não'}
+                            </button>
+                          ) : r.conta_recebimento === 'Carnê Leão / Unicred' ? (
+                            <button
+                              onClick={() => toggleDocument(r.id, 'recibo', r.recibo)}
+                              className={cn(
+                                'inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors cursor-pointer border',
+                                r.recibo === 'Sim'
+                                  ? 'bg-emerald-50 text-emerald-700 border-emerald-200 hover:bg-emerald-100'
+                                  : 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-slate-200',
+                              )}
+                            >
+                              Recibo: {r.recibo === 'Sim' ? 'Sim' : 'Não'}
+                            </button>
+                          ) : (
+                            <span className="text-slate-400">-</span>
+                          )}
                         </TableCell>
                         <TableCell className="text-right print:hidden p-2">
                           <div className="opacity-0 group-hover:opacity-100 transition-opacity">
