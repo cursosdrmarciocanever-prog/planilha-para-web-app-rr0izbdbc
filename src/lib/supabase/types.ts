@@ -290,6 +290,7 @@ export type Database = {
       }
       diario_atendimentos: {
         Row: {
+          conta_recebimento: string | null
           created_at: string | null
           data: string
           forma_pagamento: string
@@ -301,6 +302,7 @@ export type Database = {
           valor_procedimento: number | null
         }
         Insert: {
+          conta_recebimento?: string | null
           created_at?: string | null
           data?: string
           forma_pagamento: string
@@ -312,6 +314,7 @@ export type Database = {
           valor_procedimento?: number | null
         }
         Update: {
+          conta_recebimento?: string | null
           created_at?: string | null
           data?: string
           forma_pagamento?: string
@@ -510,6 +513,7 @@ export type Database = {
       }
       lancamentos_pacientes: {
         Row: {
+          conta_recebimento: string | null
           created_at: string | null
           data_atendimento: string | null
           descricao: string | null
@@ -524,6 +528,7 @@ export type Database = {
           valor: number
         }
         Insert: {
+          conta_recebimento?: string | null
           created_at?: string | null
           data_atendimento?: string | null
           descricao?: string | null
@@ -538,6 +543,7 @@ export type Database = {
           valor?: number
         }
         Update: {
+          conta_recebimento?: string | null
           created_at?: string | null
           data_atendimento?: string | null
           descricao?: string | null
@@ -1520,6 +1526,7 @@ export const Constants = {
 //   created_at: timestamp with time zone (nullable, default: now())
 //   user_id: uuid (nullable)
 //   parcelas: integer (nullable)
+//   conta_recebimento: text (nullable, default: 'Carnê Leão / Unicred'::text)
 // Table: exames_laboratoriais
 //   id: uuid (not null, default: gen_random_uuid())
 //   gestante_id: uuid (nullable)
@@ -1579,6 +1586,7 @@ export const Constants = {
 //   user_id: uuid (nullable)
 //   status_pagamento: text (nullable, default: 'Confirmado'::text)
 //   parcelas: integer (nullable)
+//   conta_recebimento: text (nullable, default: 'Carnê Leão / Unicred'::text)
 // Table: lembretes_contas
 //   id: uuid (not null, default: gen_random_uuid())
 //   conta_id: uuid (nullable)

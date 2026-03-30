@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Download, FileDown, Search, Edit, Trash2 } from 'lucide-react'
+import { Plus, Download, FileDown, Search, Trash2 } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -21,16 +21,14 @@ import {
 } from '@/components/ui/select'
 import { supabase } from '@/lib/supabase/client'
 import { format, parseISO, endOfMonth } from 'date-fns'
-import { NovoLancamentoModal } from './NovoLancamentoModal'
 import { useToast } from '@/hooks/use-toast'
+import { Link } from 'react-router-dom'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
 export function FaturamentoEntradas() {
   const [lancamentos, setLancamentos] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [modalOpen, setModalOpen] = useState(false)
-  const [editingLancamento, setEditingLancamento] = useState<any>(null)
 
   const [filtroMes, setFiltroMes] = useState(format(new Date(), 'yyyy-MM'))
   const [filtroTipo, setFiltroTipo] = useState('Todos')
@@ -44,10 +42,7 @@ export function FaturamentoEntradas() {
     const { data: userData } = await supabase.auth.getUser()
     const userId = userData?.user?.id
 
-    let query = supabase
-      .from('lancamentos_pacientes')
-      .select('*')
-      .order('data_atendimento', { ascending: false })
+    let query = supabase.from('diario_atendimentos').select('*').order('data', { ascending: false })
 
     if (userId) {
       query = query.eq('user_id', userId)
@@ -58,23 +53,29 @@ export function FaturamentoEntradas() {
       const dateObj = new Date(Number(ano), Number(mes) - 1, 1)
       const start = format(dateObj, 'yyyy-MM-dd')
       const end = format(endOfMonth(dateObj), 'yyyy-MM-dd')
-      query = query.gte('data_atendimento', start).lte('data_atendimento', end)
+      query = query.gte('data', start).lte('data', end)
     }
 
     if (filtroTipo !== 'Todos') {
-      query = query.eq('tipo', filtroTipo)
-    }
-
-    if (filtroStatus !== 'Todos') {
-      query = query.eq('status_pagamento', filtroStatus)
+      if (filtroTipo === 'Consulta') {
+        query = query.gt('valor_consulta', 0)
+      } else if (filtroTipo === 'Procedimento') {
+        query = query.gt('valor_procedimento', 0)
+      }
     }
 
     if (buscaNome) {
-      query = query.ilike('nome_paciente', `%${buscaNome}%`)
+      query = query.ilike('paciente_nome', `%${buscaNome}%`)
     }
 
     const { data } = await query
-    setLancamentos(data || [])
+
+    let filteredData = data || []
+    if (filtroStatus === 'Pendente') {
+      filteredData = []
+    }
+
+    setLancamentos(filteredData)
     setLoading(false)
   }, [filtroMes, filtroTipo, filtroStatus, buscaNome])
 
@@ -85,7 +86,7 @@ export function FaturamentoEntradas() {
       .channel('faturamento_entradas_changes')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'lancamentos_pacientes' },
+        { event: '*', schema: 'public', table: 'diario_atendimentos' },
         () => {
           loadData()
         },
@@ -99,7 +100,7 @@ export function FaturamentoEntradas() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Deseja excluir este lançamento?')) return
-    const { error } = await supabase.from('lancamentos_pacientes').delete().eq('id', id)
+    const { error } = await supabase.from('diario_atendimentos').delete().eq('id', id)
     if (error) toast({ title: 'Erro ao excluir', variant: 'destructive' })
     else {
       toast({ title: 'Excluído com sucesso' })
@@ -107,10 +108,34 @@ export function FaturamentoEntradas() {
     }
   }
 
+  const getValorTotal = (l: any) =>
+    Number(l.valor_consulta || 0) + Number(l.valor_procedimento || 0)
+
+  const getTipoLabel = (l: any) => {
+    const isCons = Number(l.valor_consulta || 0) > 0
+    const isProc = Number(l.valor_procedimento || 0) > 0
+    if (isCons && isProc) return 'Cons. + Proced.'
+    if (isCons) return 'Consulta'
+    if (isProc) return 'Procedimento'
+    return 'Outro'
+  }
+
+  const formatCurrency = (val: number) =>
+    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)
+
+  const totalValor = lancamentos.reduce((acc, curr) => acc + getValorTotal(curr), 0)
+  const ticketMedio = lancamentos.length > 0 ? totalValor / lancamentos.length : 0
+
   const exportCSV = () => {
-    let csv = 'Data,Paciente,Tipo,Descrição,Valor,Forma de Pagamento,Status,Observações\n'
+    let csv = 'Data,Paciente,Tipo,Valor,Forma de Pagamento,Conta Recebimento,Status\n'
     lancamentos.forEach((l) => {
-      csv += `${l.data_atendimento},"${l.nome_paciente}",${l.tipo},"${l.descricao || ''}",${l.valor},${l.forma_pagamento},${l.status_pagamento || 'Confirmado'},"${l.observacoes || ''}"\n`
+      const tipo = getTipoLabel(l)
+      const valor = getValorTotal(l)
+      const pagamento =
+        l.forma_pagamento === 'Cartão de Crédito Parcelado' && l.parcelas
+          ? `${l.forma_pagamento} ${l.parcelas}x`
+          : l.forma_pagamento
+      csv += `${l.data},"${l.paciente_nome}",${tipo},${valor},${pagamento},"${l.conta_recebimento || ''}","Confirmado"\n`
     })
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
@@ -118,12 +143,6 @@ export function FaturamentoEntradas() {
     link.download = `entradas_${filtroMes}.csv`
     link.click()
   }
-
-  const formatCurrency = (val: number) =>
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)
-
-  const totalValor = lancamentos.reduce((acc, curr) => acc + Number(curr.valor), 0)
-  const ticketMedio = lancamentos.length > 0 ? totalValor / lancamentos.length : 0
 
   const exportPDF = () => {
     const doc = new jsPDF()
@@ -141,51 +160,28 @@ export function FaturamentoEntradas() {
       25,
     )
 
-    const consultas = lancamentos.filter((l) => l.tipo === 'Consulta')
-    const procedimentos = lancamentos.filter((l) => l.tipo === 'Procedimento')
-
     let finalY = 35
-    const head = [['Data', 'Paciente', 'Descrição', 'Valor', 'Pgto', 'Status']]
+    const head = [['Data', 'Paciente', 'Tipo', 'Valor', 'Pgto', 'Conta', 'Status']]
 
-    if (consultas.length > 0) {
-      doc.text('Consultas', 14, finalY)
-      autoTable(doc, {
-        startY: finalY + 5,
-        head,
-        body: consultas.map((c) => [
-          format(parseISO(c.data_atendimento), 'dd/MM/yyyy'),
-          c.nome_paciente,
-          c.descricao || '-',
-          formatCurrency(c.valor),
-          c.forma_pagamento,
-          c.status_pagamento || 'Confirmado',
-        ]),
-        theme: 'striped',
-        styles: { fontSize: 8 },
-        headStyles: { fillColor: [15, 23, 42] },
-      })
-      finalY = (doc as any).lastAutoTable.finalY + 15
-    }
-
-    if (procedimentos.length > 0) {
-      doc.text('Procedimentos', 14, finalY)
-      autoTable(doc, {
-        startY: finalY + 5,
-        head,
-        body: procedimentos.map((c) => [
-          format(parseISO(c.data_atendimento), 'dd/MM/yyyy'),
-          c.nome_paciente,
-          c.descricao || '-',
-          formatCurrency(c.valor),
-          c.forma_pagamento,
-          c.status_pagamento || 'Confirmado',
-        ]),
-        theme: 'striped',
-        styles: { fontSize: 8 },
-        headStyles: { fillColor: [15, 23, 42] },
-      })
-      finalY = (doc as any).lastAutoTable.finalY + 15
-    }
+    autoTable(doc, {
+      startY: finalY + 5,
+      head,
+      body: lancamentos.map((c) => [
+        format(parseISO(c.data), 'dd/MM/yyyy'),
+        c.paciente_nome,
+        getTipoLabel(c),
+        formatCurrency(getValorTotal(c)),
+        c.forma_pagamento === 'Cartão de Crédito Parcelado' && c.parcelas
+          ? `Parcelado ${c.parcelas}x`
+          : c.forma_pagamento,
+        c.conta_recebimento || '-',
+        'Confirmado',
+      ]),
+      theme: 'striped',
+      styles: { fontSize: 8 },
+      headStyles: { fillColor: [15, 23, 42] },
+    })
+    finalY = (doc as any).lastAutoTable.finalY + 15
 
     doc.setFontSize(11)
     doc.text('Resumo do Período', 14, finalY)
@@ -272,14 +268,10 @@ export function FaturamentoEntradas() {
           >
             <FileDown className="w-4 h-4" />
           </Button>
-          <Button
-            onClick={() => {
-              setEditingLancamento(null)
-              setModalOpen(true)
-            }}
-            className="h-11 px-6 rounded-xl gap-2 shadow-sm"
-          >
-            <Plus className="w-4 h-4" /> Novo Lançamento
+          <Button asChild className="h-11 px-6 rounded-xl gap-2 shadow-sm">
+            <Link to="/diario">
+              <Plus className="w-4 h-4" /> Ir para o Diário
+            </Link>
           </Button>
         </div>
       </div>
@@ -324,11 +316,11 @@ export function FaturamentoEntradas() {
                 <TableHead className="font-semibold h-12">Data</TableHead>
                 <TableHead className="font-semibold h-12">Paciente</TableHead>
                 <TableHead className="font-semibold h-12">Tipo</TableHead>
-                <TableHead className="font-semibold h-12">Descrição</TableHead>
                 <TableHead className="text-right font-semibold h-12">Valor</TableHead>
                 <TableHead className="font-semibold h-12">Pagamento</TableHead>
+                <TableHead className="font-semibold h-12">Conta Recebimento</TableHead>
                 <TableHead className="font-semibold h-12">Status</TableHead>
-                <TableHead className="w-[100px] print:hidden"></TableHead>
+                <TableHead className="w-[60px] print:hidden"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -347,75 +339,63 @@ export function FaturamentoEntradas() {
                   </TableCell>
                 </TableRow>
               ) : (
-                lancamentos.map((l) => (
-                  <TableRow key={l.id} className="group hover:bg-secondary/10 transition-colors">
-                    <TableCell className="text-muted-foreground font-medium whitespace-nowrap">
-                      {format(parseISO(l.data_atendimento), 'dd/MM/yyyy')}
-                    </TableCell>
-                    <TableCell className="font-bold text-foreground">{l.nome_paciente}</TableCell>
-                    <TableCell>
-                      <span className="bg-secondary px-2 py-1 rounded text-xs font-medium">
-                        {l.tipo}
-                      </span>
-                    </TableCell>
-                    <TableCell className="text-muted-foreground">{l.descricao}</TableCell>
-                    <TableCell className="text-right font-bold text-emerald-600">
-                      {formatCurrency(l.valor)}
-                    </TableCell>
-                    <TableCell>
-                      <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                        {l.forma_pagamento}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Badge
-                        variant={l.status_pagamento === 'Pendente' ? 'outline' : 'default'}
-                        className={
-                          l.status_pagamento === 'Pendente'
-                            ? 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border-none'
-                            : 'bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-none'
-                        }
-                      >
-                        {l.status_pagamento || 'Confirmado'}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className="print:hidden">
-                      <div className="flex gap-1 justify-end opacity-0 group-hover:opacity-100 transition-opacity">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-primary rounded-full"
-                          onClick={() => {
-                            setEditingLancamento(l)
-                            setModalOpen(true)
-                          }}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-muted-foreground hover:text-destructive rounded-full"
-                          onClick={() => handleDelete(l.id)}
-                        >
-                          <Trash2 className="w-4 h-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))
+                lancamentos.map((l) => {
+                  const tipo = getTipoLabel(l)
+                  const valorTotal = getValorTotal(l)
+                  const pagamento =
+                    l.forma_pagamento === 'Cartão de Crédito Parcelado' && l.parcelas
+                      ? `${l.forma_pagamento} ${l.parcelas}x`
+                      : l.forma_pagamento
+
+                  return (
+                    <TableRow key={l.id} className="group hover:bg-secondary/10 transition-colors">
+                      <TableCell className="text-muted-foreground font-medium whitespace-nowrap">
+                        {format(parseISO(l.data), 'dd/MM/yyyy')}
+                      </TableCell>
+                      <TableCell className="font-bold text-foreground">{l.paciente_nome}</TableCell>
+                      <TableCell>
+                        <span className="bg-secondary px-2 py-1 rounded text-xs font-medium">
+                          {tipo}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-right font-bold text-emerald-600">
+                        {formatCurrency(valorTotal)}
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                          {pagamento}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <span className="text-xs font-medium text-muted-foreground">
+                          {l.conta_recebimento || '-'}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-200 border-none">
+                          Confirmado
+                        </Badge>
+                      </TableCell>
+                      <TableCell className="print:hidden">
+                        <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive rounded-full"
+                            onClick={() => handleDelete(l.id)}
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  )
+                })
               )}
             </TableBody>
           </Table>
         </CardContent>
       </Card>
-
-      <NovoLancamentoModal
-        open={modalOpen}
-        onOpenChange={setModalOpen}
-        onSuccess={loadData}
-        initialData={editingLancamento}
-      />
     </div>
   )
 }

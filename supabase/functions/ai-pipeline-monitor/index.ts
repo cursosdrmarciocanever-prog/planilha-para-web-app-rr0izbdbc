@@ -59,7 +59,7 @@ Analyze the history and decide if the conversation was RESOLVED (the user's ques
 Return ONLY a valid JSON object:
 {
   "stage": "Resolvido" | "Perdido",
-  "reasoning": "brief explanation"
+  "reasoning": "brief explanation in Brazilian Portuguese"
 }
 
 CONVERSATION:

@@ -1,5 +1,5 @@
 import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
-import { createClient } from '@supabase/supabase-js'
+import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { corsHeaders } from '../_shared/cors.ts'
 
 Deno.serve(async (req: Request) => {
@@ -207,7 +207,7 @@ Return ONLY a valid JSON object with no additional text:
   "signals_detected": ["signal_1", "signal_2", ...],
   "relationship_strength": "strong" | "moderate" | "weak" | "nonexistent",
   "recommended_action": "<one-line suggestion on best next step>",
-  "reasoning": "<2-3 sentence explanation of the classification>"
+  "reasoning": "<2-3 sentence explanation of the classification IN BRAZILIAN PORTUGUESE>"
 }
 `
 
