@@ -45,6 +45,8 @@ const formSchema = z.object({
     .or(z.literal(0))
     .or(z.nan()),
   conta_recebimento: z.string().min(1, 'Selecione uma conta de recebimento.'),
+  recibo: z.string().optional(),
+  nota_fiscal: z.string().optional(),
 })
 
 export function NovoAtendimentoDialog({ onSuccess }: { onSuccess: () => void }) {
@@ -61,10 +63,13 @@ export function NovoAtendimentoDialog({ onSuccess }: { onSuccess: () => void }) 
       forma_pagamento: 'PIX',
       parcelas: undefined,
       conta_recebimento: 'Carnê Leão / Unicred',
+      recibo: 'Não',
+      nota_fiscal: 'Não',
     },
   })
 
   const formaPagamento = form.watch('forma_pagamento')
+  const contaRecebimento = form.watch('conta_recebimento')
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     if (
@@ -72,6 +77,16 @@ export function NovoAtendimentoDialog({ onSuccess }: { onSuccess: () => void }) 
       (!values.parcelas || values.parcelas < 2)
     ) {
       form.setError('parcelas', { type: 'manual', message: 'Mínimo de 2 parcelas.' })
+      return
+    }
+
+    if (values.conta_recebimento === 'Carnê Leão / Unicred' && !values.recibo) {
+      form.setError('recibo', { type: 'manual', message: 'Selecione se possui recibo.' })
+      return
+    }
+
+    if (values.conta_recebimento === 'Conta Jurídica / Sicoob' && !values.nota_fiscal) {
+      form.setError('nota_fiscal', { type: 'manual', message: 'Selecione se possui nota fiscal.' })
       return
     }
 
@@ -89,6 +104,9 @@ export function NovoAtendimentoDialog({ onSuccess }: { onSuccess: () => void }) 
         parcelas:
           values.forma_pagamento === 'Cartão de Crédito Parcelado' ? Number(values.parcelas) : null,
         conta_recebimento: values.conta_recebimento,
+        recibo: values.conta_recebimento === 'Carnê Leão / Unicred' ? values.recibo : null,
+        nota_fiscal:
+          values.conta_recebimento === 'Conta Jurídica / Sicoob' ? values.nota_fiscal : null,
       })
 
       toast({ title: 'Sucesso', description: 'Atendimento registrado com sucesso.' })
@@ -101,6 +119,8 @@ export function NovoAtendimentoDialog({ onSuccess }: { onSuccess: () => void }) 
         forma_pagamento: 'PIX',
         parcelas: undefined,
         conta_recebimento: 'Carnê Leão / Unicred',
+        recibo: 'Não',
+        nota_fiscal: 'Não',
       })
       onSuccess()
     } catch (error: any) {
@@ -258,6 +278,52 @@ export function NovoAtendimentoDialog({ onSuccess }: { onSuccess: () => void }) 
                 </FormItem>
               )}
             />
+            {contaRecebimento === 'Carnê Leão / Unicred' && (
+              <FormField
+                control={form.control}
+                name="recibo"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Recibo *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Sim">Sim</SelectItem>
+                        <SelectItem value="Não">Não</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
+            {contaRecebimento === 'Conta Jurídica / Sicoob' && (
+              <FormField
+                control={form.control}
+                name="nota_fiscal"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nota Fiscal *</FormLabel>
+                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione..." />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="Sim">Sim</SelectItem>
+                        <SelectItem value="Não">Não</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             <Button type="submit" className="w-full mt-4">
               Salvar Atendimento
             </Button>

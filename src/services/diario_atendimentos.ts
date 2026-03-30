@@ -9,6 +9,8 @@ export interface DiarioAtendimento {
   forma_pagamento: string
   parcelas: number | null
   conta_recebimento?: string | null
+  recibo?: string | null
+  nota_fiscal?: string | null
   created_at?: string
   user_id?: string
 }

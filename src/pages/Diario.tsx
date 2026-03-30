@@ -390,6 +390,16 @@ export default function Diario() {
                                 • {r.conta_recebimento}
                               </span>
                             )}
+                            {r.recibo && r.conta_recebimento === 'Carnê Leão / Unicred' && (
+                              <span className="text-[10px] text-slate-400 font-medium">
+                                Recibo: {r.recibo}
+                              </span>
+                            )}
+                            {r.nota_fiscal && r.conta_recebimento === 'Conta Jurídica / Sicoob' && (
+                              <span className="text-[10px] text-slate-400 font-medium">
+                                NF: {r.nota_fiscal}
+                              </span>
+                            )}
                           </div>
                         </TableCell>
                         <TableCell className="text-right print:hidden p-2">
