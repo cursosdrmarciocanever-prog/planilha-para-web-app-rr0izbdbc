@@ -379,11 +379,18 @@ export default function Diario() {
                           {formatCurrency((r.valor_consulta || 0) + (r.valor_procedimento || 0))}
                         </TableCell>
                         <TableCell>
-                          <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 uppercase tracking-wide">
-                            {r.forma_pagamento === 'Cartão de Crédito Parcelado' && r.parcelas
-                              ? `Créd. Parcelado ${r.parcelas}x`
-                              : r.forma_pagamento}
-                          </span>
+                          <div className="flex flex-col gap-1 items-start">
+                            <span className="inline-flex items-center px-2.5 py-0.5 rounded-md text-[11px] font-semibold bg-slate-100 text-slate-700 uppercase tracking-wide">
+                              {r.forma_pagamento === 'Cartão de Crédito Parcelado' && r.parcelas
+                                ? `Créd. Parcelado ${r.parcelas}x`
+                                : r.forma_pagamento}
+                            </span>
+                            {r.conta_recebimento && (
+                              <span className="text-[11px] text-slate-500 font-medium">
+                                • {r.conta_recebimento}
+                              </span>
+                            )}
+                          </div>
                         </TableCell>
                         <TableCell className="text-right print:hidden p-2">
                           <div className="opacity-0 group-hover:opacity-100 transition-opacity">

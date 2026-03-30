@@ -44,6 +44,7 @@ const formSchema = z.object({
     .optional()
     .or(z.literal(0))
     .or(z.nan()),
+  conta_recebimento: z.string().min(1, 'Selecione uma conta de recebimento.'),
 })
 
 export function NovoAtendimentoDialog({ onSuccess }: { onSuccess: () => void }) {
@@ -59,6 +60,7 @@ export function NovoAtendimentoDialog({ onSuccess }: { onSuccess: () => void }) 
       valor_procedimento: 0,
       forma_pagamento: 'PIX',
       parcelas: undefined,
+      conta_recebimento: 'Carnê Leão / Unicred',
     },
   })
 
@@ -86,6 +88,7 @@ export function NovoAtendimentoDialog({ onSuccess }: { onSuccess: () => void }) 
         forma_pagamento: values.forma_pagamento,
         parcelas:
           values.forma_pagamento === 'Cartão de Crédito Parcelado' ? Number(values.parcelas) : null,
+        conta_recebimento: values.conta_recebimento,
       })
 
       toast({ title: 'Sucesso', description: 'Atendimento registrado com sucesso.' })
@@ -97,6 +100,7 @@ export function NovoAtendimentoDialog({ onSuccess }: { onSuccess: () => void }) 
         valor_procedimento: 0,
         forma_pagamento: 'PIX',
         parcelas: undefined,
+        conta_recebimento: 'Carnê Leão / Unicred',
       })
       onSuccess()
     } catch (error: any) {
@@ -121,7 +125,7 @@ export function NovoAtendimentoDialog({ onSuccess }: { onSuccess: () => void }) 
           <Plus className="w-4 h-4" /> Novo Atendimento
         </Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px] overflow-y-auto max-h-[90vh]">
         <DialogHeader>
           <DialogTitle>Registrar Novo Atendimento</DialogTitle>
         </DialogHeader>
@@ -230,6 +234,30 @@ export function NovoAtendimentoDialog({ onSuccess }: { onSuccess: () => void }) 
                 )}
               />
             )}
+            <FormField
+              control={form.control}
+              name="conta_recebimento"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Conta de Recebimento *</FormLabel>
+                  <Select onValueChange={field.onChange} defaultValue={field.value}>
+                    <FormControl>
+                      <SelectTrigger>
+                        <SelectValue placeholder="Selecione..." />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent>
+                      <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                      <SelectItem value="Carnê Leão / Unicred">Carnê Leão / Unicred</SelectItem>
+                      <SelectItem value="Conta Jurídica / Sicoob">
+                        Conta Jurídica / Sicoob
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
             <Button type="submit" className="w-full mt-4">
               Salvar Atendimento
             </Button>

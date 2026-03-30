@@ -29,6 +29,7 @@ export function NovoLancamentoModal({ open, onOpenChange, onSuccess, initialData
   const [valor, setValor] = useState('')
   const [formaPagamento, setFormaPagamento] = useState('PIX')
   const [parcelas, setParcelas] = useState('2')
+  const [contaRecebimento, setContaRecebimento] = useState('Carnê Leão / Unicred')
   const [statusPagamento, setStatusPagamento] = useState('Confirmado')
   const [observacoes, setObservacoes] = useState('')
   const [loading, setLoading] = useState(false)
@@ -44,6 +45,7 @@ export function NovoLancamentoModal({ open, onOpenChange, onSuccess, initialData
         setValor(initialData.valor.toString())
         setFormaPagamento(initialData.forma_pagamento || 'PIX')
         setParcelas(initialData.parcelas ? initialData.parcelas.toString() : '2')
+        setContaRecebimento(initialData.conta_recebimento || 'Carnê Leão / Unicred')
         setStatusPagamento(initialData.status_pagamento || 'Confirmado')
         setObservacoes(initialData.observacoes || '')
       } else {
@@ -54,6 +56,7 @@ export function NovoLancamentoModal({ open, onOpenChange, onSuccess, initialData
         setValor('')
         setFormaPagamento('PIX')
         setParcelas('2')
+        setContaRecebimento('Carnê Leão / Unicred')
         setStatusPagamento('Confirmado')
         setObservacoes('')
       }
@@ -88,6 +91,7 @@ export function NovoLancamentoModal({ open, onOpenChange, onSuccess, initialData
       valor: parseFloat(valor),
       forma_pagamento: formaPagamento,
       parcelas: formaPagamento === 'Cartão de Crédito Parcelado' ? parseInt(parcelas) : null,
+      conta_recebimento: contaRecebimento,
       status_pagamento: statusPagamento,
       observacoes,
     }
@@ -218,6 +222,20 @@ export function NovoLancamentoModal({ open, onOpenChange, onSuccess, initialData
               />
             </div>
           )}
+
+          <div className="space-y-2">
+            <Label className="text-foreground/80 font-medium">Conta de Recebimento *</Label>
+            <Select value={contaRecebimento} onValueChange={setContaRecebimento}>
+              <SelectTrigger className="bg-secondary/30 h-11">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                <SelectItem value="Carnê Leão / Unicred">Carnê Leão / Unicred</SelectItem>
+                <SelectItem value="Conta Jurídica / Sicoob">Conta Jurídica / Sicoob</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
           <div className="space-y-2">
             <Label className="text-foreground/80 font-medium">Status de Pagamento *</Label>

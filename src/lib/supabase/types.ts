@@ -41,6 +41,39 @@ export type Database = {
           },
         ]
       }
+      agendamentos: {
+        Row: {
+          created_at: string
+          data_hora: string
+          id: string
+          paciente_nome: string
+          status: string
+          tipo_consulta: string
+          user_id: string
+          whatsapp: string | null
+        }
+        Insert: {
+          created_at?: string
+          data_hora: string
+          id?: string
+          paciente_nome: string
+          status?: string
+          tipo_consulta: string
+          user_id: string
+          whatsapp?: string | null
+        }
+        Update: {
+          created_at?: string
+          data_hora?: string
+          id?: string
+          paciente_nome?: string
+          status?: string
+          tipo_consulta?: string
+          user_id?: string
+          whatsapp?: string | null
+        }
+        Relationships: []
+      }
       ai_agents: {
         Row: {
           created_at: string | null
@@ -262,6 +295,7 @@ export type Database = {
           forma_pagamento: string
           id: string
           paciente_nome: string
+          parcelas: number | null
           user_id: string | null
           valor_consulta: number | null
           valor_procedimento: number | null
@@ -272,6 +306,7 @@ export type Database = {
           forma_pagamento: string
           id?: string
           paciente_nome: string
+          parcelas?: number | null
           user_id?: string | null
           valor_consulta?: number | null
           valor_procedimento?: number | null
@@ -282,6 +317,7 @@ export type Database = {
           forma_pagamento?: string
           id?: string
           paciente_nome?: string
+          parcelas?: number | null
           user_id?: string | null
           valor_consulta?: number | null
           valor_procedimento?: number | null
@@ -481,6 +517,7 @@ export type Database = {
           id: string
           nome_paciente: string
           observacoes: string | null
+          parcelas: number | null
           status_pagamento: string | null
           tipo: string | null
           user_id: string | null
@@ -494,6 +531,7 @@ export type Database = {
           id?: string
           nome_paciente: string
           observacoes?: string | null
+          parcelas?: number | null
           status_pagamento?: string | null
           tipo?: string | null
           user_id?: string | null
@@ -507,6 +545,7 @@ export type Database = {
           id?: string
           nome_paciente?: string
           observacoes?: string | null
+          parcelas?: number | null
           status_pagamento?: string | null
           tipo?: string | null
           user_id?: string | null
@@ -1408,6 +1447,15 @@ export const Constants = {
 //   email: text (not null)
 //   role: text (not null)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: agendamentos
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (not null)
+//   paciente_nome: text (not null)
+//   data_hora: timestamp with time zone (not null)
+//   status: text (not null, default: 'pendente'::text)
+//   whatsapp: text (nullable)
+//   tipo_consulta: text (not null)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: ai_agents
 //   id: uuid (not null, default: gen_random_uuid())
 //   user_id: uuid (not null)
@@ -1471,6 +1519,7 @@ export const Constants = {
 //   forma_pagamento: text (not null)
 //   created_at: timestamp with time zone (nullable, default: now())
 //   user_id: uuid (nullable)
+//   parcelas: integer (nullable)
 // Table: exames_laboratoriais
 //   id: uuid (not null, default: gen_random_uuid())
 //   gestante_id: uuid (nullable)
@@ -1529,6 +1578,7 @@ export const Constants = {
 //   observacoes: text (nullable)
 //   user_id: uuid (nullable)
 //   status_pagamento: text (nullable, default: 'Confirmado'::text)
+//   parcelas: integer (nullable)
 // Table: lembretes_contas
 //   id: uuid (not null, default: gen_random_uuid())
 //   conta_id: uuid (nullable)
@@ -1708,6 +1758,9 @@ export const Constants = {
 //   FOREIGN KEY access_control_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
 //   PRIMARY KEY access_control_pkey: PRIMARY KEY (id)
 //   CHECK access_control_role_check: CHECK ((role = ANY (ARRAY['medica'::text, 'familiar'::text])))
+// Table: agendamentos
+//   PRIMARY KEY agendamentos_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY agendamentos_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 // Table: ai_agents
 //   PRIMARY KEY ai_agents_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY ai_agents_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
@@ -1820,6 +1873,10 @@ export const Constants = {
 //     USING: ((EXISTS ( SELECT 1    FROM gestantes g   WHERE ((g.id = access_control.gestante_id) AND (g.user_id = auth.uid())))) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
 //   Policy "Invited view access" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: (email = (auth.jwt() ->> 'email'::text))
+// Table: agendamentos
+//   Policy "Users can manage their own agendamentos" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: (auth.uid() = user_id)
+//     WITH CHECK: (auth.uid() = user_id)
 // Table: ai_agents
 //   Policy "Users can manage their own AI agents" (ALL, PERMISSIVE) roles={public}
 //     USING: (auth.uid() = user_id)
@@ -2053,6 +2110,9 @@ export const Constants = {
 // --- INDEXES ---
 // Table: access_control
 //   CREATE UNIQUE INDEX access_control_gestante_id_email_key ON public.access_control USING btree (gestante_id, email)
+// Table: agendamentos
+//   CREATE INDEX idx_agendamentos_status ON public.agendamentos USING btree (status)
+//   CREATE INDEX idx_agendamentos_user_data ON public.agendamentos USING btree (user_id, data_hora)
 // Table: consultas
 //   CREATE INDEX idx_consultas_data_consulta ON public.consultas USING btree (data_consulta)
 //   CREATE INDEX idx_consultas_gestante_id ON public.consultas USING btree (gestante_id)
