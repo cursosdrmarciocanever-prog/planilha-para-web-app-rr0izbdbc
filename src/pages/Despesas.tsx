@@ -54,8 +54,7 @@ const FREQUENCIAS = ['Única', 'Mensal', 'Bimestral', 'Trimestral', 'Anual']
 export default function Despesas() {
   const { user } = useAuth()
   const [activeTab, setActiveTab] = useState('lancamentos')
-  const [despesas, setDespesas] = useState<Despesa[]>([])
-  const [contasFixas, setContasFixas] = useState<ContaFixa[]>([])
+  const [todasDespesas, setTodasDespesas] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
 
@@ -75,20 +74,23 @@ export default function Despesas() {
   const fetchDados = async () => {
     setLoading(true)
     const [despesasRes, contasRes] = await Promise.all([
-      supabase
-        .from('despesas')
-        .select('id, data_vencimento, descricao, categoria, valor, status, conta_pagamento')
-        .order('data_vencimento', { ascending: false }),
-      supabase
-        .from('contas_fixas')
-        .select(
-          'id, data_vencimento, descricao, categoria, valor, status, frequencia, usuario_id, conta_pagamento',
-        )
-        .order('data_vencimento', { ascending: false }),
+      supabase.from('despesas').select('*').order('data_vencimento', { ascending: false }),
+      supabase.from('contas_fixas').select('*').order('data_vencimento', { ascending: false }),
     ])
 
-    if (!despesasRes.error) setDespesas(despesasRes.data as Despesa[])
-    if (!contasRes.error) setContasFixas(contasRes.data as ContaFixa[])
+    const d = (despesasRes.data || []).map((x) => ({ ...x, _table: 'despesa' }))
+    const c = (contasRes.data || []).map((x) => ({ ...x, _table: 'conta_fixa' }))
+
+    const filteredD = user ? d.filter((x) => !x.user_id || x.user_id === user.id) : d
+    const filteredC = user ? c.filter((x) => !x.usuario_id || x.usuario_id === user.id) : c
+
+    const combined = [...filteredD, ...filteredC].sort((a, b) => {
+      const dateA = new Date(a.data_vencimento || 0).getTime()
+      const dateB = new Date(b.data_vencimento || 0).getTime()
+      return dateB - dateA
+    })
+
+    setTodasDespesas(combined)
     setLoading(false)
   }
 
@@ -140,10 +142,12 @@ export default function Despesas() {
 
     const table = editType === 'conta_fixa' ? 'contas_fixas' : 'despesas'
 
-    if (editType === 'conta_fixa') {
-      payload.frequencia = frequencia
-      if (user) {
+    if (user) {
+      if (editType === 'conta_fixa') {
         payload.usuario_id = user.id
+        payload.frequencia = frequencia
+      } else {
+        payload.user_id = user.id
       }
     }
 
@@ -179,7 +183,7 @@ export default function Despesas() {
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)
 
-  const totalDespesas = despesas.reduce((acc, curr) => acc + Number(curr.valor), 0)
+  const totalDespesas = todasDespesas.reduce((acc, curr) => acc + Number(curr.valor), 0)
 
   return (
     <div className="p-6 md:p-10 animate-fade-in flex flex-col min-h-[calc(100vh-4rem)] lg:min-h-screen">
@@ -239,8 +243,8 @@ export default function Despesas() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <CostDistributionChart despesas={despesas} />
-                  <MonthlyComparisonChart despesas={despesas} />
+                  <CostDistributionChart despesas={todasDespesas} />
+                  <MonthlyComparisonChart despesas={todasDespesas} />
                 </div>
               </div>
 
@@ -262,7 +266,7 @@ export default function Despesas() {
                   <Skeleton className="h-12 w-full" />
                   <Skeleton className="h-12 w-full" />
                 </div>
-              ) : despesas.length === 0 ? (
+              ) : todasDespesas.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center p-16">
                   <div className="bg-primary/5 p-6 rounded-full mb-6">
                     <Receipt className="w-16 h-16 text-primary/40" strokeWidth={1.5} />
@@ -291,7 +295,7 @@ export default function Despesas() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {despesas.map((d) => (
+                      {todasDespesas.map((d) => (
                         <TableRow
                           key={d.id}
                           className="group hover:bg-secondary/20 transition-colors"
@@ -303,11 +307,18 @@ export default function Despesas() {
                           </TableCell>
                           <TableCell className="py-4">
                             <div className="font-semibold">{d.descricao}</div>
-                            {d.conta_pagamento && (
-                              <div className="text-xs text-muted-foreground font-normal mt-1 flex items-center gap-1">
-                                <CreditCard className="w-3 h-3" /> {d.conta_pagamento}
-                              </div>
-                            )}
+                            <div className="text-xs text-muted-foreground font-normal mt-1 flex items-center gap-2">
+                              {d._table === 'conta_fixa' && (
+                                <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded-sm">
+                                  Fixa
+                                </span>
+                              )}
+                              {d.conta_pagamento && (
+                                <span className="flex items-center gap-1">
+                                  <CreditCard className="w-3 h-3" /> {d.conta_pagamento}
+                                </span>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell className="py-4">
                             <span className="bg-secondary/50 text-secondary-foreground px-3 py-1 rounded-md text-xs font-medium border border-border/50">
@@ -334,7 +345,7 @@ export default function Despesas() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => handleOpenEdit(d, 'despesa')}
+                                onClick={() => handleOpenEdit(d, d._table as any)}
                                 className="h-8 w-8 text-muted-foreground hover:text-primary rounded-full"
                               >
                                 <Edit className="h-4 w-4" />
@@ -342,7 +353,7 @@ export default function Despesas() {
                               <Button
                                 variant="ghost"
                                 size="icon"
-                                onClick={() => handleDelete(d.id, 'despesa')}
+                                onClick={() => handleDelete(d.id, d._table as any)}
                                 className="h-8 w-8 text-muted-foreground hover:text-destructive rounded-full"
                               >
                                 <Trash2 className="h-4 w-4" />
@@ -360,9 +371,9 @@ export default function Despesas() {
 
           <TabsContent value="calendario" className="mt-0 outline-none w-full">
             <ContasAPagarTab
-              contas={contasFixas}
+              contas={todasDespesas}
               onOpenNew={handleOpenNew}
-              onEdit={(d: any) => handleOpenEdit(d, 'conta_fixa')}
+              onEdit={(d: any) => handleOpenEdit(d, d._table as any)}
             />
           </TabsContent>
         </div>
