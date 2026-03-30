@@ -22,6 +22,7 @@ import {
   FileText,
   Loader2,
   Mail,
+  CreditCard,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -435,6 +436,12 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
                           {d.frequencia && d.frequencia !== 'Única' && (
                             <span className="text-[10px] px-2 py-0.5 rounded-md font-medium border border-border/50 text-muted-foreground">
                               {d.frequencia}
+                            </span>
+                          )}
+                          {d.conta_pagamento && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-md font-medium border border-border/50 text-muted-foreground flex items-center gap-1">
+                              <CreditCard className="w-3 h-3" />
+                              {d.conta_pagamento}
                             </span>
                           )}
                           <span

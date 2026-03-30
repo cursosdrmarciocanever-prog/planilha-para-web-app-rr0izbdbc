@@ -1,19 +1,19 @@
 {
   "_versions": {
-    "generate-signed-url": 2,
-    "verificar_contas_vencidas": 10,
-    "enviar_email_lembrete": 9,
-    "gerar_relatorio_contas": 7,
-    "agendar_lembretes_automaticos": 6,
-    "registrar_log": 2,
-    "ai-classify-contacts": 4,
-    "ai-pipeline-monitor": 4,
-    "evolution-create-instance": 3,
-    "evolution-disconnect": 3,
-    "evolution-get-qr": 3,
-    "evolution-send-message": 3,
-    "evolution-sync-contacts": 3,
-    "evolution-sync-messages": 3,
-    "evolution-webhook": 3
+    "generate-signed-url": 3,
+    "verificar_contas_vencidas": 11,
+    "enviar_email_lembrete": 10,
+    "gerar_relatorio_contas": 8,
+    "agendar_lembretes_automaticos": 7,
+    "registrar_log": 3,
+    "ai-classify-contacts": 5,
+    "ai-pipeline-monitor": 5,
+    "evolution-create-instance": 4,
+    "evolution-disconnect": 4,
+    "evolution-get-qr": 4,
+    "evolution-send-message": 4,
+    "evolution-sync-contacts": 4,
+    "evolution-sync-messages": 4,
+    "evolution-webhook": 4
   }
 }

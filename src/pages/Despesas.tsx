@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { Receipt, Plus, Trash2, Edit, TrendingDown, CalendarDays } from 'lucide-react'
+import { Receipt, Plus, Trash2, Edit, TrendingDown, CalendarDays, CreditCard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -40,6 +40,7 @@ interface Despesa {
   categoria: string
   valor: number
   status: string
+  conta_pagamento?: string
 }
 
 interface ContaFixa extends Despesa {
@@ -67,6 +68,7 @@ export default function Despesas() {
   const [valor, setValor] = useState('')
   const [status, setStatus] = useState('Pendente')
   const [frequencia, setFrequencia] = useState('Mensal')
+  const [contaPagamento, setContaPagamento] = useState('Carnê Leão / Unicred')
 
   const { toast } = useToast()
 
@@ -75,11 +77,13 @@ export default function Despesas() {
     const [despesasRes, contasRes] = await Promise.all([
       supabase
         .from('despesas')
-        .select('id, data_vencimento, descricao, categoria, valor, status')
+        .select('id, data_vencimento, descricao, categoria, valor, status, conta_pagamento')
         .order('data_vencimento', { ascending: false }),
       supabase
         .from('contas_fixas')
-        .select('id, data_vencimento, descricao, categoria, valor, status, frequencia, usuario_id')
+        .select(
+          'id, data_vencimento, descricao, categoria, valor, status, frequencia, usuario_id, conta_pagamento',
+        )
         .order('data_vencimento', { ascending: false }),
     ])
 
@@ -102,6 +106,7 @@ export default function Despesas() {
     setValor('')
     setStatus('Pendente')
     setFrequencia(isContaFixa ? 'Mensal' : 'Única')
+    setContaPagamento('Carnê Leão / Unicred')
     setOpen(true)
   }
 
@@ -114,6 +119,7 @@ export default function Despesas() {
     setValor(item.valor.toString())
     setStatus(item.status || 'Pendente')
     if (type === 'conta_fixa') setFrequencia(item.frequencia || 'Mensal')
+    setContaPagamento(item.conta_pagamento || 'Carnê Leão / Unicred')
     setOpen(true)
   }
 
@@ -127,6 +133,7 @@ export default function Despesas() {
       data_vencimento: dataVencimento,
       descricao,
       categoria,
+      conta_pagamento: contaPagamento,
       valor: parseFloat(valor),
       status,
     }
@@ -294,7 +301,14 @@ export default function Despesas() {
                               ? format(parseISO(d.data_vencimento), 'dd/MM/yyyy', { locale: ptBR })
                               : '-'}
                           </TableCell>
-                          <TableCell className="py-4 font-semibold">{d.descricao}</TableCell>
+                          <TableCell className="py-4">
+                            <div className="font-semibold">{d.descricao}</div>
+                            {d.conta_pagamento && (
+                              <div className="text-xs text-muted-foreground font-normal mt-1 flex items-center gap-1">
+                                <CreditCard className="w-3 h-3" /> {d.conta_pagamento}
+                              </div>
+                            )}
+                          </TableCell>
                           <TableCell className="py-4">
                             <span className="bg-secondary/50 text-secondary-foreground px-3 py-1 rounded-md text-xs font-medium border border-border/50">
                               {d.categoria}
@@ -420,6 +434,21 @@ export default function Despesas() {
                 </Select>
               </div>
               <div className="space-y-2">
+                <Label>Conta de Pagamento *</Label>
+                <Select value={contaPagamento} onValueChange={setContaPagamento}>
+                  <SelectTrigger className="bg-secondary/20">
+                    <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Carnê Leão / Unicred">Carnê Leão / Unicred</SelectItem>
+                    <SelectItem value="Conta Jurídica / Sicoob">Conta Jurídica / Sicoob</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
                 <Label>Valor (R$)</Label>
                 <Input
                   type="number"
@@ -430,25 +459,24 @@ export default function Despesas() {
                   className="bg-secondary/20 font-medium"
                 />
               </div>
+              {editType === 'conta_fixa' && (
+                <div className="space-y-2">
+                  <Label>Frequência</Label>
+                  <Select value={frequencia} onValueChange={setFrequencia}>
+                    <SelectTrigger className="bg-secondary/20">
+                      <SelectValue placeholder="Selecione..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {FREQUENCIAS.map((freq) => (
+                        <SelectItem key={freq} value={freq}>
+                          {freq}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
             </div>
-
-            {editType === 'conta_fixa' && (
-              <div className="space-y-2">
-                <Label>Frequência</Label>
-                <Select value={frequencia} onValueChange={setFrequencia}>
-                  <SelectTrigger className="bg-secondary/20">
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {FREQUENCIAS.map((freq) => (
-                      <SelectItem key={freq} value={freq}>
-                        {freq}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
 
             <div className="flex gap-3 pt-2 mt-4 border-t border-border/40">
               {editId && (
