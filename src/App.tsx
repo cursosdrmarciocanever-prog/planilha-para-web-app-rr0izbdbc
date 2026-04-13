@@ -18,6 +18,7 @@ import Medicamentos from './pages/Medicamentos'
 import Importar from './pages/Importar'
 import Despesas from './pages/Despesas'
 import Monitoramento from './pages/Monitoramento'
+import CrmPage from './pages/CrmPage'
 import Faturamento from './pages/Faturamento'
 import HomePublic from './pages/public/Home'
 import Sobre from './pages/public/Sobre'
@@ -83,6 +84,7 @@ const App = () => (
               <Route path="/admin/medicamentos" element={<Medicamentos />} />
               <Route path="/admin/importar" element={<Importar />} />
               <Route path="/admin/monitoramento" element={<Monitoramento />} />
+              <Route path="/admin/crm" element={<CrmPage />} />
             </Route>
           </Route>
         </Routes>

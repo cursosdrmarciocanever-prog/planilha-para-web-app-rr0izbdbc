@@ -14,6 +14,7 @@ import {
   Pill,
   Activity,
   DollarSign,
+  UserCheck,
 } from 'lucide-react'
 import {
   Sidebar,
@@ -30,17 +31,18 @@ import { cn } from '@/lib/utils'
 import { useAuth } from '@/hooks/use-auth'
 
 const navItems = [
-  { label: 'Painel', path: '/', icon: LayoutDashboard },
-  { label: 'Faturamento', path: '/faturamento', icon: DollarSign },
-  { label: 'Diário', path: '/diario', icon: Calendar },
-  { label: 'Raio-X Financeiro', path: '/raio-x', icon: TrendingUp },
-  { label: 'Despesas', path: '/despesas', icon: Receipt },
-  { label: 'Custo Funcionário', path: '/custo', icon: Users },
-  { label: 'Precisão', path: '/precisao', icon: Target },
-  { label: 'Taxa de Sala', path: '/taxa', icon: Building },
-  { label: 'Medicamentos', path: '/medicamentos', icon: Pill },
-  { label: 'Monitoramento', path: '/monitoramento', icon: Activity },
-  { label: 'Importar Dados', path: '/importar', icon: Upload },
+  { label: 'Painel', path: '/dashboard', icon: LayoutDashboard },
+  { label: 'Faturamento', path: '/admin/faturamento', icon: DollarSign },
+  { label: 'Diário', path: '/admin/diario', icon: Calendar },
+  { label: 'Raio-X Financeiro', path: '/admin/raio-x', icon: TrendingUp },
+  { label: 'Despesas', path: '/admin/despesas', icon: Receipt },
+  { label: 'Custo Funcionário', path: '/admin/custo', icon: Users },
+  { label: 'Precisão', path: '/admin/precisao', icon: Target },
+  { label: 'Taxa de Sala', path: '/admin/taxa', icon: Building },
+  { label: 'Medicamentos', path: '/admin/medicamentos', icon: Pill },
+  { label: 'CRM Leads', path: '/admin/crm', icon: UserCheck },
+  { label: 'Monitoramento', path: '/admin/monitoramento', icon: Activity },
+  { label: 'Importar Dados', path: '/admin/importar', icon: Upload },
 ]
 
 export function AppSidebar() {
