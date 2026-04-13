@@ -1,4 +1,4 @@
-import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom'
+import { HashRouter, Routes, Route, useLocation } from 'react-router-dom'
 import { Toaster } from '@/components/ui/toaster'
 import { Toaster as Sonner } from '@/components/ui/sonner'
 import { TooltipProvider } from '@/components/ui/tooltip'
@@ -51,7 +51,7 @@ function PrintHandler() {
 }
 
 const App = () => (
-  <BrowserRouter basename={import.meta.env.BASE_URL} future={{ v7_startTransition: false, v7_relativeSplatPath: false }}>
+  <HashRouter future={{ v7_startTransition: false, v7_relativeSplatPath: false }}>
     <AuthProvider>
       <PrintHandler />
       <TooltipProvider>
@@ -90,7 +90,7 @@ const App = () => (
         </Routes>
       </TooltipProvider>
     </AuthProvider>
-  </BrowserRouter>
+  </HashRouter>
 )
 
 export default App
