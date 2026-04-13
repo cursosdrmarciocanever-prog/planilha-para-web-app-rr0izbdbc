@@ -51,7 +51,7 @@ function PrintHandler() {
 }
 
 const App = () => (
-  <BrowserRouter future={{ v7_startTransition: false, v7_relativeSplatPath: false }}>
+  <BrowserRouter basename={import.meta.env.BASE_URL} future={{ v7_startTransition: false, v7_relativeSplatPath: false }}>
     <AuthProvider>
       <PrintHandler />
       <TooltipProvider>
