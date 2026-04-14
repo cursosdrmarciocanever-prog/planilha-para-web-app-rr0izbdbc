@@ -12,7 +12,7 @@ import { corsHeaders } from '../_shared/cors.ts'
  * - Health goals
  * - Overall fit for premium health services
  * 
- * It updates the CRM lead with AI score, summary, and classification.
+ * Uses OpenAI API (gpt-4.1-mini) for qualification.
  */
 
 const supabaseUrl = Deno.env.get('SUPABASE_URL')!
@@ -88,23 +88,24 @@ Deno.serve(async (req) => {
 
       if (messages && messages.length > 0) {
         conversationHistory = messages
-          .map((m: any) => `${m.from_me ? 'Assistente' : 'Lead'}: ${m.text}`)
+          .map((m: any) => `${m.from_me ? 'Helena (Assistente)' : 'Lead'}: ${m.text}`)
           .join('\n')
       }
     }
 
-    // Get Gemini API key
-    const apiKey = Deno.env.get('GEMINI_API_KEY')
+    // Get OpenAI API key
+    const apiKey = Deno.env.get('OPENAI_API_KEY')
     if (!apiKey) {
       return new Response(
-        JSON.stringify({ error: 'GEMINI_API_KEY not configured' }),
+        JSON.stringify({ error: 'OPENAI_API_KEY not configured' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
       )
     }
 
+    const openaiBaseUrl = Deno.env.get('OPENAI_BASE_URL') || 'https://api.openai.com/v1'
+
     // Build qualification prompt
-    const qualificationPrompt = `
-Você é um especialista em qualificação de leads para a Clínica Canever, um centro de excelência em saúde integrativa em Maringá-PR.
+    const qualificationPrompt = `Você é um especialista em qualificação de leads para a Clínica Canever, um centro de excelência em saúde integrativa em Maringá-PR.
 
 INFORMAÇÕES DO LEAD:
 - Nome: ${lead.name}
@@ -146,24 +147,35 @@ REGRAS DE PONTUAÇÃO:
 
 Responda APENAS com o JSON, sem texto adicional.`
 
-    // Call Gemini API
-    const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`
+    // Call OpenAI API
+    const apiUrl = `${openaiBaseUrl}/chat/completions`
     
     const aiRes = await fetch(apiUrl, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${apiKey}`,
+      },
       body: JSON.stringify({
-        contents: [{ role: 'user', parts: [{ text: qualificationPrompt }] }],
-        generationConfig: {
-          temperature: 0.3,
-          maxOutputTokens: 1000,
-        },
+        model: 'gpt-4.1-mini',
+        messages: [
+          {
+            role: 'system',
+            content: 'Você é um especialista em qualificação de leads. Responda APENAS com JSON válido, sem markdown ou texto adicional.',
+          },
+          {
+            role: 'user',
+            content: qualificationPrompt,
+          },
+        ],
+        temperature: 0.3,
+        max_tokens: 1000,
       }),
     })
 
     if (!aiRes.ok) {
       const errText = await aiRes.text()
-      console.error('[CRM AI Qualify] Gemini API error:', errText)
+      console.error('[CRM AI Qualify] OpenAI API error:', errText)
       return new Response(
         JSON.stringify({ error: 'AI API error' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
@@ -171,7 +183,7 @@ Responda APENAS com o JSON, sem texto adicional.`
     }
 
     const aiData = await aiRes.json()
-    const responseText = aiData.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
+    const responseText = aiData.choices?.[0]?.message?.content?.trim()
 
     if (!responseText) {
       console.error('[CRM AI Qualify] Empty AI response')

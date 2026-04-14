@@ -11,32 +11,8 @@ Deno.serve(async (req) => {
   }
 
   const url = new URL(req.url)
-  const token = url.searchParams.get('token')
-
-  if (!token) {
-    return new Response(
-      JSON.stringify({ error: 'Token is required' }),
-      { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    )
-  }
 
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
-
-  // Validate token
-  const { data: webhookToken, error: tokenError } = await supabase
-    .from('crm_webhook_tokens')
-    .select('*')
-    .eq('token', token)
-    .eq('is_active', true)
-    .single()
-
-  if (tokenError || !webhookToken) {
-    console.error('[Meta Webhook] Invalid token:', token)
-    return new Response(
-      JSON.stringify({ error: 'Invalid or inactive token' }),
-      { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    )
-  }
 
   // Handle Meta Ads webhook verification (GET request)
   if (req.method === 'GET') {
@@ -44,8 +20,21 @@ Deno.serve(async (req) => {
     const verifyToken = url.searchParams.get('hub.verify_token')
     const challenge = url.searchParams.get('hub.challenge')
 
-    if (mode === 'subscribe' && verifyToken === token) {
+    // Verify against stored token or env variable
+    const storedVerifyToken = Deno.env.get('META_WEBHOOK_VERIFY_TOKEN')
+
+    if (mode === 'subscribe' && verifyToken && (verifyToken === storedVerifyToken)) {
       console.log('[Meta Webhook] Verification successful')
+      return new Response(challenge, {
+        status: 200,
+        headers: { ...corsHeaders, 'Content-Type': 'text/plain' },
+      })
+    }
+
+    // Also try token from URL param for backwards compatibility
+    const token = url.searchParams.get('token')
+    if (mode === 'subscribe' && token && verifyToken === token) {
+      console.log('[Meta Webhook] Verification successful (legacy token)')
       return new Response(challenge, {
         status: 200,
         headers: { ...corsHeaders, 'Content-Type': 'text/plain' },
@@ -59,10 +48,45 @@ Deno.serve(async (req) => {
   }
 
   // Handle POST - New lead from Meta Ads
+  // Meta sends POST without token in URL, so we find the webhook token by other means
   if (req.method === 'POST') {
     try {
       const body = await req.json()
       console.log('[Meta Webhook] Received payload:', JSON.stringify(body))
+
+      // Find webhook token - try URL param first, then get the first active one
+      let webhookToken: any = null
+      const token = url.searchParams.get('token')
+      
+      if (token) {
+        const { data } = await supabase
+          .from('crm_webhook_tokens')
+          .select('*')
+          .eq('token', token)
+          .eq('is_active', true)
+          .single()
+        webhookToken = data
+      }
+      
+      if (!webhookToken) {
+        // Get the first active webhook token (Meta doesn't send token in POST)
+        const { data } = await supabase
+          .from('crm_webhook_tokens')
+          .select('*')
+          .eq('platform', 'meta_ads')
+          .eq('is_active', true)
+          .limit(1)
+          .single()
+        webhookToken = data
+      }
+
+      if (!webhookToken) {
+        console.error('[Meta Webhook] No active webhook token found')
+        return new Response(
+          JSON.stringify({ error: 'No active webhook token' }),
+          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
+        )
+      }
 
       // Meta sends data in this format:
       // { entry: [{ changes: [{ value: { leadgen_id, page_id, form_id, ... } }] }] }
@@ -210,7 +234,7 @@ Deno.serve(async (req) => {
 
                     // Send welcome message
                     const welcomeMsg = aiConfig.welcome_message || 
-                      `Olá ${name.split(' ')[0]}! Sou a assistente virtual da Clínica Canever. Vi que você demonstrou interesse em nossos serviços. Posso te ajudar?`
+                      `Olá ${name.split(' ')[0]}! Sou a Helena, assistente da Clínica Canever. Para darmos continuidade no seu atendimento, qual seu nome por favor?`
 
                     const sendRes = await fetch(
                       `${evoUrl}/message/sendText/${integration.instance_name}`,
@@ -247,13 +271,30 @@ Deno.serve(async (req) => {
                         user_id: webhookToken.user_id,
                         lead_id: newLead.id,
                         type: 'whatsapp',
-                        title: 'Mensagem de boas-vindas enviada via WhatsApp',
+                        title: 'Mensagem de boas-vindas enviada via WhatsApp (Helena)',
                         description: welcomeMsg,
                         created_by: 'ai',
                       })
 
                       // Create/update whatsapp_contact for AI agent to handle responses
                       const remoteJid = phone.replace(/\D/g, '') + '@s.whatsapp.net'
+                      
+                      // Find the AI agent for CRM qualification
+                      let aiAgentId = aiConfig.ai_agent_id
+                      if (!aiAgentId) {
+                        // Try to find the Helena agent
+                        const { data: helenaAgent } = await supabase
+                          .from('ai_agents')
+                          .select('id')
+                          .eq('user_id', webhookToken.user_id)
+                          .eq('is_active', true)
+                          .limit(1)
+                          .single()
+                        if (helenaAgent) {
+                          aiAgentId = helenaAgent.id
+                        }
+                      }
+
                       const { data: existingContact } = await supabase
                         .from('whatsapp_contacts')
                         .select('id')
@@ -270,7 +311,7 @@ Deno.serve(async (req) => {
                             push_name: name,
                             phone_number: phone,
                             pipeline_stage: 'Em Conversa',
-                            ai_agent_id: aiConfig.ai_agent_id,
+                            ai_agent_id: aiAgentId,
                             classification: 'Lead Meta Ads',
                             last_message_at: new Date().toISOString(),
                           })
@@ -285,18 +326,18 @@ Deno.serve(async (req) => {
                             .eq('id', newLead.id)
                         }
                       } else {
-                        // Link existing contact
+                        // Link existing contact and assign AI agent
                         await supabase
                           .from('crm_leads')
                           .update({ whatsapp_contact_id: existingContact.id })
                           .eq('id', newLead.id)
 
                         // Update contact with AI agent
-                        if (aiConfig.ai_agent_id) {
+                        if (aiAgentId) {
                           await supabase
                             .from('whatsapp_contacts')
                             .update({
-                              ai_agent_id: aiConfig.ai_agent_id,
+                              ai_agent_id: aiAgentId,
                               pipeline_stage: 'Em Conversa',
                               classification: 'Lead Meta Ads',
                             })
