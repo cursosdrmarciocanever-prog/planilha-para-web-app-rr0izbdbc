@@ -4,7 +4,8 @@ import { createClient } from 'jsr:@supabase/supabase-js@2'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
+  'Access-Control-Allow-Headers':
+    'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
 }
 
 Deno.serve(async (req: Request) => {
@@ -21,11 +22,18 @@ Deno.serve(async (req: Request) => {
     const userClient = createClient(supabaseUrl, supabaseAnonKey, {
       global: { headers: { Authorization: authHeader } },
     })
-    
-    const { data: { user }, error: authError } = await userClient.auth.getUser()
+
+    const {
+      data: { user },
+      error: authError,
+    } = await userClient.auth.getUser()
     if (authError || !user) throw new Error('Unauthorized')
 
-    const { data: profile } = await userClient.from('profiles').select('role').eq('id', user.id).single()
+    const { data: profile } = await userClient
+      .from('profiles')
+      .select('role')
+      .eq('id', user.id)
+      .single()
     if (profile?.role !== 'admin') throw new Error('Forbidden: Admins only')
 
     const adminClient = createClient(supabaseUrl, supabaseServiceKey)
@@ -37,7 +45,7 @@ Deno.serve(async (req: Request) => {
         email,
         password,
         email_confirm: true,
-        user_metadata: { name }
+        user_metadata: { name },
       })
       if (createError) throw createError
 
@@ -45,16 +53,20 @@ Deno.serve(async (req: Request) => {
         id: newUser.user.id,
         email,
         full_name: name,
-        role
+        role,
       })
-      return new Response(JSON.stringify({ success: true, user: newUser.user }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ success: true, user: newUser.user }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
     if (action === 'updateRole') {
       const { userId, role } = payload
       const { error } = await adminClient.from('profiles').update({ role }).eq('id', userId)
       if (error) throw error
-      return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
     if (action === 'delete') {
@@ -62,11 +74,16 @@ Deno.serve(async (req: Request) => {
       const { error } = await adminClient.auth.admin.deleteUser(userId)
       if (error) throw error
       await adminClient.from('profiles').delete().eq('id', userId)
-      return new Response(JSON.stringify({ success: true }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      return new Response(JSON.stringify({ success: true }), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
     throw new Error('Invalid action')
   } catch (err: any) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 400,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
   }
 })

@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import {
   Upload,
   FileText,
@@ -8,6 +8,9 @@ import {
   ArrowRight,
   Download,
   Info,
+  Settings,
+  Plus,
+  Trash2,
 } from 'lucide-react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -31,13 +34,24 @@ import { useToast } from '@/hooks/use-toast'
 import { supabase } from '@/lib/supabase/client'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { logAction } from '@/services/audit'
+import { useAuth } from '@/hooks/use-auth'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog'
+import { Input } from '@/components/ui/input'
 
 type EntityType = 'pacientes' | 'despesas' | 'produtos_servicos' | 'salas' | 'transacoes'
 
 const TEMPLATES: Record<EntityType, string> = {
   pacientes:
     'nome,cpf,telefone,email,data_nascimento\nJoão Silva,12345678900,11999999999,joao@email.com,1990-01-01',
-  despesas: 'categoria,valor,data_vencimento,status\nEnergia,150.50,2023-10-10,Pendente',
+  despesas:
+    'descricao,categoria,valor,data_vencimento,status,conta_pagamento\nConta de Luz Energisa,,150.50,2023-10-10,Pendente,Conta Jurídica / Sicoob\nAbastecimento Posto Ipiranga,,200.00,2023-10-12,Pago,Carnê Leão / Unicred',
   produtos_servicos: 'nome,descricao,preco\nConsulta Geral,Consulta de rotina,250.00',
   salas: 'nome,status,taxa_hora,taxa_dia\nSala 01,Ativa,50.00,300.00',
   transacoes:
@@ -46,13 +60,14 @@ const TEMPLATES: Record<EntityType, string> = {
 
 const REQUIRED_FIELDS: Record<EntityType, string[]> = {
   pacientes: ['nome'],
-  despesas: ['valor'],
+  despesas: ['descricao', 'valor'],
   produtos_servicos: ['nome'],
   salas: ['nome'],
   transacoes: ['tipo', 'valor', 'data'],
 }
 
 export default function Importar() {
+  const { user } = useAuth()
   const [entity, setEntity] = useState<EntityType | ''>('')
   const [file, setFile] = useState<File | null>(null)
   const [previewData, setPreviewData] = useState<any[]>([])
@@ -65,8 +80,30 @@ export default function Importar() {
     details: string[]
   } | null>(null)
 
+  const [rules, setRules] = useState<{ keyword: string; category: string }[]>(() => {
+    const saved = localStorage.getItem('import_category_rules')
+    return saved
+      ? JSON.parse(saved)
+      : [
+          { keyword: 'posto', category: 'Variáveis' },
+          { keyword: 'combustivel', category: 'Variáveis' },
+          { keyword: 'aluguel', category: 'Fixas' },
+          { keyword: 'salario', category: 'Pessoal' },
+          { keyword: 'imposto', category: 'Impostos' },
+          { keyword: 'marketing', category: 'Marketing' },
+          { keyword: 'facebook', category: 'Marketing' },
+          { keyword: 'luz', category: 'Fixas' },
+          { keyword: 'agua', category: 'Fixas' },
+          { keyword: 'internet', category: 'Fixas' },
+        ]
+  })
+
   const fileInputRef = useRef<HTMLInputElement>(null)
   const { toast } = useToast()
+
+  useEffect(() => {
+    localStorage.setItem('import_category_rules', JSON.stringify(rules))
+  }, [rules])
 
   const parseCSV = (text: string) => {
     const lines = text.split(/\r?\n/).filter((l) => l.trim() !== '')
@@ -77,7 +114,7 @@ export default function Importar() {
 
     const data = lines.slice(1).map((line) => {
       const values = line.split(',')
-      return parsedHeaders.reduce(
+      const row = parsedHeaders.reduce(
         (acc, header, index) => {
           let val: any = values[index]?.trim()
           if (val === '') val = null
@@ -89,6 +126,18 @@ export default function Importar() {
         },
         {} as Record<string, any>,
       )
+
+      if (entity === 'despesas' && row.descricao && !row.categoria) {
+        const lowerDesc = String(row.descricao).toLowerCase()
+        const matchedRule = rules.find(
+          (r) => r.keyword && lowerDesc.includes(r.keyword.toLowerCase()),
+        )
+        if (matchedRule) {
+          row.categoria = matchedRule.category
+        }
+      }
+
+      return row
     })
 
     return data
@@ -117,6 +166,27 @@ export default function Importar() {
       }
       reader.readAsText(selectedFile)
     }
+  }
+
+  const reapplyRules = () => {
+    if (entity !== 'despesas' || !previewData.length) return
+    const newData = previewData.map((row) => {
+      if (row.descricao) {
+        const lowerDesc = String(row.descricao).toLowerCase()
+        const matchedRule = rules.find(
+          (r) => r.keyword && lowerDesc.includes(r.keyword.toLowerCase()),
+        )
+        if (matchedRule) {
+          return { ...row, categoria: matchedRule.category }
+        }
+      }
+      return row
+    })
+    setPreviewData(newData)
+    toast({
+      title: 'Regras Aplicadas',
+      description: 'A pré-visualização foi atualizada com as novas categorias.',
+    })
   }
 
   const handleDownloadTemplate = () => {
@@ -156,7 +226,6 @@ export default function Importar() {
     let errorCount = 0
     const errorDetails: string[] = []
 
-    // Process in chunks of 50 to avoid hitting limits and allow progress updates
     const chunkSize = 50
     const chunks = []
     for (let i = 0; i < previewData.length; i += chunkSize) {
@@ -164,7 +233,12 @@ export default function Importar() {
     }
 
     for (let i = 0; i < chunks.length; i++) {
-      const chunk = chunks[i]
+      const chunk = chunks[i].map((row) => {
+        if (entity === 'despesas' && user) {
+          return { ...row, user_id: user.id }
+        }
+        return row
+      })
 
       try {
         const { error } = await supabase.from(entity).insert(chunk)
@@ -266,15 +340,99 @@ export default function Importar() {
                 </Select>
 
                 {entity && (
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="w-full mt-2 text-xs h-8"
-                    onClick={handleDownloadTemplate}
-                  >
-                    <Download className="w-3 h-3 mr-2" />
-                    Baixar Planilha Modelo
-                  </Button>
+                  <div className="flex gap-2 mt-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="flex-1 text-xs h-8"
+                      onClick={handleDownloadTemplate}
+                    >
+                      <Download className="w-3 h-3 mr-2" />
+                      Planilha Modelo
+                    </Button>
+
+                    {entity === 'despesas' && (
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex-1 text-xs h-8 bg-primary/5 border-primary/20 text-primary hover:bg-primary/10"
+                          >
+                            <Settings className="w-3 h-3 mr-2" />
+                            Regras Inteligentes
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="sm:max-w-[450px]">
+                          <DialogHeader>
+                            <DialogTitle>Categorização Inteligente</DialogTitle>
+                            <DialogDescription>
+                              Defina palavras-chave para classificar automaticamente suas despesas
+                              durante a importação.
+                            </DialogDescription>
+                          </DialogHeader>
+                          <div className="space-y-4 pt-4 max-h-[300px] overflow-y-auto pr-2">
+                            {rules.map((rule, index) => (
+                              <div key={index} className="flex items-center gap-2">
+                                <Input
+                                  placeholder="Palavra-chave (ex: posto)"
+                                  value={rule.keyword}
+                                  onChange={(e) => {
+                                    const newRules = [...rules]
+                                    newRules[index].keyword = e.target.value
+                                    setRules(newRules)
+                                  }}
+                                />
+                                <Select
+                                  value={rule.category}
+                                  onValueChange={(val) => {
+                                    const newRules = [...rules]
+                                    newRules[index].category = val
+                                    setRules(newRules)
+                                  }}
+                                >
+                                  <SelectTrigger className="w-[140px]">
+                                    <SelectValue placeholder="Categoria" />
+                                  </SelectTrigger>
+                                  <SelectContent>
+                                    <SelectItem value="Fixas">Fixas</SelectItem>
+                                    <SelectItem value="Variáveis">Variáveis</SelectItem>
+                                    <SelectItem value="Pessoal">Pessoal</SelectItem>
+                                    <SelectItem value="Impostos">Impostos</SelectItem>
+                                    <SelectItem value="Marketing">Marketing</SelectItem>
+                                  </SelectContent>
+                                </Select>
+                                <Button
+                                  variant="ghost"
+                                  size="icon"
+                                  onClick={() => {
+                                    setRules(rules.filter((_, i) => i !== index))
+                                  }}
+                                >
+                                  <Trash2 className="w-4 h-4 text-destructive" />
+                                </Button>
+                              </div>
+                            ))}
+                            <Button
+                              variant="outline"
+                              className="w-full border-dashed"
+                              onClick={() =>
+                                setRules([...rules, { keyword: '', category: 'Fixas' }])
+                              }
+                            >
+                              <Plus className="w-4 h-4 mr-2" />
+                              Adicionar Nova Regra
+                            </Button>
+                          </div>
+                          {previewData.length > 0 && (
+                            <Button onClick={reapplyRules} className="w-full mt-4">
+                              Aplicar Regras nos Dados Carregados
+                            </Button>
+                          )}
+                        </DialogContent>
+                      </Dialog>
+                    )}
+                  </div>
                 )}
               </div>
 
@@ -435,10 +593,38 @@ export default function Importar() {
                         Importação Concluída!
                       </h3>
                       <p className="text-muted-foreground mb-6">
-                        Todos os {result.success} registros foram inseridos com sucesso no banco de
-                        dados.
+                        Todos os {result.success} registros foram inseridos com sucesso.
                       </p>
-                      <Button variant="outline" onClick={resetState}>
+
+                      <div className="w-full text-left bg-secondary/30 rounded-xl p-5 mb-6 border border-border/50">
+                        <p className="text-sm font-bold text-foreground mb-3 uppercase tracking-wider">
+                          Log da Operação
+                        </p>
+                        <div className="space-y-3">
+                          <div className="flex justify-between text-sm items-center border-b border-border/50 pb-2">
+                            <span className="text-muted-foreground">Entidade Destino:</span>
+                            <span className="font-semibold text-foreground capitalize">
+                              {entity}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm items-center border-b border-border/50 pb-2">
+                            <span className="text-muted-foreground">Linhas Processadas:</span>
+                            <span className="font-semibold text-foreground">{result.success}</span>
+                          </div>
+                          <div className="flex justify-between text-sm items-center border-b border-border/50 pb-2">
+                            <span className="text-muted-foreground">Linhas c/ Erro:</span>
+                            <span className="font-semibold text-foreground">0</span>
+                          </div>
+                          <div className="flex justify-between text-sm items-center pt-1">
+                            <span className="text-muted-foreground">Status Final:</span>
+                            <span className="font-bold text-green-600 bg-green-100 px-2 py-0.5 rounded text-xs">
+                              100% Sucesso
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      <Button variant="outline" onClick={resetState} className="rounded-full px-8">
                         Realizar nova importação
                       </Button>
                     </>
@@ -450,27 +636,42 @@ export default function Importar() {
                       <h3 className="text-xl font-bold text-foreground mb-2">
                         Importação com Erros
                       </h3>
-                      <div className="flex gap-4 mb-6 text-sm">
-                        <span className="bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400 px-3 py-1 rounded-full font-medium">
-                          {result.success} inseridos
-                        </span>
-                        <span className="bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400 px-3 py-1 rounded-full font-medium">
-                          {result.errors} falhas
-                        </span>
-                      </div>
 
-                      <div className="w-full text-left bg-secondary/30 rounded-xl p-4 max-h-[150px] overflow-y-auto mb-6 border border-border/50">
-                        <p className="text-xs font-bold text-muted-foreground mb-2 uppercase">
-                          Detalhes do erro:
+                      <div className="w-full text-left bg-secondary/30 rounded-xl p-5 mb-6 border border-border/50">
+                        <p className="text-sm font-bold text-foreground mb-3 uppercase tracking-wider">
+                          Log da Operação
                         </p>
-                        <ul className="space-y-1 text-sm text-destructive">
-                          {result.details.map((d, i) => (
-                            <li key={i}>• {d}</li>
-                          ))}
-                        </ul>
+                        <div className="space-y-3">
+                          <div className="flex justify-between text-sm items-center border-b border-border/50 pb-2">
+                            <span className="text-muted-foreground">Entidade Destino:</span>
+                            <span className="font-semibold text-foreground capitalize">
+                              {entity}
+                            </span>
+                          </div>
+                          <div className="flex justify-between text-sm items-center border-b border-border/50 pb-2">
+                            <span className="text-muted-foreground">
+                              Linhas Importadas (Sucesso):
+                            </span>
+                            <span className="font-semibold text-green-600">{result.success}</span>
+                          </div>
+                          <div className="flex justify-between text-sm items-center border-b border-border/50 pb-2">
+                            <span className="text-muted-foreground">Linhas c/ Erro (Falha):</span>
+                            <span className="font-semibold text-red-600">{result.errors}</span>
+                          </div>
+                          <div className="pt-1">
+                            <span className="text-muted-foreground text-xs font-semibold block mb-2">
+                              Detalhes dos Erros:
+                            </span>
+                            <ul className="space-y-1 text-xs text-destructive max-h-[100px] overflow-y-auto pr-2">
+                              {result.details.map((d, i) => (
+                                <li key={i}>• {d}</li>
+                              ))}
+                            </ul>
+                          </div>
+                        </div>
                       </div>
 
-                      <Button variant="outline" onClick={resetState}>
+                      <Button variant="outline" onClick={resetState} className="rounded-full px-8">
                         Tentar novamente
                       </Button>
                     </>
