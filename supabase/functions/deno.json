@@ -8,12 +8,16 @@
     "registrar_log": 3,
     "ai-classify-contacts": 5,
     "ai-pipeline-monitor": 5,
-    "evolution-create-instance": 4,
+    "evolution-create-instance": 5,
     "evolution-disconnect": 4,
-    "evolution-get-qr": 4,
+    "evolution-get-qr": 9,
     "evolution-send-message": 4,
     "evolution-sync-contacts": 4,
     "evolution-sync-messages": 4,
-    "evolution-webhook": 4
+    "evolution-webhook": 4,
+    "enviar_lembrete_whatsapp": 1,
+    "processar_mensagem_whatsapp": 1,
+    "gerar_relatorio_financeiro": 1,
+    "manage-users": 1
   }
 }

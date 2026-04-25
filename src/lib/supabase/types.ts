@@ -1,11 +1,17 @@
 // AVOID UPDATING THIS FILE DIRECTLY. It is automatically generated.
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: '14.4'
+    PostgrestVersion: "14.4"
   }
   public: {
     Tables: {
@@ -33,19 +39,56 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'access_control_gestante_id_fkey'
-            columns: ['gestante_id']
+            foreignKeyName: "access_control_gestante_id_fkey"
+            columns: ["gestante_id"]
             isOneToOne: false
-            referencedRelation: 'gestantes'
-            referencedColumns: ['id']
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agendamento_historico: {
+        Row: {
+          acao: string
+          agendamento_id: string | null
+          created_at: string
+          detalhes: string | null
+          id: string
+        }
+        Insert: {
+          acao: string
+          agendamento_id?: string | null
+          created_at?: string
+          detalhes?: string | null
+          id?: string
+        }
+        Update: {
+          acao?: string
+          agendamento_id?: string | null
+          created_at?: string
+          detalhes?: string | null
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agendamento_historico_agendamento_id_fkey"
+            columns: ["agendamento_id"]
+            isOneToOne: false
+            referencedRelation: "agendamentos"
+            referencedColumns: ["id"]
           },
         ]
       }
       agendamentos: {
         Row: {
+          atualizado_em: string | null
           created_at: string
           data_hora: string
+          email_paciente: string | null
           id: string
+          numero_whatsapp: string | null
+          observacoes: string | null
+          paciente_id: string | null
           paciente_nome: string
           status: string
           tipo_consulta: string
@@ -53,9 +96,14 @@ export type Database = {
           whatsapp: string | null
         }
         Insert: {
+          atualizado_em?: string | null
           created_at?: string
           data_hora: string
+          email_paciente?: string | null
           id?: string
+          numero_whatsapp?: string | null
+          observacoes?: string | null
+          paciente_id?: string | null
           paciente_nome: string
           status?: string
           tipo_consulta: string
@@ -63,16 +111,29 @@ export type Database = {
           whatsapp?: string | null
         }
         Update: {
+          atualizado_em?: string | null
           created_at?: string
           data_hora?: string
+          email_paciente?: string | null
           id?: string
+          numero_whatsapp?: string | null
+          observacoes?: string | null
+          paciente_id?: string | null
           paciente_nome?: string
           status?: string
           tipo_consulta?: string
           user_id?: string
           whatsapp?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "agendamentos_paciente_id_fkey"
+            columns: ["paciente_id"]
+            isOneToOne: false
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       ai_agents: {
         Row: {
@@ -173,11 +234,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'consultas_gestante_id_fkey'
-            columns: ['gestante_id']
+            foreignKeyName: "consultas_gestante_id_fkey"
+            columns: ["gestante_id"]
             isOneToOne: false
-            referencedRelation: 'gestantes'
-            referencedColumns: ['id']
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -214,11 +275,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'contact_identity_instance_id_fkey'
-            columns: ['instance_id']
+            foreignKeyName: "contact_identity_instance_id_fkey"
+            columns: ["instance_id"]
             isOneToOne: false
-            referencedRelation: 'user_integrations'
-            referencedColumns: ['id']
+            referencedRelation: "user_integrations"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -261,6 +322,47 @@ export type Database = {
         }
         Relationships: []
       }
+      conversas_whatsapp: {
+        Row: {
+          agendamento_id: string | null
+          created_at: string | null
+          data_hora: string | null
+          id: string
+          mensagem: string | null
+          numero_whatsapp: string | null
+          precisa_resposta_manual: boolean | null
+          tipo_mensagem: string | null
+        }
+        Insert: {
+          agendamento_id?: string | null
+          created_at?: string | null
+          data_hora?: string | null
+          id?: string
+          mensagem?: string | null
+          numero_whatsapp?: string | null
+          precisa_resposta_manual?: boolean | null
+          tipo_mensagem?: string | null
+        }
+        Update: {
+          agendamento_id?: string | null
+          created_at?: string | null
+          data_hora?: string | null
+          id?: string
+          mensagem?: string | null
+          numero_whatsapp?: string | null
+          precisa_resposta_manual?: boolean | null
+          tipo_mensagem?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversas_whatsapp_agendamento_id_fkey"
+            columns: ["agendamento_id"]
+            isOneToOne: false
+            referencedRelation: "agendamentos"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       despesas: {
         Row: {
           categoria: string | null
@@ -270,6 +372,7 @@ export type Database = {
           descricao: string | null
           id: string
           status: string | null
+          user_id: string | null
           valor: number
         }
         Insert: {
@@ -280,6 +383,7 @@ export type Database = {
           descricao?: string | null
           id?: string
           status?: string | null
+          user_id?: string | null
           valor: number
         }
         Update: {
@@ -290,6 +394,7 @@ export type Database = {
           descricao?: string | null
           id?: string
           status?: string | null
+          user_id?: string | null
           valor?: number
         }
         Relationships: []
@@ -369,11 +474,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'exames_laboratoriais_gestante_id_fkey'
-            columns: ['gestante_id']
+            foreignKeyName: "exames_laboratoriais_gestante_id_fkey"
+            columns: ["gestante_id"]
             isOneToOne: false
-            referencedRelation: 'gestantes'
-            referencedColumns: ['id']
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -404,11 +509,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'fotos_timeline_gestante_id_fkey'
-            columns: ['gestante_id']
+            foreignKeyName: "fotos_timeline_gestante_id_fkey"
+            columns: ["gestante_id"]
             isOneToOne: false
-            referencedRelation: 'gestantes'
-            referencedColumns: ['id']
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -613,18 +718,53 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'lembretes_contas_conta_fixa_id_fkey'
-            columns: ['conta_fixa_id']
+            foreignKeyName: "lembretes_contas_conta_fixa_id_fkey"
+            columns: ["conta_fixa_id"]
             isOneToOne: false
-            referencedRelation: 'contas_fixas'
-            referencedColumns: ['id']
+            referencedRelation: "contas_fixas"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'lembretes_contas_conta_id_fkey'
-            columns: ['conta_id']
+            foreignKeyName: "lembretes_contas_conta_id_fkey"
+            columns: ["conta_id"]
             isOneToOne: false
-            referencedRelation: 'contas_fixas'
-            referencedColumns: ['id']
+            referencedRelation: "contas_fixas"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      lembretes_whatsapp: {
+        Row: {
+          agendamento_id: string | null
+          created_at: string | null
+          data_envio: string | null
+          id: string
+          mensagem: string | null
+          status_envio: string | null
+        }
+        Insert: {
+          agendamento_id?: string | null
+          created_at?: string | null
+          data_envio?: string | null
+          id?: string
+          mensagem?: string | null
+          status_envio?: string | null
+        }
+        Update: {
+          agendamento_id?: string | null
+          created_at?: string | null
+          data_envio?: string | null
+          id?: string
+          mensagem?: string | null
+          status_envio?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lembretes_whatsapp_agendamento_id_fkey"
+            columns: ["agendamento_id"]
+            isOneToOne: false
+            referencedRelation: "agendamentos"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -634,7 +774,7 @@ export type Database = {
           funcao: string
           id: string
           mensagem_erro: string | null
-          status: Database['public']['Enums']['log_status_enum']
+          status: Database["public"]["Enums"]["log_status_enum"]
           timestamp: string
           usuario_id: string | null
         }
@@ -643,7 +783,7 @@ export type Database = {
           funcao: string
           id?: string
           mensagem_erro?: string | null
-          status: Database['public']['Enums']['log_status_enum']
+          status: Database["public"]["Enums"]["log_status_enum"]
           timestamp?: string
           usuario_id?: string | null
         }
@@ -652,7 +792,7 @@ export type Database = {
           funcao?: string
           id?: string
           mensagem_erro?: string | null
-          status?: Database['public']['Enums']['log_status_enum']
+          status?: Database["public"]["Enums"]["log_status_enum"]
           timestamp?: string
           usuario_id?: string | null
         }
@@ -685,11 +825,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'medicamento_historico_medicamento_id_fkey'
-            columns: ['medicamento_id']
+            foreignKeyName: "medicamento_historico_medicamento_id_fkey"
+            columns: ["medicamento_id"]
             isOneToOne: false
-            referencedRelation: 'medicamentos_precificacao'
-            referencedColumns: ['id']
+            referencedRelation: "medicamentos_precificacao"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -720,11 +860,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'medicamentos_gestante_id_fkey'
-            columns: ['gestante_id']
+            foreignKeyName: "medicamentos_gestante_id_fkey"
+            columns: ["gestante_id"]
             isOneToOne: false
-            referencedRelation: 'gestantes'
-            referencedColumns: ['id']
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -806,18 +946,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'ocupacao_salas_paciente_id_fkey'
-            columns: ['paciente_id']
+            foreignKeyName: "ocupacao_salas_paciente_id_fkey"
+            columns: ["paciente_id"]
             isOneToOne: false
-            referencedRelation: 'pacientes'
-            referencedColumns: ['id']
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'ocupacao_salas_sala_id_fkey'
-            columns: ['sala_id']
+            foreignKeyName: "ocupacao_salas_sala_id_fkey"
+            columns: ["sala_id"]
             isOneToOne: false
-            referencedRelation: 'salas'
-            referencedColumns: ['id']
+            referencedRelation: "salas"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -965,11 +1105,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'registros_diarios_autor_id_fkey'
-            columns: ['autor_id']
+            foreignKeyName: "registros_diarios_autor_id_fkey"
+            columns: ["autor_id"]
             isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1039,11 +1179,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'sintomas_observacoes_gestante_id_fkey'
-            columns: ['gestante_id']
+            foreignKeyName: "sintomas_observacoes_gestante_id_fkey"
+            columns: ["gestante_id"]
             isOneToOne: false
-            referencedRelation: 'gestantes'
-            referencedColumns: ['id']
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1077,49 +1217,85 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'suplementos_gestante_id_fkey'
-            columns: ['gestante_id']
+            foreignKeyName: "suplementos_gestante_id_fkey"
+            columns: ["gestante_id"]
             isOneToOne: false
-            referencedRelation: 'gestantes'
-            referencedColumns: ['id']
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
           },
         ]
+      }
+      templates_mensagens: {
+        Row: {
+          atualizado_em: string
+          categoria: string
+          conteudo: string
+          criado_em: string
+          id: string
+          titulo: string
+          user_id: string
+        }
+        Insert: {
+          atualizado_em?: string
+          categoria: string
+          conteudo: string
+          criado_em?: string
+          id?: string
+          titulo: string
+          user_id: string
+        }
+        Update: {
+          atualizado_em?: string
+          categoria?: string
+          conteudo?: string
+          criado_em?: string
+          id?: string
+          titulo?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       transacoes: {
         Row: {
           created_at: string | null
           data: string
+          data_vencimento: string | null
           descricao: string | null
           id: string
           paciente_id: string | null
+          status: string | null
           tipo: string
           valor: number
         }
         Insert: {
           created_at?: string | null
           data: string
+          data_vencimento?: string | null
           descricao?: string | null
           id?: string
           paciente_id?: string | null
+          status?: string | null
           tipo: string
           valor: number
         }
         Update: {
           created_at?: string | null
           data?: string
+          data_vencimento?: string | null
           descricao?: string | null
           id?: string
           paciente_id?: string | null
+          status?: string | null
           tipo?: string
           valor?: number
         }
         Relationships: [
           {
-            foreignKeyName: 'transacoes_paciente_id_fkey'
-            columns: ['paciente_id']
+            foreignKeyName: "transacoes_paciente_id_fkey"
+            columns: ["paciente_id"]
             isOneToOne: false
-            referencedRelation: 'pacientes'
-            referencedColumns: ['id']
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1153,11 +1329,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'ultrassons_gestante_id_fkey'
-            columns: ['gestante_id']
+            foreignKeyName: "ultrassons_gestante_id_fkey"
+            columns: ["gestante_id"]
             isOneToOne: false
-            referencedRelation: 'gestantes'
-            referencedColumns: ['id']
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1248,11 +1424,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'whatsapp_contacts_ai_agent_id_fkey'
-            columns: ['ai_agent_id']
+            foreignKeyName: "whatsapp_contacts_ai_agent_id_fkey"
+            columns: ["ai_agent_id"]
             isOneToOne: false
-            referencedRelation: 'ai_agents'
-            referencedColumns: ['id']
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1295,11 +1471,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'whatsapp_messages_contact_id_fkey'
-            columns: ['contact_id']
+            foreignKeyName: "whatsapp_messages_contact_id_fkey"
+            columns: ["contact_id"]
             isOneToOne: false
-            referencedRelation: 'whatsapp_contacts'
-            referencedColumns: ['id']
+            referencedRelation: "whatsapp_contacts"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1308,6 +1484,8 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      is_admin: { Args: never; Returns: boolean }
+      is_financeiro: { Args: never; Returns: boolean }
       merge_whatsapp_contacts: {
         Args: {
           p_primary_contact_id: string
@@ -1318,7 +1496,7 @@ export type Database = {
       }
     }
     Enums: {
-      log_status_enum: 'sucesso' | 'erro' | 'pendente'
+      log_status_enum: "sucesso" | "erro" | "pendente"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1326,31 +1504,33 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
-    ? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -1359,23 +1539,23 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -1384,23 +1564,23 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -1409,45 +1589,46 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema['Enums']
+    | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
-    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema['CompositeTypes']
+    | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
-    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
   public: {
     Enums: {
-      log_status_enum: ['sucesso', 'erro', 'pendente'],
+      log_status_enum: ["sucesso", "erro", "pendente"],
     },
   },
 } as const
+
 
 // ====== DATABASE EXTENDED CONTEXT (auto-generated) ======
 // This section contains actual PostgreSQL column types, constraints, RLS policies,
@@ -1465,6 +1646,12 @@ export const Constants = {
 //   email: text (not null)
 //   role: text (not null)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: agendamento_historico
+//   id: uuid (not null, default: gen_random_uuid())
+//   agendamento_id: uuid (nullable)
+//   acao: text (not null)
+//   detalhes: text (nullable)
+//   created_at: timestamp with time zone (not null, default: now())
 // Table: agendamentos
 //   id: uuid (not null, default: gen_random_uuid())
 //   user_id: uuid (not null)
@@ -1474,6 +1661,11 @@ export const Constants = {
 //   whatsapp: text (nullable)
 //   tipo_consulta: text (not null)
 //   created_at: timestamp with time zone (not null, default: now())
+//   observacoes: text (nullable)
+//   email_paciente: text (nullable)
+//   paciente_id: uuid (nullable)
+//   numero_whatsapp: text (nullable)
+//   atualizado_em: timestamp with time zone (nullable, default: now())
 // Table: ai_agents
 //   id: uuid (not null, default: gen_random_uuid())
 //   user_id: uuid (not null)
@@ -1521,6 +1713,15 @@ export const Constants = {
 //   criado_em: timestamp with time zone (not null, default: now())
 //   usuario_id: uuid (nullable, default: auth.uid())
 //   conta_pagamento: text (nullable, default: 'Carnê Leão / Unicred'::text)
+// Table: conversas_whatsapp
+//   id: uuid (not null, default: gen_random_uuid())
+//   agendamento_id: uuid (nullable)
+//   numero_whatsapp: text (nullable)
+//   mensagem: text (nullable)
+//   tipo_mensagem: text (nullable)
+//   data_hora: timestamp with time zone (nullable, default: now())
+//   created_at: timestamp with time zone (nullable, default: now())
+//   precisa_resposta_manual: boolean (nullable, default: false)
 // Table: despesas
 //   id: uuid (not null, default: gen_random_uuid())
 //   categoria: text (nullable)
@@ -1530,6 +1731,7 @@ export const Constants = {
 //   created_at: timestamp with time zone (nullable, default: now())
 //   descricao: text (nullable)
 //   conta_pagamento: text (nullable, default: 'Carnê Leão / Unicred'::text)
+//   user_id: uuid (nullable)
 // Table: diario_atendimentos
 //   id: uuid (not null, default: gen_random_uuid())
 //   data: date (not null, default: CURRENT_DATE)
@@ -1615,6 +1817,13 @@ export const Constants = {
 //   data_envio: timestamp with time zone (nullable)
 //   enviado: boolean (nullable, default: false)
 //   usuario_id: uuid (nullable)
+// Table: lembretes_whatsapp
+//   id: uuid (not null, default: gen_random_uuid())
+//   agendamento_id: uuid (nullable)
+//   data_envio: timestamp with time zone (nullable)
+//   status_envio: text (nullable)
+//   mensagem: text (nullable)
+//   created_at: timestamp with time zone (nullable, default: now())
 // Table: logs_automacao
 //   id: uuid (not null, default: gen_random_uuid())
 //   timestamp: timestamp with time zone (not null, default: now())
@@ -1723,6 +1932,14 @@ export const Constants = {
 //   data_inicio: date (nullable)
 //   observacoes: text (nullable)
 //   created_at: timestamp with time zone (not null, default: now())
+// Table: templates_mensagens
+//   id: uuid (not null, default: gen_random_uuid())
+//   user_id: uuid (not null)
+//   titulo: text (not null)
+//   conteudo: text (not null)
+//   categoria: text (not null)
+//   criado_em: timestamp with time zone (not null, default: now())
+//   atualizado_em: timestamp with time zone (not null, default: now())
 // Table: transacoes
 //   id: uuid (not null, default: gen_random_uuid())
 //   tipo: text (not null)
@@ -1731,6 +1948,8 @@ export const Constants = {
 //   descricao: text (nullable)
 //   paciente_id: uuid (nullable)
 //   created_at: timestamp with time zone (nullable, default: now())
+//   status: text (nullable, default: 'pendente'::text)
+//   data_vencimento: date (nullable)
 // Table: ultrassons
 //   id: uuid (not null, default: gen_random_uuid())
 //   gestante_id: uuid (nullable)
@@ -1782,7 +2001,11 @@ export const Constants = {
 //   FOREIGN KEY access_control_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
 //   PRIMARY KEY access_control_pkey: PRIMARY KEY (id)
 //   CHECK access_control_role_check: CHECK ((role = ANY (ARRAY['medica'::text, 'familiar'::text])))
+// Table: agendamento_historico
+//   FOREIGN KEY agendamento_historico_agendamento_id_fkey: FOREIGN KEY (agendamento_id) REFERENCES agendamentos(id) ON DELETE CASCADE
+//   PRIMARY KEY agendamento_historico_pkey: PRIMARY KEY (id)
 // Table: agendamentos
+//   FOREIGN KEY agendamentos_paciente_id_fkey: FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE CASCADE
 //   PRIMARY KEY agendamentos_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY agendamentos_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 // Table: ai_agents
@@ -1803,8 +2026,13 @@ export const Constants = {
 //   PRIMARY KEY contas_fixas_pkey: PRIMARY KEY (id)
 //   CHECK contas_fixas_status_check: CHECK ((status = ANY (ARRAY['Pendente'::text, 'Pago'::text, 'Vencido'::text])))
 //   FOREIGN KEY contas_fixas_usuario_id_fkey: FOREIGN KEY (usuario_id) REFERENCES auth.users(id) ON DELETE CASCADE
+// Table: conversas_whatsapp
+//   FOREIGN KEY conversas_whatsapp_agendamento_id_fkey: FOREIGN KEY (agendamento_id) REFERENCES agendamentos(id) ON DELETE CASCADE
+//   PRIMARY KEY conversas_whatsapp_pkey: PRIMARY KEY (id)
+//   CHECK conversas_whatsapp_tipo_mensagem_check: CHECK ((tipo_mensagem = ANY (ARRAY['entrada'::text, 'saída'::text])))
 // Table: despesas
 //   PRIMARY KEY despesas_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY despesas_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 // Table: diario_atendimentos
 //   PRIMARY KEY diario_atendimentos_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY diario_atendimentos_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
@@ -1834,6 +2062,10 @@ export const Constants = {
 //   CHECK lembretes_contas_tipo_check: CHECK ((tipo = ANY (ARRAY['vencida'::text, 'proxima'::text])))
 //   CHECK lembretes_contas_tipo_lembrete_check: CHECK ((tipo_lembrete = ANY (ARRAY['email'::text, 'push'::text, 'ambos'::text])))
 //   FOREIGN KEY lembretes_contas_usuario_id_fkey: FOREIGN KEY (usuario_id) REFERENCES auth.users(id) ON DELETE CASCADE
+// Table: lembretes_whatsapp
+//   FOREIGN KEY lembretes_whatsapp_agendamento_id_fkey: FOREIGN KEY (agendamento_id) REFERENCES agendamentos(id) ON DELETE CASCADE
+//   PRIMARY KEY lembretes_whatsapp_pkey: PRIMARY KEY (id)
+//   CHECK lembretes_whatsapp_status_envio_check: CHECK ((status_envio = ANY (ARRAY['enviado'::text, 'erro'::text, 'pendente'::text])))
 // Table: logs_automacao
 //   PRIMARY KEY logs_automacao_pkey: PRIMARY KEY (id)
 //   FOREIGN KEY logs_automacao_usuario_id_fkey: FOREIGN KEY (usuario_id) REFERENCES auth.users(id) ON DELETE CASCADE
@@ -1870,6 +2102,9 @@ export const Constants = {
 // Table: suplementos
 //   FOREIGN KEY suplementos_gestante_id_fkey: FOREIGN KEY (gestante_id) REFERENCES gestantes(id) ON DELETE CASCADE
 //   PRIMARY KEY suplementos_pkey: PRIMARY KEY (id)
+// Table: templates_mensagens
+//   PRIMARY KEY templates_mensagens_pkey: PRIMARY KEY (id)
+//   FOREIGN KEY templates_mensagens_user_id_fkey: FOREIGN KEY (user_id) REFERENCES auth.users(id) ON DELETE CASCADE
 // Table: transacoes
 //   FOREIGN KEY transacoes_paciente_id_fkey: FOREIGN KEY (paciente_id) REFERENCES pacientes(id) ON DELETE SET NULL
 //   PRIMARY KEY transacoes_pkey: PRIMARY KEY (id)
@@ -1897,7 +2132,15 @@ export const Constants = {
 //     USING: ((EXISTS ( SELECT 1    FROM gestantes g   WHERE ((g.id = access_control.gestante_id) AND (g.user_id = auth.uid())))) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
 //   Policy "Invited view access" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: (email = (auth.jwt() ->> 'email'::text))
+// Table: agendamento_historico
+//   Policy "Users can manage their own agendamento historico" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: (EXISTS ( SELECT 1    FROM agendamentos a   WHERE ((a.id = agendamento_historico.agendamento_id) AND (a.user_id = auth.uid()))))
+//     WITH CHECK: (EXISTS ( SELECT 1    FROM agendamentos a   WHERE ((a.id = agendamento_historico.agendamento_id) AND (a.user_id = auth.uid()))))
 // Table: agendamentos
+//   Policy "Agendamentos admin all" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: (is_admin() OR (auth.uid() = user_id))
+//   Policy "Agendamentos financeiro select" (SELECT, PERMISSIVE) roles={authenticated}
+//     USING: is_financeiro()
 //   Policy "Users can manage their own agendamentos" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: (auth.uid() = user_id)
 //     WITH CHECK: (auth.uid() = user_id)
@@ -1924,6 +2167,10 @@ export const Constants = {
 //   Policy "Users can manage their own contas_fixas" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: (usuario_id = auth.uid())
 //     WITH CHECK: (usuario_id = auth.uid())
+// Table: conversas_whatsapp
+//   Policy "Allow authenticated access to conversas_whatsapp" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: despesas
 //   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
@@ -1966,6 +2213,10 @@ export const Constants = {
 //   Policy "Users can manage their own lembretes_contas" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: (usuario_id = auth.uid())
 //     WITH CHECK: (usuario_id = auth.uid())
+// Table: lembretes_whatsapp
+//   Policy "Allow authenticated access to lembretes_whatsapp" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: true
+//     WITH CHECK: true
 // Table: logs_automacao
 //   Policy "Users can view their own logs" (SELECT, PERMISSIVE) roles={authenticated}
 //     USING: (usuario_id = auth.uid())
@@ -2009,6 +2260,10 @@ export const Constants = {
 //   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
+//   Policy "Profiles admin access" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: is_admin()
+//   Policy "Profiles self access" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: (id = auth.uid())
 //   Policy "Users can update their own profile" (UPDATE, PERMISSIVE) roles={public}
 //     USING: (auth.uid() = id)
 //   Policy "Users can view their own profile" (SELECT, PERMISSIVE) roles={public}
@@ -2043,10 +2298,16 @@ export const Constants = {
 //     WITH CHECK: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = suplementos.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
 //   Policy "Medica UPDATE suplementos" (UPDATE, PERMISSIVE) roles={authenticated}
 //     USING: (EXISTS ( SELECT 1    FROM access_control ac   WHERE ((ac.gestante_id = suplementos.gestante_id) AND (ac.email = (auth.jwt() ->> 'email'::text)) AND (ac.role = 'medica'::text))))
+// Table: templates_mensagens
+//   Policy "Users can manage their own templates" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: (auth.uid() = user_id)
+//     WITH CHECK: (auth.uid() = user_id)
 // Table: transacoes
 //   Policy "Allow authenticated access" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: true
 //     WITH CHECK: true
+//   Policy "Transacoes acesso total" (ALL, PERMISSIVE) roles={authenticated}
+//     USING: (is_admin() OR is_financeiro() OR (auth.uid() = paciente_id))
 // Table: ultrassons
 //   Policy "Gestante ALL ultrassons" (ALL, PERMISSIVE) roles={authenticated}
 //     USING: ((EXISTS ( SELECT 1    FROM gestantes g   WHERE ((g.id = ultrassons.gestante_id) AND (g.user_id = auth.uid())))) OR (EXISTS ( SELECT 1    FROM profiles p   WHERE ((p.id = auth.uid()) AND (p.role = 'admin'::text)))))
@@ -2067,6 +2328,35 @@ export const Constants = {
 //     USING: (auth.uid() = user_id)
 
 // --- DATABASE FUNCTIONS ---
+// FUNCTION criar_transacao_agendamento()
+//   CREATE OR REPLACE FUNCTION public.criar_transacao_agendamento()
+//    RETURNS trigger
+//    LANGUAGE plpgsql
+//   AS $function$
+//   DECLARE
+//     v_valor NUMERIC := 0;
+//     v_descricao TEXT;
+//   BEGIN
+//     IF NEW.status = 'confirmado' AND (OLD.status IS NULL OR OLD.status != 'confirmado') THEN
+//       CASE NEW.tipo_consulta
+//         WHEN 'Consulta Clínica' THEN v_valor := 500;
+//         WHEN 'Infusão' THEN v_valor := 300;
+//         WHEN 'Pellet Hormonal' THEN v_valor := 1500;
+//         WHEN 'Nutrição' THEN v_valor := 400;
+//         WHEN 'Ozonioterapia' THEN v_valor := 250;
+//         ELSE v_valor := 0;
+//       END CASE;
+//   
+//       IF v_valor > 0 THEN
+//         v_descricao := 'Pagamento referente a ' || NEW.tipo_consulta || ' de ' || NEW.paciente_nome;
+//         INSERT INTO public.transacoes (tipo, valor, data, data_vencimento, descricao, paciente_id, status)
+//         VALUES ('receita', v_valor, CURRENT_DATE, (NEW.data_hora::date), v_descricao, NEW.paciente_id, 'pendente');
+//       END IF;
+//     END IF;
+//     RETURN NEW;
+//   END;
+//   $function$
+//   
 // FUNCTION handle_new_user()
 //   CREATE OR REPLACE FUNCTION public.handle_new_user()
 //    RETURNS trigger
@@ -2084,7 +2374,49 @@ export const Constants = {
 //     RETURN NEW;
 //   END;
 //   $function$
-//
+//   
+// FUNCTION is_admin()
+//   CREATE OR REPLACE FUNCTION public.is_admin()
+//    RETURNS boolean
+//    LANGUAGE sql
+//    SECURITY DEFINER
+//   AS $function$
+//     SELECT role = 'admin' FROM public.profiles WHERE id = auth.uid();
+//   $function$
+//   
+// FUNCTION is_financeiro()
+//   CREATE OR REPLACE FUNCTION public.is_financeiro()
+//    RETURNS boolean
+//    LANGUAGE sql
+//    SECURITY DEFINER
+//   AS $function$
+//     SELECT role = 'financeiro' FROM public.profiles WHERE id = auth.uid();
+//   $function$
+//   
+// FUNCTION log_agendamento_changes()
+//   CREATE OR REPLACE FUNCTION public.log_agendamento_changes()
+//    RETURNS trigger
+//    LANGUAGE plpgsql
+//    SECURITY DEFINER
+//   AS $function$
+//   BEGIN
+//     IF TG_OP = 'INSERT' THEN
+//       INSERT INTO public.agendamento_historico (agendamento_id, acao, detalhes)
+//       VALUES (NEW.id, 'Criação', 'Agendamento criado com status ' || NEW.status);
+//     ELSIF TG_OP = 'UPDATE' THEN
+//       IF OLD.status IS DISTINCT FROM NEW.status THEN
+//         INSERT INTO public.agendamento_historico (agendamento_id, acao, detalhes)
+//         VALUES (NEW.id, 'Mudança de Status', 'Status alterado de ' || OLD.status || ' para ' || NEW.status);
+//       END IF;
+//       IF OLD.data_hora IS DISTINCT FROM NEW.data_hora THEN
+//         INSERT INTO public.agendamento_historico (agendamento_id, acao, detalhes)
+//         VALUES (NEW.id, 'Remarcação', 'Data/Hora alterada de ' || OLD.data_hora || ' para ' || NEW.data_hora);
+//       END IF;
+//     END IF;
+//     RETURN NEW;
+//   END;
+//   $function$
+//   
 // FUNCTION log_medicamento_historico()
 //   CREATE OR REPLACE FUNCTION public.log_medicamento_historico()
 //    RETURNS trigger
@@ -2105,7 +2437,7 @@ export const Constants = {
 //     RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION merge_whatsapp_contacts(uuid, uuid, uuid[])
 //   CREATE OR REPLACE FUNCTION public.merge_whatsapp_contacts(p_user_id uuid, p_primary_contact_id uuid, p_secondary_contact_ids uuid[])
 //    RETURNS void
@@ -2118,18 +2450,34 @@ export const Constants = {
 //       SET contact_id = p_primary_contact_id
 //       WHERE user_id = p_user_id
 //         AND contact_id = ANY(p_secondary_contact_ids);
-//
+//   
 //       -- Delete the secondary duplicate contacts
 //       DELETE FROM public.whatsapp_contacts
 //       WHERE user_id = p_user_id
 //         AND id = ANY(p_secondary_contact_ids);
 //   END;
 //   $function$
-//
+//   
+// FUNCTION set_atualizado_em()
+//   CREATE OR REPLACE FUNCTION public.set_atualizado_em()
+//    RETURNS trigger
+//    LANGUAGE plpgsql
+//   AS $function$
+//   BEGIN
+//     NEW.atualizado_em = NOW();
+//     RETURN NEW;
+//   END;
+//   $function$
+//   
 
 // --- TRIGGERS ---
+// Table: agendamentos
+//   on_agendamento_change: CREATE TRIGGER on_agendamento_change AFTER INSERT OR UPDATE ON public.agendamentos FOR EACH ROW EXECUTE FUNCTION log_agendamento_changes()
+//   trg_criar_transacao_agendamento: CREATE TRIGGER trg_criar_transacao_agendamento AFTER UPDATE OF status ON public.agendamentos FOR EACH ROW EXECUTE FUNCTION criar_transacao_agendamento()
 // Table: medicamentos_precificacao
 //   on_medicamento_change: CREATE TRIGGER on_medicamento_change AFTER INSERT OR UPDATE ON public.medicamentos_precificacao FOR EACH ROW EXECUTE FUNCTION log_medicamento_historico()
+// Table: templates_mensagens
+//   set_templates_mensagens_atualizado_em: CREATE TRIGGER set_templates_mensagens_atualizado_em BEFORE UPDATE ON public.templates_mensagens FOR EACH ROW EXECUTE FUNCTION set_atualizado_em()
 
 // --- INDEXES ---
 // Table: access_control
@@ -2147,6 +2495,8 @@ export const Constants = {
 // Table: contas_fixas
 //   CREATE INDEX idx_contas_fixas_data_vencimento ON public.contas_fixas USING btree (data_vencimento)
 //   CREATE INDEX idx_contas_fixas_status ON public.contas_fixas USING btree (status)
+// Table: conversas_whatsapp
+//   CREATE INDEX idx_conversas_whatsapp_alerta ON public.conversas_whatsapp USING btree (precisa_resposta_manual) WHERE (precisa_resposta_manual = true)
 // Table: despesas
 //   CREATE INDEX idx_despesas_data_vencimento ON public.despesas USING btree (data_vencimento)
 //   CREATE INDEX idx_despesas_status ON public.despesas USING btree (status)
@@ -2173,3 +2523,4 @@ export const Constants = {
 //   CREATE UNIQUE INDEX whatsapp_contacts_user_id_remote_jid_key ON public.whatsapp_contacts USING btree (user_id, remote_jid)
 // Table: whatsapp_messages
 //   CREATE UNIQUE INDEX whatsapp_messages_user_id_message_id_key ON public.whatsapp_messages USING btree (user_id, message_id)
+
