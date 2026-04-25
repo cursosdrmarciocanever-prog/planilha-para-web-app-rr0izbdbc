@@ -42,17 +42,18 @@ function PrintHandler() {
   return null
 }
 
+let hasRestoredInThisMemory = false
+
 function RoutePersister() {
   const location = useLocation()
   const navigate = useNavigate()
   const previousPathRef = useRef(location.pathname)
 
   useEffect(() => {
-    const hasRestored = sessionStorage.getItem('has_restored_route')
     const lastRoute = localStorage.getItem('last_visited_route')
 
-    if (!hasRestored) {
-      sessionStorage.setItem('has_restored_route', 'true')
+    if (!hasRestoredInThisMemory) {
+      hasRestoredInThisMemory = true
       if (lastRoute && lastRoute !== '/' && location.pathname === '/') {
         navigate(lastRoute, { replace: true })
       }
