@@ -11,7 +11,14 @@ import {
   Upload,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+  DialogTrigger,
+} from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -37,6 +44,7 @@ import { ptBR } from 'date-fns/locale'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
+import { Checkbox } from '@/components/ui/checkbox'
 
 import { CostDistributionChart } from '@/components/despesas/CostDistributionChart'
 import { MonthlyComparisonChart } from '@/components/despesas/MonthlyComparisonChart'
@@ -78,6 +86,12 @@ export default function Despesas() {
   const [status, setStatus] = useState('Pendente')
   const [frequencia, setFrequencia] = useState('Mensal')
   const [contaPagamento, setContaPagamento] = useState('Carnê Leão / Unicred')
+
+  // Bulk Edit State
+  const [selectedItems, setSelectedItems] = useState<string[]>([])
+  const [isBulkEditOpen, setIsBulkEditOpen] = useState(false)
+  const [bulkCategory, setBulkCategory] = useState('none')
+  const [bulkDate, setBulkDate] = useState('')
 
   const { toast } = useToast()
 
@@ -195,6 +209,100 @@ export default function Despesas() {
 
   const totalDespesas = todasDespesas.reduce((acc, curr) => acc + Number(curr.valor), 0)
 
+  const categoryTotals = CATEGORIAS.reduce(
+    (acc, cat) => {
+      acc[cat] = todasDespesas
+        .filter((d) => d.categoria === cat)
+        .reduce((sum, d) => sum + Number(d.valor || 0), 0)
+      return acc
+    },
+    {} as Record<string, number>,
+  )
+
+  const handleSelectAll = (checked: boolean) => {
+    if (checked) {
+      setSelectedItems(todasDespesas.map((d) => d.id))
+    } else {
+      setSelectedItems([])
+    }
+  }
+
+  const handleSelectItem = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedItems((prev) => [...prev, id])
+    } else {
+      setSelectedItems((prev) => prev.filter((i) => i !== id))
+    }
+  }
+
+  const handleBulkSave = async () => {
+    if (bulkCategory === 'none' && !bulkDate) {
+      toast({
+        title: 'Atenção',
+        description: 'Nenhuma alteração definida.',
+        variant: 'destructive',
+      })
+      return
+    }
+
+    const updates: any = {}
+    if (bulkCategory && bulkCategory !== 'none') updates.categoria = bulkCategory
+    if (bulkDate) updates.data_vencimento = bulkDate
+
+    let errorCount = 0
+    for (const id of selectedItems) {
+      const item = todasDespesas.find((d) => d.id === id)
+      if (!item) continue
+      const table = item._table === 'conta_fixa' ? 'contas_fixas' : 'despesas'
+
+      const { error } = await supabase.from(table).update(updates).eq('id', id)
+      if (error) errorCount++
+    }
+
+    if (errorCount > 0) {
+      toast({
+        title: 'Aviso',
+        description: `Houve erro ao atualizar ${errorCount} registros.`,
+        variant: 'destructive',
+      })
+    } else {
+      toast({ title: 'Sucesso', description: 'Registros atualizados com sucesso.' })
+    }
+
+    setIsBulkEditOpen(false)
+    setSelectedItems([])
+    setBulkCategory('none')
+    setBulkDate('')
+    fetchDados()
+  }
+
+  const handleBulkDelete = async () => {
+    if (!confirm(`Tem certeza que deseja excluir ${selectedItems.length} registros?`)) return
+
+    let errorCount = 0
+    for (const id of selectedItems) {
+      const item = todasDespesas.find((d) => d.id === id)
+      if (!item) continue
+      const table = item._table === 'conta_fixa' ? 'contas_fixas' : 'despesas'
+
+      const { error } = await supabase.from(table).delete().eq('id', id)
+      if (error) errorCount++
+    }
+
+    if (errorCount > 0) {
+      toast({
+        title: 'Aviso',
+        description: `Houve erro ao excluir ${errorCount} registros.`,
+        variant: 'destructive',
+      })
+    } else {
+      toast({ title: 'Sucesso', description: 'Registros excluídos com sucesso.' })
+    }
+
+    setSelectedItems([])
+    fetchDados()
+  }
+
   return (
     <div className="p-6 md:p-10 animate-fade-in flex flex-col min-h-[calc(100vh-4rem)] lg:min-h-screen">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
@@ -243,6 +351,22 @@ export default function Despesas() {
             value="lancamentos"
             className="mt-0 outline-none space-y-8 animate-fade-in-up"
           >
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+              {CATEGORIAS.map((cat) => (
+                <div
+                  key={cat}
+                  className="bg-card border border-border/60 rounded-3xl p-5 shadow-sm flex flex-col justify-between"
+                >
+                  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-3">
+                    {cat}
+                  </p>
+                  <h4 className="text-2xl font-black text-foreground tracking-tight">
+                    {formatCurrency(categoryTotals[cat] || 0)}
+                  </h4>
+                </div>
+              ))}
+            </div>
+
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
                 <div className="bg-card border border-border/60 rounded-3xl p-6 shadow-sm flex items-center gap-5">
@@ -303,6 +427,17 @@ export default function Despesas() {
                   <Table>
                     <TableHeader className="bg-secondary/30">
                       <TableRow className="hover:bg-transparent">
+                        <TableHead className="w-[50px] text-center">
+                          <div className="flex items-center justify-center">
+                            <Checkbox
+                              checked={
+                                selectedItems.length === todasDespesas.length &&
+                                todasDespesas.length > 0
+                              }
+                              onCheckedChange={handleSelectAll}
+                            />
+                          </div>
+                        </TableHead>
                         <TableHead className="h-12 font-semibold">Data</TableHead>
                         <TableHead className="h-12 font-semibold">Descrição</TableHead>
                         <TableHead className="h-12 font-semibold">Categoria</TableHead>
@@ -317,6 +452,16 @@ export default function Despesas() {
                           key={d.id}
                           className="group hover:bg-secondary/20 transition-colors"
                         >
+                          <TableCell className="py-4">
+                            <div className="flex items-center justify-center">
+                              <Checkbox
+                                checked={selectedItems.includes(d.id)}
+                                onCheckedChange={(checked) =>
+                                  handleSelectItem(d.id, checked as boolean)
+                                }
+                              />
+                            </div>
+                          </TableCell>
                           <TableCell className="font-medium py-4 text-muted-foreground">
                             {d.data_vencimento
                               ? format(parseISO(d.data_vencimento), 'dd/MM/yyyy', { locale: ptBR })
@@ -381,6 +526,82 @@ export default function Despesas() {
                       ))}
                     </TableBody>
                   </Table>
+                </div>
+              )}
+
+              {selectedItems.length > 0 && (
+                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-popover border border-border shadow-2xl rounded-full px-6 py-3 flex items-center gap-4 z-50 animate-in slide-in-from-bottom-5">
+                  <span className="text-sm font-bold bg-primary/10 text-primary px-3 py-1.5 rounded-full whitespace-nowrap">
+                    {selectedItems.length} selecionados
+                  </span>
+
+                  <div className="h-6 w-px bg-border mx-1" />
+
+                  <Dialog open={isBulkEditOpen} onOpenChange={setIsBulkEditOpen}>
+                    <DialogTrigger asChild>
+                      <Button
+                        variant="default"
+                        className="rounded-full shadow-sm gap-2 h-10 whitespace-nowrap px-6"
+                      >
+                        <Edit className="w-4 h-4" /> Editar Lote
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[425px]">
+                      <DialogHeader>
+                        <DialogTitle>Editar {selectedItems.length} registros</DialogTitle>
+                      </DialogHeader>
+                      <div className="grid gap-5 py-4">
+                        <div className="space-y-2">
+                          <Label>Nova Categoria</Label>
+                          <Select value={bulkCategory} onValueChange={setBulkCategory}>
+                            <SelectTrigger className="h-11">
+                              <SelectValue placeholder="Manter atual" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="none">Manter atual</SelectItem>
+                              {CATEGORIAS.map((cat) => (
+                                <SelectItem key={cat} value={cat}>
+                                  {cat}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="space-y-2">
+                          <Label>Nova Data de Vencimento</Label>
+                          <Input
+                            type="date"
+                            className="h-11"
+                            value={bulkDate}
+                            onChange={(e) => setBulkDate(e.target.value)}
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            Deixe em branco para manter a data atual.
+                          </p>
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button
+                          variant="outline"
+                          onClick={() => setIsBulkEditOpen(false)}
+                          className="rounded-full h-11 px-6"
+                        >
+                          Cancelar
+                        </Button>
+                        <Button onClick={handleBulkSave} className="rounded-full h-11 px-6">
+                          Salvar Alterações
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
+
+                  <Button
+                    variant="destructive"
+                    className="rounded-full shadow-sm gap-2 h-10 whitespace-nowrap px-6"
+                    onClick={handleBulkDelete}
+                  >
+                    <Trash2 className="w-4 h-4" /> Excluir Lote
+                  </Button>
                 </div>
               )}
             </div>

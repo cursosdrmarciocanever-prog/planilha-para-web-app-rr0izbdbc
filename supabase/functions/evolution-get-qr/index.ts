@@ -33,7 +33,8 @@ Deno.serve(async (req: Request) => {
         .update({ status: 'WAITING_QR' } as any)
         .eq('id', integrationId)
 
-      const demoQrBase64 = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACWAQMAAAAGz+hOAAABUklEQVR42u2XwW3DMBBE3ylIUwG0kZzTAnSgIkyXcCkO8N/B8B5LwI4wP48EZ+zV7s7sWq3WvwkP0w9p9M/Yx0/s+x/s9B371l62b217z2z4b2/76629bK/a26u+tdfbV33tX+1te9W+tZftVXvVvrVX7Vt72V61V+1be9m+te09s+H+tdfbV33tX+1te9W+tZftVXvVvrVX7Vt72V61V+1be9m+te09s+H+tdfbV33tX+1te9W+tZftVXvVvrVX7Vt72V61V+1be9m+te09s+H+tdfbV33tX+1te9W+tZftVXvVvrVX7Vt72V61V+1be9m+te09s+H+tdfbV33tX+1te9W+tZftVXvVvrVX7Vt72V61V+1be9m+te09s+H+tdfbV33tX+1te9W+tZftVXvVvrVX7Vt72V61V+1be9m+te09s+H+tdfbV33tX+1te9W+tZftVXvVvrVX7Vt72V61V+1be9m+te09s+H+tdfbV33tX+1te9W+tZftVXvVvrVX7Vt72V61V+1be9m+te09s+H+tf8PfgF2tDk4j10FNAAAAABJRU5ErkJggg=="
+      const demoQrBase64 =
+        'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAJYAAACWAQMAAAAGz+hOAAABUklEQVR42u2XwW3DMBBE3ylIUwG0kZzTAnSgIkyXcCkO8N/B8B5LwI4wP48EZ+zV7s7sWq3WvwkP0w9p9M/Yx0/s+x/s9B371l62b217z2z4b2/76629bK/a26u+tdfbV33tX+1te9W+tZftVXvVvrVX7Vt72V61V+1be9m+te09s+H+tdfbV33tX+1te9W+tZftVXvVvrVX7Vt72V61V+1be9m+te09s+H+tdfbV33tX+1te9W+tZftVXvVvrVX7Vt72V61V+1be9m+te09s+H+tdfbV33tX+1te9W+tZftVXvVvrVX7Vt72V61V+1be9m+te09s+H+tdfbV33tX+1te9W+tZftVXvVvrVX7Vt72V61V+1be9m+te09s+H+tdfbV33tX+1te9W+tZftVXvVvrVX7Vt72V61V+1be9m+te09s+H+tdfbV33tX+1te9W+tZftVXvVvrVX7Vt72V61V+1be9m+te09s+H+tdfbV33tX+1te9W+tZftVXvVvrVX7Vt72V61V+1be9m+te09s+H+tf8PfgF2tDk4j10FNAAAAABJRU5ErkJggg=='
       return new Response(JSON.stringify({ base64: demoQrBase64 }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       })
@@ -49,21 +50,21 @@ Deno.serve(async (req: Request) => {
     }
 
     const getBase64 = (obj: any): string | null => {
-      if (!obj) return null;
-      if (typeof obj === 'string' && obj.length > 100) return obj;
+      if (!obj) return null
+      if (typeof obj === 'string' && obj.length > 100) return obj
       const candidates = [
         obj.base64,
         obj.qrcode?.base64,
         obj.hash?.qrcode,
         obj.data?.qrcode?.base64,
         obj.data?.base64,
-        typeof obj.qrcode === 'string' ? obj.qrcode : null
-      ];
+        typeof obj.qrcode === 'string' ? obj.qrcode : null,
+      ]
       for (const c of candidates) {
-        if (typeof c === 'string' && c.length > 100) return c;
+        if (typeof c === 'string' && c.length > 100) return c
       }
-      return null;
-    };
+      return null
+    }
 
     // 1. Check if instance exists via connectionState
     const stateRes = await fetch(`${evolutionApiUrl}/instance/connectionState/${instanceName}`, {
@@ -78,7 +79,10 @@ Deno.serve(async (req: Request) => {
     } else if (!stateRes.ok) {
       const errorText = await stateRes.text()
       console.warn('Evolution connectionState failed:', errorText)
-      if (errorText.toLowerCase().includes('not found') || errorText.toLowerCase().includes('no instance')) {
+      if (
+        errorText.toLowerCase().includes('not found') ||
+        errorText.toLowerCase().includes('no instance')
+      ) {
         needsCreation = true
       } else {
         return new Response(
@@ -228,7 +232,7 @@ Deno.serve(async (req: Request) => {
           } as any)
           .eq('id', integrationId)
 
-        let qrBase64 = getBase64(createData);
+        let qrBase64 = getBase64(createData)
         if (qrBase64) {
           return new Response(JSON.stringify({ base64: qrBase64 }), {
             headers: { ...corsHeaders, 'Content-Type': 'application/json' },
@@ -250,8 +254,13 @@ Deno.serve(async (req: Request) => {
     if (!connectRes.ok) {
       const errorText = await connectRes.text()
       console.warn('Evolution connect failed:', errorText)
-      
-      if (connectRes.status === 403 || connectRes.status === 428 || errorText.toLowerCase().includes('already') || errorText.toLowerCase().includes('progress')) {
+
+      if (
+        connectRes.status === 403 ||
+        connectRes.status === 428 ||
+        errorText.toLowerCase().includes('already') ||
+        errorText.toLowerCase().includes('progress')
+      ) {
         return new Response(JSON.stringify({ error: 'qr_not_ready_yet', raw: errorText }), {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },
         })
@@ -306,8 +315,8 @@ Deno.serve(async (req: Request) => {
       } as any)
       .eq('id', integrationId)
 
-    let base64 = getBase64(connectData);
-    
+    let base64 = getBase64(connectData)
+
     if (!base64) {
       return new Response(JSON.stringify({ error: 'qr_not_ready_yet', raw: connectData }), {
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
