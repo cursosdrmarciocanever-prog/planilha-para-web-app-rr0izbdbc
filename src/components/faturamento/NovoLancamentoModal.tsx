@@ -24,13 +24,15 @@ import { useToast } from '@/hooks/use-toast'
 export function NovoLancamentoModal({ open, onOpenChange, onSuccess, initialData }: any) {
   const [dataAtendimento, setDataAtendimento] = useState(format(new Date(), 'yyyy-MM-dd'))
   const [nomePaciente, setNomePaciente] = useState('')
-  const [tipo, setTipo] = useState('Consulta')
-  const [descricao, setDescricao] = useState('')
+  const [categoria, setCategoria] = useState('Consultas')
+  const [numeroOrcamento, setNumeroOrcamento] = useState('')
+  const [profissionalOrcamento, setProfissionalOrcamento] = useState('')
+  const [colaboradorResponsavel, setColaboradorResponsavel] = useState('')
   const [valor, setValor] = useState('')
   const [formaPagamento, setFormaPagamento] = useState('PIX')
-  const [parcelas, setParcelas] = useState('2')
-  const [contaRecebimento, setContaRecebimento] = useState('Carnê Leão / Unicred')
-  const [statusPagamento, setStatusPagamento] = useState('Confirmado')
+  const [parcelas, setParcelas] = useState('1')
+  const [documentoMaquina, setDocumentoMaquina] = useState('')
+  const [notaFiscal, setNotaFiscal] = useState('')
   const [observacoes, setObservacoes] = useState('')
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
@@ -40,24 +42,28 @@ export function NovoLancamentoModal({ open, onOpenChange, onSuccess, initialData
       if (initialData) {
         setDataAtendimento(initialData.data_atendimento)
         setNomePaciente(initialData.nome_paciente)
-        setTipo(initialData.tipo)
-        setDescricao(initialData.descricao || '')
+        setCategoria(initialData.categoria || initialData.tipo || 'Consultas')
+        setNumeroOrcamento(initialData.numero_orcamento || '')
+        setProfissionalOrcamento(initialData.profissional_orcamento || '')
+        setColaboradorResponsavel(initialData.colaborador_responsavel || '')
         setValor(initialData.valor.toString())
         setFormaPagamento(initialData.forma_pagamento || 'PIX')
-        setParcelas(initialData.parcelas ? initialData.parcelas.toString() : '2')
-        setContaRecebimento(initialData.conta_recebimento || 'Carnê Leão / Unicred')
-        setStatusPagamento(initialData.status_pagamento || 'Confirmado')
+        setParcelas(initialData.parcelas ? initialData.parcelas.toString() : '1')
+        setDocumentoMaquina(initialData.documento_maquina || '')
+        setNotaFiscal(initialData.nota_fiscal || '')
         setObservacoes(initialData.observacoes || '')
       } else {
         setDataAtendimento(format(new Date(), 'yyyy-MM-dd'))
         setNomePaciente('')
-        setTipo('Consulta')
-        setDescricao('')
+        setCategoria('Consultas')
+        setNumeroOrcamento('')
+        setProfissionalOrcamento('')
+        setColaboradorResponsavel('')
         setValor('')
         setFormaPagamento('PIX')
-        setParcelas('2')
-        setContaRecebimento('Carnê Leão / Unicred')
-        setStatusPagamento('Confirmado')
+        setParcelas('1')
+        setDocumentoMaquina('')
+        setNotaFiscal('')
         setObservacoes('')
       }
     }
@@ -73,26 +79,19 @@ export function NovoLancamentoModal({ open, onOpenChange, onSuccess, initialData
       return
     }
 
-    if (formaPagamento === 'Cartão de Crédito Parcelado' && (!parcelas || parseInt(parcelas) < 2)) {
-      toast({
-        title: 'Atenção',
-        description: 'Informe um número de parcelas válido (mínimo 2).',
-        variant: 'destructive',
-      })
-      return
-    }
-
     setLoading(true)
     const payload = {
       data_atendimento: dataAtendimento,
       nome_paciente: nomePaciente,
-      tipo,
-      descricao,
+      categoria,
+      numero_orcamento: numeroOrcamento,
+      profissional_orcamento: profissionalOrcamento,
+      colaborador_responsavel: colaboradorResponsavel,
       valor: parseFloat(valor),
       forma_pagamento: formaPagamento,
-      parcelas: formaPagamento === 'Cartão de Crédito Parcelado' ? parseInt(parcelas) : null,
-      conta_recebimento: contaRecebimento,
-      status_pagamento: statusPagamento,
+      parcelas: parseInt(parcelas) || 1,
+      documento_maquina: documentoMaquina,
+      nota_fiscal: notaFiscal,
       observacoes,
     }
 
@@ -142,35 +141,56 @@ export function NovoLancamentoModal({ open, onOpenChange, onSuccess, initialData
               />
             </div>
             <div className="space-y-2">
-              <Label className="text-foreground/80 font-medium">Tipo *</Label>
-              <Select value={tipo} onValueChange={setTipo}>
+              <Label className="text-foreground/80 font-medium">Categoria *</Label>
+              <Select value={categoria} onValueChange={setCategoria}>
                 <SelectTrigger className="bg-secondary/30 h-11">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Consulta">Consulta</SelectItem>
-                  <SelectItem value="Procedimento">Procedimento</SelectItem>
+                  <SelectItem value="Consultas">Consultas</SelectItem>
+                  <SelectItem value="Procedimentos">Procedimentos</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
           <div className="space-y-2">
-            <Label className="text-foreground/80 font-medium">Nome do Paciente *</Label>
+            <Label className="text-foreground/80 font-medium">Paciente *</Label>
             <Input
               value={nomePaciente}
               onChange={(e) => setNomePaciente(e.target.value)}
-              placeholder="Ex: João Silva"
+              placeholder="Nome do paciente"
               className="bg-secondary/30 h-11"
             />
           </div>
 
+          <div className="grid grid-cols-2 gap-5">
+            <div className="space-y-2">
+              <Label className="text-foreground/80 font-medium">Nº do Orçamento</Label>
+              <Input
+                value={numeroOrcamento}
+                onChange={(e) => setNumeroOrcamento(e.target.value)}
+                placeholder="Ex: ORC-123"
+                className="bg-secondary/30 h-11"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-foreground/80 font-medium">Profissional (Orçamento)</Label>
+              <Input
+                value={profissionalOrcamento}
+                onChange={(e) => setProfissionalOrcamento(e.target.value)}
+                placeholder="Nome do profissional"
+                className="bg-secondary/30 h-11"
+              />
+            </div>
+          </div>
+
           <div className="space-y-2">
-            <Label className="text-foreground/80 font-medium">Descrição (Opcional)</Label>
+            <Label className="text-foreground/80 font-medium">Colaborador Responsável</Label>
             <Input
-              value={descricao}
-              onChange={(e) => setDescricao(e.target.value)}
-              placeholder="Ex: Avaliação Hormonal"
+              value={colaboradorResponsavel}
+              onChange={(e) => setColaboradorResponsavel(e.target.value)}
+              placeholder="Ex: João"
               className="bg-secondary/30 h-11"
             />
           </div>
@@ -194,60 +214,45 @@ export function NovoLancamentoModal({ open, onOpenChange, onSuccess, initialData
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                  <SelectItem value="Cartão de Crédito">Cartão de Crédito</SelectItem>
                   <SelectItem value="PIX">PIX</SelectItem>
-                  <SelectItem value="Débito">Débito</SelectItem>
-                  <SelectItem value="Cartão de Crédito à Vista">
-                    Cartão de Crédito à Vista
-                  </SelectItem>
-                  <SelectItem value="Cartão de Crédito Parcelado">
-                    Cartão de Crédito Parcelado
-                  </SelectItem>
-                  <SelectItem value="Cheque">Cheque</SelectItem>
+                  <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                  <SelectItem value="Cartão de Débito">Cartão de Débito</SelectItem>
                 </SelectContent>
               </Select>
             </div>
           </div>
 
-          {formaPagamento === 'Cartão de Crédito Parcelado' && (
+          <div className="grid grid-cols-3 gap-5">
             <div className="space-y-2">
-              <Label className="text-foreground/80 font-medium">Número de Parcelas *</Label>
+              <Label className="text-foreground/80 font-medium">Parcelas</Label>
               <Input
                 type="number"
-                min="2"
+                min="1"
                 max="24"
                 value={parcelas}
                 onChange={(e) => setParcelas(e.target.value)}
                 className="bg-secondary/30 h-11"
               />
             </div>
-          )}
-
-          <div className="space-y-2">
-            <Label className="text-foreground/80 font-medium">Conta de Recebimento *</Label>
-            <Select value={contaRecebimento} onValueChange={setContaRecebimento}>
-              <SelectTrigger className="bg-secondary/30 h-11">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Dinheiro">Dinheiro</SelectItem>
-                <SelectItem value="Carnê Leão / Unicred">Carnê Leão / Unicred</SelectItem>
-                <SelectItem value="Conta Jurídica / Sicoob">Conta Jurídica / Sicoob</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="space-y-2">
-            <Label className="text-foreground/80 font-medium">Status de Pagamento *</Label>
-            <Select value={statusPagamento} onValueChange={setStatusPagamento}>
-              <SelectTrigger className="bg-secondary/30 h-11">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Confirmado">Confirmado</SelectItem>
-                <SelectItem value="Pendente">Pendente</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="space-y-2">
+              <Label className="text-foreground/80 font-medium">Documento Máquina</Label>
+              <Input
+                value={documentoMaquina}
+                onChange={(e) => setDocumentoMaquina(e.target.value)}
+                placeholder="Ex: 12345"
+                className="bg-secondary/30 h-11"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label className="text-foreground/80 font-medium">Nota Fiscal</Label>
+              <Input
+                value={notaFiscal}
+                onChange={(e) => setNotaFiscal(e.target.value)}
+                placeholder="Ex: NF-001"
+                className="bg-secondary/30 h-11"
+              />
+            </div>
           </div>
 
           <div className="space-y-2">

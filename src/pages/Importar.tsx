@@ -46,7 +46,7 @@ import {
 import { Input } from '@/components/ui/input'
 import { format } from 'date-fns'
 
-type EntityType = 'pacientes' | 'despesas' | 'produtos_servicos' | 'salas' | 'diario_atendimentos'
+type EntityType = 'pacientes' | 'despesas' | 'produtos_servicos' | 'salas' | 'lancamentos_pacientes'
 
 const TEMPLATES: Record<EntityType, string> = {
   pacientes:
@@ -55,8 +55,8 @@ const TEMPLATES: Record<EntityType, string> = {
     'descricao,categoria,valor,data_vencimento,status,conta_pagamento\nConta de Luz Energisa,,150.50,2023-10-10,Pendente,Conta Jurídica / Sicoob\nAbastecimento Posto Ipiranga,,200.00,2023-10-12,Pago,Carnê Leão / Unicred',
   produtos_servicos: 'nome,descricao,preco\nConsulta Geral,Consulta de rotina,250.00',
   salas: 'nome,status,taxa_hora,taxa_dia\nSala 01,Ativa,50.00,300.00',
-  diario_atendimentos:
-    'data,paciente_nome,valor_consulta,valor_procedimento,forma_pagamento,conta_recebimento\n2024-02-15,Maria Silva,250.00,0,PIX,Conta Jurídica',
+  lancamentos_pacientes:
+    'paciente,data,categoria,numero_orcamento,profissional_orcamento,colaborador_responsavel,valor,parcelas,forma_pagamento,documento_maquina,nota_fiscal,observacoes\nMaria Silva,2024-02-15,Consultas,ORC-123,Dr. João,Pedro,250.00,1,PIX,,NF-001,Primeira consulta',
 }
 
 const REQUIRED_FIELDS: Record<EntityType, string[]> = {
@@ -64,7 +64,7 @@ const REQUIRED_FIELDS: Record<EntityType, string[]> = {
   despesas: ['descricao', 'valor'],
   produtos_servicos: ['nome'],
   salas: ['nome'],
-  diario_atendimentos: ['paciente_nome'],
+  lancamentos_pacientes: ['paciente'],
 }
 
 export default function Importar() {
@@ -138,7 +138,7 @@ export default function Importar() {
 
   const processParsedData = (data: any[]) => {
     return data.map((row) => {
-      if (entity === 'diario_atendimentos') {
+      if (entity === 'lancamentos_pacientes') {
         if (!row.forma_pagamento) row.forma_pagamento = 'Outro'
 
         if (mesReferencia) {
@@ -339,7 +339,16 @@ export default function Importar() {
 
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i].map((row) => {
-        if ((entity === 'despesas' || entity === 'diario_atendimentos') && user) {
+        if (entity === 'lancamentos_pacientes' && user) {
+          const { paciente, data, ...rest } = row
+          return {
+            ...rest,
+            nome_paciente: paciente || 'Paciente Sem Nome',
+            data_atendimento: data || new Date().toISOString().split('T')[0],
+            user_id: user.id,
+          }
+        }
+        if (entity === 'despesas' && user) {
           return { ...row, user_id: user.id }
         }
         return row
@@ -438,13 +447,13 @@ export default function Importar() {
                   <SelectContent>
                     <SelectItem value="pacientes">Pacientes</SelectItem>
                     <SelectItem value="despesas">Despesas (Saídas)</SelectItem>
-                    <SelectItem value="diario_atendimentos">Faturamento (Entradas)</SelectItem>
+                    <SelectItem value="lancamentos_pacientes">Faturamento (Entradas)</SelectItem>
                     <SelectItem value="produtos_servicos">Produtos e Serviços</SelectItem>
                     <SelectItem value="salas">Salas</SelectItem>
                   </SelectContent>
                 </Select>
 
-                {entity === 'diario_atendimentos' && (
+                {entity === 'lancamentos_pacientes' && (
                   <div className="space-y-3 mt-4 animate-fade-in">
                     <label className="text-sm font-medium text-foreground">
                       Mês de Referência (Obrigatório para Faturamento)

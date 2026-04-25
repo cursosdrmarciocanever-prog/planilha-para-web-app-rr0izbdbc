@@ -41,10 +41,10 @@ export function useDashboardData(date: DateRange | undefined) {
       const endDay = format(toDate, 'yyyy-MM-dd')
 
       let queryLancamentos = supabase
-        .from('diario_atendimentos')
-        .select('data, valor_consulta, valor_procedimento, paciente_nome')
-        .gte('data', startDay)
-        .lte('data', endDay)
+        .from('lancamentos_pacientes')
+        .select('data_atendimento, valor, nome_paciente, categoria')
+        .gte('data_atendimento', startDay)
+        .lte('data_atendimento', endDay)
 
       if (userId) {
         queryLancamentos = queryLancamentos.eq('user_id', userId)
@@ -70,23 +70,20 @@ export function useDashboardData(date: DateRange | undefined) {
 
       if (lancamentosRes.data) {
         lancamentosRes.data.forEach((l: any) => {
-          const day = l.data
-          const valCons = Number(l.valor_consulta ?? 0)
-          const valProc = Number(l.valor_procedimento ?? 0)
-          const valorVal = valCons + valProc
+          const day = l.data_atendimento
+          const valorVal = Number(l.valor ?? 0)
 
           faturamento += valorVal
-          if (l.paciente_nome) {
-            pacientesSet.add(l.paciente_nome.trim().toLowerCase())
+          if (l.nome_paciente) {
+            pacientesSet.add(l.nome_paciente.trim().toLowerCase())
           }
           totalLancamentos++
 
           if (day) {
             faturamentoDia[day] = (faturamentoDia[day] ?? 0) + valorVal
 
-            if (valCons > 0 || (valCons === 0 && valProc === 0)) {
-              pacientesDia[day] = (pacientesDia[day] ?? 0) + 1
-            }
+            // Count every row as a patient interaction
+            pacientesDia[day] = (pacientesDia[day] ?? 0) + 1
           }
         })
       }
@@ -153,8 +150,10 @@ export function useDashboardData(date: DateRange | undefined) {
 
     const channel = supabase
       .channel('dashboard_changes')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'diario_atendimentos' }, () =>
-        fetchData(),
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'lancamentos_pacientes' },
+        () => fetchData(),
       )
       .on('postgres_changes', { event: '*', schema: 'public', table: 'despesas' }, () =>
         fetchData(),

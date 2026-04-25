@@ -49,10 +49,10 @@ export function FaturamentoDashboard() {
     const start6m = format(startOfMonth(subMonths(dateObj, 5)), 'yyyy-MM-dd')
 
     let queryLanc = supabase
-      .from('diario_atendimentos')
+      .from('lancamentos_pacientes')
       .select('*')
-      .gte('data', start6m)
-      .lte('data', currentMonthEnd)
+      .gte('data_atendimento', start6m)
+      .lte('data_atendimento', currentMonthEnd)
 
     if (userId) {
       queryLanc = queryLanc.eq('user_id', userId)
@@ -71,7 +71,7 @@ export function FaturamentoDashboard() {
     const allDespesas = resDespesas.data || []
 
     // KPIs do Mês Selecionado
-    const lancamentosAtual = allLancamentos.filter((l) => l.data >= currentMonthStart)
+    const lancamentosAtual = allLancamentos.filter((l) => l.data_atendimento >= currentMonthStart)
     const despesasAtual = allDespesas.filter((d) => d.data_vencimento >= currentMonthStart)
 
     setLancamentosMes(lancamentosAtual)
@@ -96,21 +96,20 @@ export function FaturamentoDashboard() {
     }
 
     allLancamentos.forEach((l) => {
-      const key = l.data.substring(0, 7)
-      if (monthsMap[key]) {
-        const valCons = Number(l.valor_consulta || 0)
-        const valProc = Number(l.valor_procedimento || 0)
-        const totalVal = valCons + valProc
+      const dateVal = l.data_atendimento || l.data
+      const key = dateVal ? dateVal.substring(0, 7) : null
+      if (key && monthsMap[key]) {
+        const totalVal = Number(l.valor || 0)
 
         monthsMap[key].entradas += totalVal
 
-        if (valCons > 0) {
+        const cat = (l.categoria || l.tipo || '').toLowerCase()
+        if (cat.includes('consulta')) {
           monthsMap[key].countConsultas++
-          monthsMap[key].faturamentoConsultas += valCons
-        }
-        if (valProc > 0) {
+          monthsMap[key].faturamentoConsultas += totalVal
+        } else if (cat.includes('procedimento')) {
           monthsMap[key].countProcedimentos++
-          monthsMap[key].faturamentoProcedimentos += valProc
+          monthsMap[key].faturamentoProcedimentos += totalVal
         }
       }
     })
@@ -141,10 +140,10 @@ export function FaturamentoDashboard() {
     const pieMap: Record<string, number> = {}
     lancamentosAtual.forEach((l) => {
       const p =
-        l.forma_pagamento === 'Cartão de Crédito Parcelado' && l.parcelas
+        l.forma_pagamento === 'Cartão de Crédito' && l.parcelas && l.parcelas > 1
           ? `${l.forma_pagamento} ${l.parcelas}x`
           : l.forma_pagamento || 'Outro'
-      const val = Number(l.valor_consulta || 0) + Number(l.valor_procedimento || 0)
+      const val = Number(l.valor || 0)
       pieMap[p] = (pieMap[p] || 0) + val
     })
     const pieChartData = Object.keys(pieMap).map((k) => ({ name: k, value: pieMap[k] }))
@@ -163,7 +162,7 @@ export function FaturamentoDashboard() {
       .channel('faturamento_dashboard_changes')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'diario_atendimentos' },
+        { event: '*', schema: 'public', table: 'lancamentos_pacientes' },
         () => {
           loadData()
         },
@@ -178,26 +177,24 @@ export function FaturamentoDashboard() {
     }
   }, [loadData])
 
-  const faturamentoTotal = lancamentosMes.reduce(
-    (acc, curr) => acc + Number(curr.valor_consulta || 0) + Number(curr.valor_procedimento || 0),
-    0,
-  )
+  const faturamentoTotal = lancamentosMes.reduce((acc, curr) => acc + Number(curr.valor || 0), 0)
   const totalDespesas = despesasMes.reduce((acc, curr) => acc + Number(curr.valor || 0), 0)
   const resultadoLiquido = faturamentoTotal - totalDespesas
 
   const valorConfirmado = faturamentoTotal
   const valorPendente = 0
 
-  const consultas = lancamentosMes.filter((l) => Number(l.valor_consulta || 0) > 0)
-  const faturamentoConsultas = consultas.reduce(
-    (acc, curr) => acc + Number(curr.valor_consulta || 0),
-    0,
+  const consultas = lancamentosMes.filter((l) =>
+    (l.categoria || l.tipo || '').toLowerCase().includes('consulta'),
   )
+  const faturamentoConsultas = consultas.reduce((acc, curr) => acc + Number(curr.valor || 0), 0)
   const ticketConsultas = consultas.length > 0 ? faturamentoConsultas / consultas.length : 0
 
-  const procedimentos = lancamentosMes.filter((l) => Number(l.valor_procedimento || 0) > 0)
+  const procedimentos = lancamentosMes.filter((l) =>
+    (l.categoria || l.tipo || '').toLowerCase().includes('procedimento'),
+  )
   const faturamentoProcedimentos = procedimentos.reduce(
-    (acc, curr) => acc + Number(curr.valor_procedimento || 0),
+    (acc, curr) => acc + Number(curr.valor || 0),
     0,
   )
   const ticketProcedimentos =

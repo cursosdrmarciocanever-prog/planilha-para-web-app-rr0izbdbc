@@ -43,7 +43,10 @@ export function FaturamentoEntradas() {
     const { data: userData } = await supabase.auth.getUser()
     const userId = userData?.user?.id
 
-    let query = supabase.from('diario_atendimentos').select('*').order('data', { ascending: false })
+    let query = supabase
+      .from('lancamentos_pacientes')
+      .select('*')
+      .order('data_atendimento', { ascending: false })
 
     if (userId) {
       query = query.eq('user_id', userId)
@@ -54,19 +57,16 @@ export function FaturamentoEntradas() {
       const dateObj = new Date(Number(ano), Number(mes) - 1, 1)
       const start = format(dateObj, 'yyyy-MM-dd')
       const end = format(endOfMonth(dateObj), 'yyyy-MM-dd')
-      query = query.gte('data', start).lte('data', end)
+      query = query.gte('data_atendimento', start).lte('data_atendimento', end)
     }
 
     if (filtroTipo !== 'Todos') {
-      if (filtroTipo === 'Consulta') {
-        query = query.gt('valor_consulta', 0)
-      } else if (filtroTipo === 'Procedimento') {
-        query = query.gt('valor_procedimento', 0)
-      }
+      // Matches categories "Consultas" and "Procedimentos" roughly
+      query = query.ilike('categoria', `%${filtroTipo}%`)
     }
 
     if (buscaNome) {
-      query = query.ilike('paciente_nome', `%${buscaNome}%`)
+      query = query.ilike('nome_paciente', `%${buscaNome}%`)
     }
 
     const { data } = await query
@@ -87,7 +87,7 @@ export function FaturamentoEntradas() {
       .channel('faturamento_entradas_changes')
       .on(
         'postgres_changes',
-        { event: '*', schema: 'public', table: 'diario_atendimentos' },
+        { event: '*', schema: 'public', table: 'lancamentos_pacientes' },
         () => {
           loadData()
         },
@@ -101,7 +101,7 @@ export function FaturamentoEntradas() {
 
   const handleDelete = async (id: string) => {
     if (!confirm('Deseja excluir este lançamento?')) return
-    const { error } = await supabase.from('diario_atendimentos').delete().eq('id', id)
+    const { error } = await supabase.from('lancamentos_pacientes').delete().eq('id', id)
     if (error) toast({ title: 'Erro ao excluir', variant: 'destructive' })
     else {
       toast({ title: 'Excluído com sucesso' })
@@ -109,16 +109,10 @@ export function FaturamentoEntradas() {
     }
   }
 
-  const getValorTotal = (l: any) =>
-    Number(l.valor_consulta || 0) + Number(l.valor_procedimento || 0)
+  const getValorTotal = (l: any) => Number(l.valor || 0)
 
   const getTipoLabel = (l: any) => {
-    const isCons = Number(l.valor_consulta || 0) > 0
-    const isProc = Number(l.valor_procedimento || 0) > 0
-    if (isCons && isProc) return 'Cons. + Proced.'
-    if (isCons) return 'Consulta'
-    if (isProc) return 'Procedimento'
-    return 'Outro'
+    return l.categoria || l.tipo || 'Outro'
   }
 
   const formatCurrency = (val: number) =>
@@ -136,7 +130,7 @@ export function FaturamentoEntradas() {
         l.forma_pagamento === 'Cartão de Crédito Parcelado' && l.parcelas
           ? `${l.forma_pagamento} ${l.parcelas}x`
           : l.forma_pagamento
-      csv += `${l.data},"${l.paciente_nome}",${tipo},${valor},${pagamento},"${l.conta_recebimento || ''}","Confirmado"\n`
+      csv += `${l.data_atendimento},"${l.nome_paciente}",${tipo},${valor},${pagamento},"${l.conta_recebimento || ''}","Confirmado"\n`
     })
     const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
@@ -168,8 +162,8 @@ export function FaturamentoEntradas() {
       startY: finalY + 5,
       head,
       body: lancamentos.map((c) => [
-        format(parseISO(c.data), 'dd/MM/yyyy'),
-        c.paciente_nome,
+        format(parseISO(c.data_atendimento || new Date().toISOString()), 'dd/MM/yyyy'),
+        c.nome_paciente,
         getTipoLabel(c),
         formatCurrency(getValorTotal(c)),
         c.forma_pagamento === 'Cartão de Crédito Parcelado' && c.parcelas
@@ -196,7 +190,7 @@ export function FaturamentoEntradas() {
 
   // Função para enviar notificação de faturamento via WhatsApp
   const handleSendWhatsAppNotification = (lancamento: any) => {
-    const mensagem = `Faturamento registrado!\nPaciente: ${lancamento.paciente_nome}\nValor: R$ ${formatCurrency(getValorTotal(lancamento))}\nData: ${format(parseISO(lancamento.data), 'dd/MM/yyyy')}\n\nClínica Canever`
+    const mensagem = `Faturamento registrado!\nPaciente: ${lancamento.nome_paciente}\nValor: R$ ${formatCurrency(getValorTotal(lancamento))}\nData: ${format(parseISO(lancamento.data_atendimento || new Date().toISOString()), 'dd/MM/yyyy')}\n\nClínica Canever`
     return mensagem
   }
 
@@ -357,9 +351,11 @@ export function FaturamentoEntradas() {
                   return (
                     <TableRow key={l.id} className="group hover:bg-secondary/10 transition-colors">
                       <TableCell className="text-muted-foreground font-medium whitespace-nowrap">
-                        {format(parseISO(l.data), 'dd/MM/yyyy')}
+                        {l.data_atendimento
+                          ? format(parseISO(l.data_atendimento), 'dd/MM/yyyy')
+                          : '-'}
                       </TableCell>
-                      <TableCell className="font-bold text-foreground">{l.paciente_nome}</TableCell>
+                      <TableCell className="font-bold text-foreground">{l.nome_paciente}</TableCell>
                       <TableCell>
                         <span className="bg-secondary px-2 py-1 rounded text-xs font-medium">
                           {tipo}
