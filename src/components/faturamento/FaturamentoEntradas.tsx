@@ -34,7 +34,7 @@ export function FaturamentoEntradas() {
   const [filtroMes, setFiltroMes] = useState(format(new Date(), 'yyyy-MM'))
   const [filtroTipo, setFiltroTipo] = useState('Todos')
   const [filtroStatus, setFiltroStatus] = useState('Todos')
-  const [buscaNome, setBuscaNome] = useState('')
+  const [buscaGeral, setBuscaGeral] = useState('')
 
   const { toast } = useToast()
 
@@ -65,8 +65,10 @@ export function FaturamentoEntradas() {
       query = query.ilike('categoria', `%${filtroTipo}%`)
     }
 
-    if (buscaNome) {
-      query = query.ilike('nome_paciente', `%${buscaNome}%`)
+    if (buscaGeral) {
+      query = query.or(
+        `nome_paciente.ilike.%${buscaGeral}%,numero_orcamento.ilike.%${buscaGeral}%,descricao.ilike.%${buscaGeral}%`,
+      )
     }
 
     const { data } = await query
@@ -78,7 +80,7 @@ export function FaturamentoEntradas() {
 
     setLancamentos(filteredData)
     setLoading(false)
-  }, [filtroMes, filtroTipo, filtroStatus, buscaNome])
+  }, [filtroMes, filtroTipo, filtroStatus, buscaGeral])
 
   useEffect(() => {
     loadData()
@@ -240,15 +242,15 @@ export function FaturamentoEntradas() {
         </div>
         <div className="flex-1 w-full space-y-1.5">
           <label className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-            Buscar Paciente
+            Busca Avançada
           </label>
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-3.5 text-muted-foreground" />
             <Input
               className="pl-10 h-11 rounded-xl bg-secondary/30"
-              placeholder="Nome..."
-              value={buscaNome}
-              onChange={(e) => setBuscaNome(e.target.value)}
+              placeholder="Paciente, Nº Orçamento, Descrição..."
+              value={buscaGeral}
+              onChange={(e) => setBuscaGeral(e.target.value)}
             />
           </div>
         </div>

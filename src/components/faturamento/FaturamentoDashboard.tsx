@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase/client'
-import { startOfMonth, endOfMonth, format, subMonths } from 'date-fns'
+import { startOfMonth, endOfMonth, format, subMonths, addMonths, parseISO } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import {
   Bar,
@@ -34,6 +34,8 @@ export function FaturamentoDashboard() {
   const [chartData6m, setChartData6m] = useState<any[]>([])
   const [pieData, setPieData] = useState<any[]>([])
   const [lineData, setLineData] = useState<any[]>([])
+  const [profissionaisData, setProfissionaisData] = useState<any[]>([])
+  const [projecaoData, setProjecaoData] = useState<any[]>([])
 
   const loadData = useCallback(async () => {
     setLoading(true)
@@ -47,12 +49,12 @@ export function FaturamentoDashboard() {
     const currentMonthStart = format(startOfMonth(dateObj), 'yyyy-MM-dd')
     const currentMonthEnd = format(endOfMonth(dateObj), 'yyyy-MM-dd')
     const start6m = format(startOfMonth(subMonths(dateObj, 5)), 'yyyy-MM-dd')
+    const start12m = format(startOfMonth(subMonths(dateObj, 12)), 'yyyy-MM-dd')
 
     let queryLanc = supabase
       .from('lancamentos_pacientes')
       .select('*')
-      .gte('data_atendimento', start6m)
-      .lte('data_atendimento', currentMonthEnd)
+      .gte('data_atendimento', start12m)
 
     if (userId) {
       queryLanc = queryLanc.eq('user_id', userId)
@@ -71,8 +73,12 @@ export function FaturamentoDashboard() {
     const allDespesas = resDespesas.data || []
 
     // KPIs do Mês Selecionado
-    const lancamentosAtual = allLancamentos.filter((l) => l.data_atendimento >= currentMonthStart)
-    const despesasAtual = allDespesas.filter((d) => d.data_vencimento >= currentMonthStart)
+    const lancamentosAtual = allLancamentos.filter(
+      (l) => l.data_atendimento >= currentMonthStart && l.data_atendimento <= currentMonthEnd,
+    )
+    const despesasAtual = allDespesas.filter(
+      (d) => d.data_vencimento >= currentMonthStart && d.data_vencimento <= currentMonthEnd,
+    )
 
     setLancamentosMes(lancamentosAtual)
     setDespesasMes(despesasAtual)
@@ -140,7 +146,10 @@ export function FaturamentoDashboard() {
     const pieMap: Record<string, number> = {}
     lancamentosAtual.forEach((l) => {
       const p =
-        l.forma_pagamento === 'Cartão de Crédito' && l.parcelas && l.parcelas > 1
+        (l.forma_pagamento === 'Cartão de Crédito' ||
+          l.forma_pagamento === 'Cartão de Crédito Parcelado') &&
+        l.parcelas &&
+        l.parcelas > 1
           ? `${l.forma_pagamento} ${l.parcelas}x`
           : l.forma_pagamento || 'Outro'
       const val = Number(l.valor || 0)
@@ -148,9 +157,53 @@ export function FaturamentoDashboard() {
     })
     const pieChartData = Object.keys(pieMap).map((k) => ({ name: k, value: pieMap[k] }))
 
+    // Profissionais/Colaboradores (Mês Atual)
+    const profMap: Record<string, number> = {}
+    lancamentosAtual.forEach((l) => {
+      const prof = l.profissional_orcamento || l.colaborador_responsavel || 'Não Informado'
+      profMap[prof] = (profMap[prof] || 0) + Number(l.valor || 0)
+    })
+    const profChartData = Object.keys(profMap)
+      .map((k) => ({ name: k, valor: profMap[k] }))
+      .sort((a, b) => b.valor - a.valor)
+
+    // Projeção de Parcelas
+    const projecaoMap: Record<string, number> = {}
+    for (let i = 1; i <= 6; i++) {
+      const m = addMonths(dateObj, i)
+      projecaoMap[format(m, 'yyyy-MM')] = 0
+    }
+
+    allLancamentos.forEach((l) => {
+      const pmt = l.forma_pagamento?.toLowerCase() || ''
+      const isCredit = pmt.includes('cartão') || pmt.includes('cartao') || pmt.includes('credito')
+
+      const numParcelas = l.parcelas && l.parcelas > 0 ? l.parcelas : 1
+      const valPorParcela = Number(l.valor || 0) / numParcelas
+      const dataLanc = l.data_atendimento ? new Date(l.data_atendimento + 'T12:00:00Z') : new Date()
+
+      for (let p = 0; p < numParcelas; p++) {
+        const delay = isCredit ? p + 1 : p
+        const m = addMonths(dataLanc, delay)
+        const key = format(m, 'yyyy-MM')
+        if (projecaoMap[key] !== undefined) {
+          projecaoMap[key] += valPorParcela
+        }
+      }
+    })
+
+    const projecaoChartData = Object.keys(projecaoMap)
+      .sort()
+      .map((k) => ({
+        name: format(parseISO(`${k}-01`), 'MMM/yy', { locale: ptBR }),
+        valor: projecaoMap[k],
+      }))
+
     setChartData6m(barData)
     setLineData(lineChartData)
     setPieData(pieChartData)
+    setProfissionaisData(profChartData)
+    setProjecaoData(projecaoChartData)
 
     setLoading(false)
   }, [mesFiltro])
@@ -492,7 +545,7 @@ export function FaturamentoDashboard() {
         </Card>
 
         {/* Gráfico Pizza: Forma de Pagamento */}
-        <Card className="shadow-sm border-border/60 lg:col-span-2">
+        <Card className="shadow-sm border-border/60">
           <CardHeader className="border-b border-border/40 bg-secondary/10">
             <CardTitle className="text-[15px]">
               Distribuição por Forma de Pagamento (Mês Atual)
@@ -505,7 +558,7 @@ export function FaturamentoDashboard() {
               ) : pieData.length === 0 ? (
                 <p className="text-muted-foreground">Sem dados no período.</p>
               ) : (
-                <ChartContainer config={{}} className="h-full w-full max-w-[500px]">
+                <ChartContainer config={{}} className="h-full w-full">
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
                       <Pie
@@ -513,7 +566,7 @@ export function FaturamentoDashboard() {
                         cx="50%"
                         cy="50%"
                         innerRadius={60}
-                        outerRadius={90}
+                        outerRadius={80}
                         paddingAngle={2}
                         dataKey="value"
                         nameKey="name"
@@ -527,6 +580,134 @@ export function FaturamentoDashboard() {
                       <Tooltip formatter={(value: number) => formatCurrency(value)} />
                       <Legend verticalAlign="bottom" height={36} />
                     </PieChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Gráfico Barras: Profissional/Colaborador */}
+        <Card className="shadow-sm border-border/60">
+          <CardHeader className="border-b border-border/40 bg-secondary/10">
+            <CardTitle className="text-[15px]">Faturamento por Profissional (Mês Atual)</CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="h-[250px] w-full">
+              {loading ? (
+                <Skeleton className="w-full h-full rounded-xl" />
+              ) : profissionaisData.length === 0 ? (
+                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                  Sem dados no período.
+                </div>
+              ) : (
+                <ChartContainer
+                  config={{
+                    valor: { label: 'Faturamento', color: 'hsl(var(--primary))' },
+                  }}
+                  className="h-full w-full"
+                >
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={profissionaisData}
+                      layout="vertical"
+                      margin={{ top: 0, right: 20, left: 0, bottom: 0 }}
+                    >
+                      <CartesianGrid horizontal={false} strokeDasharray="3 3" />
+                      <XAxis
+                        type="number"
+                        tickFormatter={(val) => `R$${val / 1000}k`}
+                        tickLine={false}
+                        axisLine={false}
+                        tick={{ fontSize: 12 }}
+                      />
+                      <YAxis
+                        dataKey="name"
+                        type="category"
+                        tickLine={false}
+                        axisLine={false}
+                        tick={{ fontSize: 12 }}
+                        width={100}
+                      />
+                      <Tooltip
+                        content={
+                          <ChartTooltipContent
+                            formatter={(val: any) => formatCurrency(Number(val))}
+                          />
+                        }
+                        cursor={{ fill: 'var(--theme-ui-muted)' }}
+                      />
+                      <Bar
+                        dataKey="valor"
+                        name="Faturamento"
+                        fill="var(--color-valor)"
+                        radius={[0, 4, 4, 0]}
+                        maxBarSize={40}
+                      />
+                    </BarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Gráfico Barras: Projeção de Fluxo de Caixa (Próximos 6 Meses) */}
+        <Card className="shadow-sm border-border/60 lg:col-span-2">
+          <CardHeader className="border-b border-border/40 bg-secondary/10">
+            <CardTitle className="text-[15px]">
+              Projeção de Recebimentos Futuros (Parcelas em Aberto)
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="pt-6">
+            <div className="h-[250px] w-full">
+              {loading ? (
+                <Skeleton className="w-full h-full rounded-xl" />
+              ) : projecaoData.every((d) => d.valor === 0) ? (
+                <div className="w-full h-full flex items-center justify-center text-muted-foreground">
+                  Nenhuma projeção de recebimento para os próximos meses.
+                </div>
+              ) : (
+                <ChartContainer
+                  config={{
+                    valor: { label: 'Recebimento Projetado', color: '#10b981' },
+                  }}
+                  className="h-full w-full"
+                >
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart
+                      data={projecaoData}
+                      margin={{ top: 10, right: 10, left: 0, bottom: 0 }}
+                    >
+                      <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                      <XAxis
+                        dataKey="name"
+                        tickLine={false}
+                        axisLine={false}
+                        tick={{ fontSize: 12 }}
+                      />
+                      <YAxis
+                        tickFormatter={(val) => `R$${val / 1000}k`}
+                        tickLine={false}
+                        axisLine={false}
+                        tick={{ fontSize: 12 }}
+                      />
+                      <Tooltip
+                        content={
+                          <ChartTooltipContent
+                            formatter={(val: any) => formatCurrency(Number(val))}
+                          />
+                        }
+                        cursor={{ fill: 'var(--theme-ui-muted)' }}
+                      />
+                      <Bar
+                        dataKey="valor"
+                        name="Recebimento Projetado"
+                        fill="var(--color-valor)"
+                        radius={[4, 4, 0, 0]}
+                        maxBarSize={50}
+                      />
+                    </BarChart>
                   </ResponsiveContainer>
                 </ChartContainer>
               )}
