@@ -44,8 +44,9 @@ import {
   DialogTrigger,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
+import { format } from 'date-fns'
 
-type EntityType = 'pacientes' | 'despesas' | 'produtos_servicos' | 'salas' | 'transacoes'
+type EntityType = 'pacientes' | 'despesas' | 'produtos_servicos' | 'salas' | 'diario_atendimentos'
 
 const TEMPLATES: Record<EntityType, string> = {
   pacientes:
@@ -54,8 +55,8 @@ const TEMPLATES: Record<EntityType, string> = {
     'descricao,categoria,valor,data_vencimento,status,conta_pagamento\nConta de Luz Energisa,,150.50,2023-10-10,Pendente,Conta Jurídica / Sicoob\nAbastecimento Posto Ipiranga,,200.00,2023-10-12,Pago,Carnê Leão / Unicred',
   produtos_servicos: 'nome,descricao,preco\nConsulta Geral,Consulta de rotina,250.00',
   salas: 'nome,status,taxa_hora,taxa_dia\nSala 01,Ativa,50.00,300.00',
-  transacoes:
-    'tipo,valor,data,descricao,status\nreceita,1500.00,2023-10-10,Atendimento,confirmado\ndespesa,150.50,2023-10-10,Luz,pago',
+  diario_atendimentos:
+    'data,paciente_nome,valor_consulta,valor_procedimento,forma_pagamento,conta_recebimento\n2024-02-15,Maria Silva,250.00,0,PIX,Conta Jurídica',
 }
 
 const REQUIRED_FIELDS: Record<EntityType, string[]> = {
@@ -63,7 +64,7 @@ const REQUIRED_FIELDS: Record<EntityType, string[]> = {
   despesas: ['descricao', 'valor'],
   produtos_servicos: ['nome'],
   salas: ['nome'],
-  transacoes: ['tipo', 'valor', 'data'],
+  diario_atendimentos: ['paciente_nome'],
 }
 
 export default function Importar() {
@@ -74,6 +75,7 @@ export default function Importar() {
   const [headers, setHeaders] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [progress, setProgress] = useState(0)
+  const [mesReferencia, setMesReferencia] = useState(format(new Date(), 'yyyy-MM'))
   const [result, setResult] = useState<{
     success: number
     errors: number
@@ -105,27 +107,60 @@ export default function Importar() {
     localStorage.setItem('import_category_rules', JSON.stringify(rules))
   }, [rules])
 
-  const parseCSV = (text: string) => {
-    const lines = text.split(/\r?\n/).filter((l) => l.trim() !== '')
-    if (lines.length === 0) return []
+  const parseNumericValue = (val: any, header: string) => {
+    if (val === undefined || val === null || val === '') return null
+    const strVal = String(val).trim()
+    if (
+      [
+        'cpf',
+        'telefone',
+        'data',
+        'conta_recebimento',
+        'forma_pagamento',
+        'paciente_nome',
+        'descricao',
+        'categoria',
+      ].includes(header)
+    ) {
+      return strVal
+    }
+    if (typeof val === 'number') return val
 
-    const parsedHeaders = lines[0].split(',').map((h) => h.trim().toLowerCase())
-    setHeaders(parsedHeaders)
+    let cleanStr = strVal.replace(/R\$\s?/g, '').trim()
+    if (!isNaN(Number(cleanStr)) && cleanStr !== '') return Number(cleanStr)
 
-    const data = lines.slice(1).map((line) => {
-      const values = line.split(',')
-      const row = parsedHeaders.reduce(
-        (acc, header, index) => {
-          let val: any = values[index]?.trim()
-          if (val === '') val = null
-          else if (val && !isNaN(Number(val)) && header !== 'cpf' && header !== 'telefone') {
-            val = Number(val)
+    if (cleanStr.includes(',')) {
+      const dotStr = cleanStr.replace(/\./g, '').replace(',', '.')
+      if (!isNaN(Number(dotStr)) && dotStr !== '') return Number(dotStr)
+    }
+    return strVal
+  }
+
+  const processParsedData = (data: any[]) => {
+    return data.map((row) => {
+      if (entity === 'diario_atendimentos') {
+        if (!row.forma_pagamento) row.forma_pagamento = 'Outro'
+
+        if (mesReferencia) {
+          let dataVal = row.data
+          let day = '01'
+          if (dataVal && typeof dataVal === 'string') {
+            if (dataVal.includes('/')) {
+              const parts = dataVal.split('/')
+              if (parts.length >= 2) day = parts[0].padStart(2, '0')
+            } else if (dataVal.includes('-')) {
+              const parts = dataVal.split('-')
+              if (parts.length === 3) day = parts[2].substring(0, 2).padStart(2, '0')
+            }
           }
-          acc[header] = val
-          return acc
-        },
-        {} as Record<string, any>,
-      )
+          const dayNum = parseInt(day, 10)
+          if (isNaN(dayNum) || dayNum < 1 || dayNum > 31) day = '01'
+
+          row.data = `${mesReferencia}-${day}`
+        } else if (!row.data) {
+          row.data = `${format(new Date(), 'yyyy-MM')}-01`
+        }
+      }
 
       if (entity === 'despesas' && row.descricao && !row.categoria) {
         const lowerDesc = String(row.descricao).toLowerCase()
@@ -136,14 +171,34 @@ export default function Importar() {
           row.categoria = matchedRule.category
         }
       }
+      return row
+    })
+  }
 
+  const parseCSV = (text: string) => {
+    const lines = text.split(/\r?\n/).filter((l) => l.trim() !== '')
+    if (lines.length === 0) return []
+
+    const parsedHeaders = lines[0].split(',').map((h) => h.trim().toLowerCase().replace(/ /g, '_'))
+    setHeaders(parsedHeaders)
+
+    const data = lines.slice(1).map((line) => {
+      const values = line.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)
+      const row = parsedHeaders.reduce(
+        (acc, header, index) => {
+          let val: any = values[index]?.trim().replace(/^"|"$/g, '')
+          acc[header] = parseNumericValue(val, header)
+          return acc
+        },
+        {} as Record<string, any>,
+      )
       return row
     })
 
-    return data
+    return processParsedData(data)
   }
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFile = e.target.files?.[0]
     setResult(null)
 
@@ -163,30 +218,48 @@ export default function Importar() {
       setFile(selectedFile)
 
       if (isExcel) {
-        // Simulador de processamento de Excel (para demonstração do carregamento nativo)
-        setTimeout(() => {
-          let mockText = TEMPLATES[entity as EntityType] || ''
+        setLoading(true)
+        const formData = new FormData()
+        formData.append('file', selectedFile)
 
-          // Gerar um mês completo de faturamento/despesas se for arquivo Excel
-          if (entity === 'transacoes') {
-            mockText = 'tipo,valor,data,descricao,status\n'
-            for (let i = 1; i <= 30; i++) {
-              mockText += `receita,${150 + i * 10},2023-10-${i.toString().padStart(2, '0')},Faturamento Atendimento ${i},confirmado\n`
-            }
-          } else if (entity === 'despesas') {
-            mockText = 'descricao,categoria,valor,data_vencimento,status,conta_pagamento\n'
-            for (let i = 1; i <= 30; i++) {
-              mockText += `Despesa Simulada ${i},,${50 + i * 5},2023-10-${i.toString().padStart(2, '0')},Pago,Conta Jurídica / Sicoob\n`
-            }
-          }
-
-          const parsed = parseCSV(mockText)
-          setPreviewData(parsed)
-          toast({
-            title: 'Planilha Excel processada',
-            description: 'Os dados foram lidos e estruturados com sucesso.',
+        try {
+          const { data, error } = await supabase.functions.invoke('parse-excel', {
+            body: formData,
           })
-        }, 800)
+
+          if (error) throw error
+
+          if (data && data.data && data.data.length > 0) {
+            const rawHeaders = Object.keys(data.data[0])
+            const mappedHeaders = rawHeaders.map((h) => h.toLowerCase().trim().replace(/ /g, '_'))
+            setHeaders(mappedHeaders)
+
+            const parsedData = data.data.map((row: any) => {
+              const newRow: any = {}
+              rawHeaders.forEach((h, i) => {
+                newRow[mappedHeaders[i]] = parseNumericValue(row[h], mappedHeaders[i])
+              })
+              return newRow
+            })
+
+            setPreviewData(processParsedData(parsedData))
+            toast({
+              title: 'Planilha Excel processada',
+              description: 'Os dados foram lidos e estruturados com sucesso.',
+            })
+          } else {
+            setPreviewData([])
+            toast({ title: 'Planilha Vazia', description: 'Nenhum dado encontrado no arquivo.' })
+          }
+        } catch (err: any) {
+          toast({
+            title: 'Erro ao processar Excel',
+            description: err.message || 'Falha ao ler o arquivo XLSX',
+            variant: 'destructive',
+          })
+        } finally {
+          setLoading(false)
+        }
       } else {
         const reader = new FileReader()
         reader.onload = (event) => {
@@ -266,7 +339,7 @@ export default function Importar() {
 
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i].map((row) => {
-        if (entity === 'despesas' && user) {
+        if ((entity === 'despesas' || entity === 'diario_atendimentos') && user) {
           return { ...row, user_id: user.id }
         }
         return row
@@ -364,15 +437,29 @@ export default function Importar() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pacientes">Pacientes</SelectItem>
-                    <SelectItem value="despesas">Despesas</SelectItem>
+                    <SelectItem value="despesas">Despesas (Saídas)</SelectItem>
+                    <SelectItem value="diario_atendimentos">Faturamento (Entradas)</SelectItem>
                     <SelectItem value="produtos_servicos">Produtos e Serviços</SelectItem>
                     <SelectItem value="salas">Salas</SelectItem>
-                    <SelectItem value="transacoes">Transações (Entradas/Saídas)</SelectItem>
                   </SelectContent>
                 </Select>
 
+                {entity === 'diario_atendimentos' && (
+                  <div className="space-y-3 mt-4 animate-fade-in">
+                    <label className="text-sm font-medium text-foreground">
+                      Mês de Referência (Obrigatório para Faturamento)
+                    </label>
+                    <Input
+                      type="month"
+                      value={mesReferencia}
+                      onChange={(e) => setMesReferencia(e.target.value)}
+                      className="h-11 rounded-xl"
+                    />
+                  </div>
+                )}
+
                 {entity && (
-                  <div className="flex gap-2 mt-2">
+                  <div className="flex gap-2 mt-4 animate-fade-in">
                     <Button
                       type="button"
                       variant="outline"
