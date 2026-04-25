@@ -43,8 +43,17 @@ import {
   DialogTitle,
   DialogTrigger,
 } from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
 import { Input } from '@/components/ui/input'
-import { format } from 'date-fns'
 
 type EntityType = 'pacientes' | 'despesas' | 'produtos_servicos' | 'salas' | 'lancamentos_pacientes'
 
@@ -81,6 +90,12 @@ export default function Importar() {
     errors: number
     details: string[]
   } | null>(null)
+
+  const [duplicateAlert, setDuplicateAlert] = useState<{
+    show: boolean
+    duplicates: any[]
+    preparedData: any[]
+  }>({ show: false, duplicates: [], preparedData: [] })
 
   const [rules, setRules] = useState<{ keyword: string; category: string }[]>(() => {
     const saved = localStorage.getItem('import_category_rules')
@@ -168,11 +183,9 @@ export default function Importar() {
       const lastDot = cleanStr.lastIndexOf('.')
 
       if (lastComma > lastDot) {
-        // Formato BR (ex: 1.500,50 ou 1500,50)
         const dotStr = cleanStr.replace(/\./g, '').replace(',', '.')
         if (!isNaN(Number(dotStr)) && dotStr !== '') return Number(dotStr)
       } else {
-        // Formato US (ex: 1,500.50)
         const usStr = cleanStr.replace(/,/g, '')
         if (!isNaN(Number(usStr)) && usStr !== '') return Number(usStr)
       }
@@ -375,18 +388,6 @@ export default function Importar() {
     }
 
     setLoading(true)
-    setProgress(0)
-    setResult(null)
-
-    let successCount = 0
-    let errorCount = 0
-    const errorDetails: string[] = []
-
-    const chunkSize = 50
-    const chunks = []
-    for (let i = 0; i < previewData.length; i += chunkSize) {
-      chunks.push(previewData.slice(i, i + chunkSize))
-    }
 
     const validColumns: Record<string, string[]> = {
       pacientes: ['nome', 'cpf', 'telefone', 'email', 'data_nascimento'],
@@ -418,68 +419,160 @@ export default function Importar() {
       ],
     }
 
-    for (let i = 0; i < chunks.length; i++) {
-      const chunk = chunks[i].map((row) => {
-        let processedRow: any = { ...row }
+    const preparedData = previewData.map((row) => {
+      let processedRow: any = { ...row }
 
-        if (entity === 'lancamentos_pacientes' && user) {
-          const { paciente, data_atendimento, data, ...rest } = processedRow
+      if (entity === 'lancamentos_pacientes' && user) {
+        const { paciente, data_atendimento, data, ...rest } = processedRow
 
-          let finalDate = new Date().toISOString().split('T')[0]
-          let dateFromRow = data_atendimento || data
-          let parsedDate = new Date()
+        let finalDate = new Date().toISOString().split('T')[0]
+        let dateFromRow = data_atendimento || data
+        let parsedDate = new Date()
 
-          if (dateFromRow && typeof dateFromRow === 'string') {
-            if (dateFromRow.includes('/')) {
-              const parts = dateFromRow.split('/')
-              if (parts.length >= 3) {
-                parsedDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T12:00:00Z`)
-                if (isNaN(parsedDate.getTime())) {
-                  parsedDate = new Date(`${parts[2]}-${parts[0]}-${parts[1]}T12:00:00Z`)
-                }
+        if (dateFromRow && typeof dateFromRow === 'string') {
+          if (dateFromRow.includes('/')) {
+            const parts = dateFromRow.split('/')
+            if (parts.length >= 3) {
+              parsedDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T12:00:00Z`)
+              if (isNaN(parsedDate.getTime())) {
+                parsedDate = new Date(`${parts[2]}-${parts[0]}-${parts[1]}T12:00:00Z`)
               }
-            } else if (dateFromRow.includes('-')) {
-              parsedDate = new Date(`${dateFromRow}T12:00:00Z`)
+            }
+          } else if (dateFromRow.includes('-')) {
+            parsedDate = new Date(`${dateFromRow}T12:00:00Z`)
+          }
+        }
+
+        if (isNaN(parsedDate.getTime())) {
+          parsedDate = new Date()
+        }
+
+        if (mesReferencia) {
+          const [year, month] = mesReferencia.split('-')
+          parsedDate.setUTCFullYear(parseInt(year, 10))
+          parsedDate.setUTCMonth(parseInt(month, 10) - 1)
+        }
+
+        finalDate = parsedDate.toISOString().split('T')[0]
+
+        processedRow = {
+          ...rest,
+          nome_paciente: paciente || row.nome_paciente || 'Paciente Sem Nome',
+          data_atendimento: finalDate,
+          user_id: user.id,
+        }
+      }
+
+      if (entity === 'despesas' && user) {
+        processedRow = { ...processedRow, user_id: user.id }
+
+        let finalDate = processedRow.data_vencimento
+        if (finalDate && typeof finalDate === 'string') {
+          if (finalDate.includes('/')) {
+            const parts = finalDate.split('/')
+            if (parts.length >= 3) {
+              const parsedDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T12:00:00Z`)
+              if (!isNaN(parsedDate.getTime())) {
+                finalDate = parsedDate.toISOString().split('T')[0]
+              }
             }
           }
-
-          if (isNaN(parsedDate.getTime())) {
-            parsedDate = new Date()
-          }
-
-          if (mesReferencia) {
-            const [year, month] = mesReferencia.split('-')
-            parsedDate.setUTCFullYear(parseInt(year, 10))
-            parsedDate.setUTCMonth(parseInt(month, 10) - 1)
-          }
-
-          finalDate = parsedDate.toISOString().split('T')[0]
-
-          processedRow = {
-            ...rest,
-            nome_paciente: paciente || row.nome_paciente || 'Paciente Sem Nome',
-            data_atendimento: finalDate,
-            user_id: user.id,
-          }
+          processedRow.data_vencimento = finalDate
         }
+      }
 
-        if (entity === 'despesas' && user) {
-          processedRow = { ...processedRow, user_id: user.id }
+      const allowedKeys = validColumns[entity] || []
+      const cleanRow: any = {}
+      Object.keys(processedRow).forEach((key) => {
+        if (allowedKeys.includes(key)) {
+          cleanRow[key] = processedRow[key]
         }
-
-        const allowedKeys = validColumns[entity] || []
-        const cleanRow: any = {}
-        Object.keys(processedRow).forEach((key) => {
-          if (allowedKeys.includes(key)) {
-            cleanRow[key] = processedRow[key]
-          }
-        })
-
-        return cleanRow
       })
 
+      return cleanRow
+    })
+
+    // Duplicates Check
+    let duplicates: any[] = []
+
+    if (entity === 'lancamentos_pacientes') {
+      const dates = preparedData.map((p) => p.data_atendimento).filter(Boolean)
+      if (dates.length > 0) {
+        const minDate = dates.reduce((a, b) => (a < b ? a : b))
+        const maxDate = dates.reduce((a, b) => (a > b ? a : b))
+
+        const { data: existing } = await supabase
+          .from('lancamentos_pacientes')
+          .select('nome_paciente, data_atendimento, valor')
+          .gte('data_atendimento', minDate)
+          .lte('data_atendimento', maxDate)
+
+        if (existing) {
+          duplicates = preparedData.filter((row) =>
+            existing.some(
+              (e) =>
+                e.nome_paciente?.toLowerCase().trim() === row.nome_paciente?.toLowerCase().trim() &&
+                e.data_atendimento === row.data_atendimento &&
+                Number(e.valor) === Number(row.valor),
+            ),
+          )
+        }
+      }
+    } else if (entity === 'despesas') {
+      const dates = preparedData.map((p) => p.data_vencimento).filter(Boolean)
+      if (dates.length > 0) {
+        const minDate = dates.reduce((a, b) => (a < b ? a : b))
+        const maxDate = dates.reduce((a, b) => (a > b ? a : b))
+
+        const { data: existing } = await supabase
+          .from('despesas')
+          .select('descricao, data_vencimento, valor')
+          .gte('data_vencimento', minDate)
+          .lte('data_vencimento', maxDate)
+
+        if (existing) {
+          duplicates = preparedData.filter((row) =>
+            existing.some(
+              (e) =>
+                e.descricao?.toLowerCase().trim() === row.descricao?.toLowerCase().trim() &&
+                e.data_vencimento === row.data_vencimento &&
+                Number(e.valor) === Number(row.valor),
+            ),
+          )
+        }
+      }
+    }
+
+    if (duplicates.length > 0) {
+      setLoading(false)
+      setDuplicateAlert({ show: true, duplicates, preparedData })
+      return
+    }
+
+    await executeImport(preparedData)
+  }
+
+  const executeImport = async (dataToImport: any[]) => {
+    setDuplicateAlert({ show: false, duplicates: [], preparedData: [] })
+    setLoading(true)
+    setProgress(0)
+    setResult(null)
+
+    let successCount = 0
+    let errorCount = 0
+    const errorDetails: string[] = []
+
+    const chunkSize = 50
+    const chunks = []
+    for (let i = 0; i < dataToImport.length; i += chunkSize) {
+      chunks.push(dataToImport.slice(i, i + chunkSize))
+    }
+
+    for (let i = 0; i < chunks.length; i++) {
+      const chunk = chunks[i]
+
       try {
-        const { error } = await supabase.from(entity).insert(chunk)
+        const { error } = await supabase.from(entity as string).insert(chunk)
 
         if (error) {
           errorCount += chunk.length
@@ -507,7 +600,7 @@ export default function Importar() {
       await logAction(
         `Importou ${successCount} registros na entidade ${entity}`,
         'importacao',
-        entity,
+        entity as string,
       )
       setFile(null)
       setPreviewData([])
@@ -522,7 +615,7 @@ export default function Importar() {
       await logAction(
         `Importação com ${errorCount} erros na entidade ${entity}`,
         'importacao',
-        entity,
+        entity as string,
       )
     }
   }
@@ -943,6 +1036,45 @@ export default function Importar() {
           </Card>
         </div>
       </div>
+
+      <AlertDialog
+        open={duplicateAlert.show}
+        onOpenChange={(open) => !open && setDuplicateAlert({ ...duplicateAlert, show: false })}
+      >
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Possível Duplicidade Detectada</AlertDialogTitle>
+            <AlertDialogDescription>
+              Encontramos <strong>{duplicateAlert.duplicates.length}</strong> registro(s) que já
+              existem no sistema (mesmo nome, data e valor). O que você deseja fazer?
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter className="flex-col sm:flex-row gap-2 mt-4">
+            <AlertDialogCancel
+              onClick={() => setDuplicateAlert({ show: false, duplicates: [], preparedData: [] })}
+            >
+              Cancelar Importação
+            </AlertDialogCancel>
+            <Button
+              variant="outline"
+              onClick={() => {
+                const uniqueData = duplicateAlert.preparedData.filter(
+                  (row) => !duplicateAlert.duplicates.includes(row),
+                )
+                executeImport(uniqueData)
+              }}
+            >
+              Ignorar Duplicados
+            </Button>
+            <AlertDialogAction
+              onClick={() => executeImport(duplicateAlert.preparedData)}
+              className="bg-primary text-primary-foreground"
+            >
+              Importar Tudo
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }
