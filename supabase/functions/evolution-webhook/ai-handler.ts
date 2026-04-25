@@ -55,26 +55,20 @@ export async function processAiResponse(
       `[AI Handler] Agent selected: ${agent.id} (Name: "${agent.name}", is_active: ${agent.is_active})`,
     )
 
-    // Get API key - supports both OpenAI and Gemini (backwards compatible)
-    // Priority: agent.gemini_api_key (which now stores OpenAI key) > OPENAI_API_KEY env > GEMINI_API_KEY env
-    const apiKey =
-      agent.gemini_api_key || Deno.env.get('OPENAI_API_KEY') || Deno.env.get('GEMINI_API_KEY')
+    const apiKey = agent.gemini_api_key || Deno.env.get('GEMINI_API_KEY')
     if (!apiKey) {
       console.error(
-        `[AI Handler] Exiting: API key missing from agent and environment secrets (checked OPENAI_API_KEY and GEMINI_API_KEY).`,
+        `[AI Handler] Exiting: GEMINI_API_KEY missing from agent and environment secrets.`,
       )
       return
     }
-
-    // Get OpenAI base URL (for proxy support)
-    const openaiBaseUrl = Deno.env.get('OPENAI_BASE_URL') || 'https://api.openai.com/v1'
 
     const { data: messages } = await supabase
       .from('whatsapp_messages')
       .select('text, from_me')
       .eq('contact_id', contactId)
       .order('timestamp', { ascending: false })
-      .limit(20)
+      .limit(12)
 
     if (!messages || messages.length === 0) {
       console.log(
@@ -85,60 +79,59 @@ export async function processAiResponse(
 
     console.log(`[AI Handler] Retrieved ${messages.length} messages for context.`)
 
-    // Build conversation history for OpenAI chat format
-    const conversationMessages = messages.reverse().map((m: any) => ({
-      role: m.from_me ? ('assistant' as const) : ('user' as const),
-      content: m.text || '',
-    }))
+    const history = messages
+      .reverse()
+      .map((m) => `${m.from_me ? 'Me' : 'Contact'}: ${m.text}`)
+      .join('\n')
 
-    // Build OpenAI messages array with system prompt
-    const openaiMessages = [
-      {
-        role: 'system' as const,
-        content: agent.system_prompt,
-      },
-      ...conversationMessages,
-    ]
+    const prompt = `
+System Instructions:
+${agent.system_prompt}
 
-    // Call OpenAI API (compatible with gpt-4.1-mini)
-    const apiUrl = `${openaiBaseUrl}/chat/completions`
-    console.log(`[AI Handler] Calling OpenAI API at ${apiUrl} with model gpt-4.1-mini...`)
+You are acting as "Me" in the following conversation.
+Read the conversation history carefully.
+Respond ONLY with the exact text of your next reply. Do not use quotes, explanations, or the prefix "Me:".
+
+CONVERSATION HISTORY:
+${history}
+`
+
+    const apiUrl = `https://generativelanguage.googleapis.com/v1/models/gemini-2.5-flash:generateContent?key=${apiKey}`
+    console.log(`[AI Handler] Calling Gemini API at v1/models/gemini-2.5-flash...`)
 
     const aiRes = await fetch(apiUrl, {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${apiKey}`,
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        model: 'gpt-4.1-mini',
-        messages: openaiMessages,
-        temperature: 0.7,
-        max_tokens: 500,
+        contents: [{ role: 'user', parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 800,
+        },
       }),
     })
 
     if (!aiRes.ok) {
       const errText = await aiRes.text()
       console.error(
-        `[AI Handler] Exiting: OpenAI API error for contact ${contactId} (remote_jid: ${contact.remote_jid}): Status ${aiRes.status} - Details:`,
+        `[AI Handler] Exiting: Gemini API error for contact ${contactId} (remote_jid: ${contact.remote_jid}): Status ${aiRes.status} - Details:`,
         errText,
       )
       return
     }
 
     const aiData = await aiRes.json()
-    const responseText = aiData.choices?.[0]?.message?.content?.trim()
+    const responseText = aiData.candidates?.[0]?.content?.parts?.[0]?.text?.trim()
 
     if (!responseText) {
       console.error(
-        `[AI Handler] Exiting: Empty response from OpenAI API for contact ${contactId}. Raw response:`,
+        `[AI Handler] Exiting: Empty response from Gemini API for contact ${contactId}. Raw response:`,
         JSON.stringify(aiData),
       )
       return
     }
 
-    console.log(`[AI Handler] OpenAI generated text: "${responseText}"`)
+    console.log(`[AI Handler] Gemini generated text: "${responseText}"`)
 
     const { data: integration } = await supabase
       .from('user_integrations')
