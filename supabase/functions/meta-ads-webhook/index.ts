@@ -23,7 +23,7 @@ Deno.serve(async (req) => {
     // Verify against stored token or env variable
     const storedVerifyToken = Deno.env.get('META_WEBHOOK_VERIFY_TOKEN')
 
-    if (mode === 'subscribe' && verifyToken && (verifyToken === storedVerifyToken)) {
+    if (mode === 'subscribe' && verifyToken && verifyToken === storedVerifyToken) {
       console.log('[Meta Webhook] Verification successful')
       return new Response(challenge, {
         status: 200,
@@ -57,7 +57,7 @@ Deno.serve(async (req) => {
       // Find webhook token - try URL param first, then get the first active one
       let webhookToken: any = null
       const token = url.searchParams.get('token')
-      
+
       if (token) {
         const { data } = await supabase
           .from('crm_webhook_tokens')
@@ -67,7 +67,7 @@ Deno.serve(async (req) => {
           .single()
         webhookToken = data
       }
-      
+
       if (!webhookToken) {
         // Get the first active webhook token (Meta doesn't send token in POST)
         const { data } = await supabase
@@ -82,10 +82,10 @@ Deno.serve(async (req) => {
 
       if (!webhookToken) {
         console.error('[Meta Webhook] No active webhook token found')
-        return new Response(
-          JSON.stringify({ error: 'No active webhook token' }),
-          { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-        )
+        return new Response(JSON.stringify({ error: 'No active webhook token' }), {
+          status: 401,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        })
       }
 
       // Meta sends data in this format:
@@ -106,7 +106,7 @@ Deno.serve(async (req) => {
             // Try to fetch lead details from Meta Graph API if access token is available
             let leadDetails: any = null
             const metaAccessToken = Deno.env.get('META_ACCESS_TOKEN')
-            
+
             if (metaAccessToken && leadgenId) {
               try {
                 const metaRes = await fetch(
@@ -114,7 +114,10 @@ Deno.serve(async (req) => {
                 )
                 if (metaRes.ok) {
                   leadDetails = await metaRes.json()
-                  console.log('[Meta Webhook] Lead details from Graph API:', JSON.stringify(leadDetails))
+                  console.log(
+                    '[Meta Webhook] Lead details from Graph API:',
+                    JSON.stringify(leadDetails),
+                  )
                 }
               } catch (err) {
                 console.error('[Meta Webhook] Error fetching lead details:', err)
@@ -126,7 +129,8 @@ Deno.serve(async (req) => {
             const getName = () => {
               const fullName = fieldData.find((f: any) => f.name === 'full_name')?.values?.[0]
               if (fullName) return fullName
-              const firstName = fieldData.find((f: any) => f.name === 'first_name')?.values?.[0] || ''
+              const firstName =
+                fieldData.find((f: any) => f.name === 'first_name')?.values?.[0] || ''
               const lastName = fieldData.find((f: any) => f.name === 'last_name')?.values?.[0] || ''
               return `${firstName} ${lastName}`.trim() || 'Lead Meta Ads'
             }
@@ -230,10 +234,12 @@ Deno.serve(async (req) => {
                       Deno.env.get('EVOLUTION_API_URL') ||
                       ''
                     ).replace(/\/$/, '')
-                    const evoKey = integration.evolution_api_key || Deno.env.get('EVOLUTION_API_KEY')
+                    const evoKey =
+                      integration.evolution_api_key || Deno.env.get('EVOLUTION_API_KEY')
 
                     // Send welcome message
-                    const welcomeMsg = aiConfig.welcome_message || 
+                    const welcomeMsg =
+                      aiConfig.welcome_message ||
                       `Olá ${name.split(' ')[0]}! Sou a Helena, assistente da Clínica Canever. Para darmos continuidade no seu atendimento, qual seu nome por favor?`
 
                     const sendRes = await fetch(
@@ -253,7 +259,7 @@ Deno.serve(async (req) => {
 
                     if (sendRes.ok) {
                       console.log('[Meta Webhook] Welcome message sent to:', phone)
-                      
+
                       // Update lead status
                       await supabase
                         .from('crm_leads')
@@ -278,7 +284,7 @@ Deno.serve(async (req) => {
 
                       // Create/update whatsapp_contact for AI agent to handle responses
                       const remoteJid = phone.replace(/\D/g, '') + '@s.whatsapp.net'
-                      
+
                       // Find the AI agent for CRM qualification
                       let aiAgentId = aiConfig.ai_agent_id
                       if (!aiAgentId) {
@@ -380,10 +386,10 @@ Deno.serve(async (req) => {
       )
     } catch (err) {
       console.error('[Meta Webhook] Error processing webhook:', err)
-      return new Response(
-        JSON.stringify({ error: 'Internal server error' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      )
+      return new Response(JSON.stringify({ error: 'Internal server error' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
   }
 

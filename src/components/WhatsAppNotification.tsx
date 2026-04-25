@@ -156,9 +156,7 @@ export function WhatsAppNotification({
               <label htmlFor="message" className="text-sm font-medium">
                 Mensagem *
               </label>
-              <span className="text-xs text-muted-foreground">
-                {charCount}/1000
-              </span>
+              <span className="text-xs text-muted-foreground">{charCount}/1000</span>
             </div>
             <Textarea
               id="message"
@@ -170,9 +168,7 @@ export function WhatsAppNotification({
               maxLength={1000}
               className="resize-none"
             />
-            <p className="text-xs text-muted-foreground">
-              Máximo 1000 caracteres
-            </p>
+            <p className="text-xs text-muted-foreground">Máximo 1000 caracteres</p>
           </div>
 
           {/* Botões de Ação */}
@@ -208,7 +204,8 @@ export function WhatsAppNotification({
           <div className="bg-blue-50 dark:bg-blue-950 border border-blue-200 dark:border-blue-800 rounded-lg p-3 text-sm">
             <p className="font-medium text-blue-900 dark:text-blue-100 mb-1">💡 Dica:</p>
             <p className="text-blue-800 dark:text-blue-200">
-              Use quebras de linha para melhor formatação. A mensagem será enviada exatamente como digitada.
+              Use quebras de linha para melhor formatação. A mensagem será enviada exatamente como
+              digitada.
             </p>
           </div>
         </div>

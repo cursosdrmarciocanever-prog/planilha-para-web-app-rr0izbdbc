@@ -9,14 +9,14 @@ const Sobre = () => {
       name: 'Dr. Marcio Canever',
       role: 'Médico Endocrinologista',
       specialties: 'Medicina Esportiva, Nutrologia Esportiva',
-      avatar: '👨‍⚕️'
+      avatar: '👨‍⚕️',
     },
     {
       name: 'Edineia Canever',
       role: 'Nutricionista',
       specialties: 'Nutrição Integrativa e Comportamental',
-      avatar: '👩‍⚕️'
-    }
+      avatar: '👩‍⚕️',
+    },
   ]
 
   return (
@@ -37,7 +37,8 @@ const Sobre = () => {
         <div className="container mx-auto max-w-4xl">
           <h1 className="text-5xl font-bold text-slate-900 mb-6">Sobre a Clínica Canever</h1>
           <p className="text-xl text-slate-600">
-            Um centro de excelência em saúde integrativa dedicado a transformar vidas através de medicina personalizada e humanizada.
+            Um centro de excelência em saúde integrativa dedicado a transformar vidas através de
+            medicina personalizada e humanizada.
           </p>
         </div>
       </section>
@@ -48,13 +49,20 @@ const Sobre = () => {
           <h2 className="text-4xl font-bold text-slate-900 mb-8">Nossa História</h2>
           <div className="space-y-6 text-slate-600 leading-relaxed">
             <p>
-              A Clínica Canever foi fundada com a missão de oferecer uma abordagem diferenciada em saúde, combinando o rigor científico da medicina tradicional com as práticas integrativas que tratam o paciente como um todo.
+              A Clínica Canever foi fundada com a missão de oferecer uma abordagem diferenciada em
+              saúde, combinando o rigor científico da medicina tradicional com as práticas
+              integrativas que tratam o paciente como um todo.
             </p>
             <p>
-              Nossos fundadores, Dr. Marcio Canever e sua esposa Edineia Canever, trazem décadas de experiência em endocrinologia, medicina esportiva, nutrologia e nutrição comportamental. Essa combinação única de conhecimentos permite uma visão holística de cada paciente.
+              Nossos fundadores, Dr. Marcio Canever e sua esposa Edineia Canever, trazem décadas de
+              experiência em endocrinologia, medicina esportiva, nutrologia e nutrição
+              comportamental. Essa combinação única de conhecimentos permite uma visão holística de
+              cada paciente.
             </p>
             <p>
-              Localizada em Maringá-PR, a clínica atende um público selecionado de classe A e B+, focando em qualidade sobre quantidade. Nosso objetivo é proporcionar resultados reais e sustentáveis, com um ticket médio que reflete o padrão premium de nossos serviços.
+              Localizada em Maringá-PR, a clínica atende um público selecionado de classe A e B+,
+              focando em qualidade sobre quantidade. Nosso objetivo é proporcionar resultados reais
+              e sustentáveis, com um ticket médio que reflete o padrão premium de nossos serviços.
             </p>
           </div>
         </div>
@@ -77,7 +85,8 @@ const Sobre = () => {
                     <strong>Especialidades:</strong> {member.specialties}
                   </p>
                   <p className="text-slate-600 text-sm">
-                    Com formação contínua e dedicação ao bem-estar dos pacientes, nossos profissionais garantem atendimento de excelência.
+                    Com formação contínua e dedicação ao bem-estar dos pacientes, nossos
+                    profissionais garantem atendimento de excelência.
                   </p>
                 </CardContent>
               </Card>

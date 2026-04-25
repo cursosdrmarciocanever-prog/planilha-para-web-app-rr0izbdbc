@@ -40,12 +40,7 @@ import {
   Archive,
 } from 'lucide-react'
 import { toast } from 'sonner'
-import {
-  fetchCampaigns,
-  createCampaign,
-  updateCampaign,
-  deleteCampaign,
-} from '@/services/crm'
+import { fetchCampaigns, createCampaign, updateCampaign, deleteCampaign } from '@/services/crm'
 import type { CrmCampaign, CampaignStatus } from '@/types/crm'
 
 export function CrmCampaigns() {
@@ -151,7 +146,9 @@ export function CrmCampaigns() {
     try {
       await updateCampaign(id, { status })
       setCampaigns((prev) => prev.map((c) => (c.id === id ? { ...c, status } : c)))
-      toast.success(`Campanha ${status === 'active' ? 'ativada' : status === 'paused' ? 'pausada' : 'arquivada'}`)
+      toast.success(
+        `Campanha ${status === 'active' ? 'ativada' : status === 'paused' ? 'pausada' : 'arquivada'}`,
+      )
     } catch (err) {
       toast.error('Erro ao atualizar status')
     }
@@ -246,24 +243,18 @@ export function CrmCampaigns() {
                       Editar
                     </DropdownMenuItem>
                     {campaign.status !== 'active' && (
-                      <DropdownMenuItem
-                        onClick={() => handleStatusChange(campaign.id, 'active')}
-                      >
+                      <DropdownMenuItem onClick={() => handleStatusChange(campaign.id, 'active')}>
                         <Play className="w-4 h-4 mr-2" />
                         Ativar
                       </DropdownMenuItem>
                     )}
                     {campaign.status === 'active' && (
-                      <DropdownMenuItem
-                        onClick={() => handleStatusChange(campaign.id, 'paused')}
-                      >
+                      <DropdownMenuItem onClick={() => handleStatusChange(campaign.id, 'paused')}>
                         <Pause className="w-4 h-4 mr-2" />
                         Pausar
                       </DropdownMenuItem>
                     )}
-                    <DropdownMenuItem
-                      onClick={() => handleStatusChange(campaign.id, 'archived')}
-                    >
+                    <DropdownMenuItem onClick={() => handleStatusChange(campaign.id, 'archived')}>
                       <Archive className="w-4 h-4 mr-2" />
                       Arquivar
                     </DropdownMenuItem>
@@ -306,9 +297,7 @@ export function CrmCampaigns() {
                     <DollarSign className="w-4 h-4 text-emerald-500" />
                   </div>
                   <p className="text-lg font-bold">
-                    {campaign.cost_per_lead > 0
-                      ? `R$${campaign.cost_per_lead.toFixed(0)}`
-                      : '-'}
+                    {campaign.cost_per_lead > 0 ? `R$${campaign.cost_per_lead.toFixed(0)}` : '-'}
                   </p>
                   <p className="text-[10px] text-muted-foreground">CPL</p>
                 </div>

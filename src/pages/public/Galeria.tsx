@@ -11,64 +11,65 @@ const Galeria = () => {
       id: 1,
       title: 'Consultório Principal',
       category: 'Espaço',
-      emoji: '🏥'
+      emoji: '🏥',
     },
     {
       id: 2,
       title: 'Sala de Procedimentos',
       category: 'Instalações',
-      emoji: '🔬'
+      emoji: '🔬',
     },
     {
       id: 3,
       title: 'Área de Espera',
       category: 'Espaço',
-      emoji: '🛋️'
+      emoji: '🛋️',
     },
     {
       id: 4,
       title: 'Laboratório',
       category: 'Instalações',
-      emoji: '🧪'
+      emoji: '🧪',
     },
     {
       id: 5,
       title: 'Sala de Soroterapia',
       category: 'Tratamentos',
-      emoji: '💉'
+      emoji: '💉',
     },
     {
       id: 6,
       title: 'Equipamentos Modernos',
       category: 'Tecnologia',
-      emoji: '⚙️'
+      emoji: '⚙️',
     },
     {
       id: 7,
       title: 'Recepção',
       category: 'Espaço',
-      emoji: '🎯'
+      emoji: '🎯',
     },
     {
       id: 8,
       title: 'Consultório Secundário',
       category: 'Espaço',
-      emoji: '🏢'
+      emoji: '🏢',
     },
     {
       id: 9,
       title: 'Área de Descanso',
       category: 'Espaço',
-      emoji: '🌿'
-    }
+      emoji: '🌿',
+    },
   ]
 
   const categories = ['Todos', 'Espaço', 'Instalações', 'Tratamentos', 'Tecnologia']
   const [selectedCategory, setSelectedCategory] = useState('Todos')
 
-  const filteredItems = selectedCategory === 'Todos'
-    ? galleryItems
-    : galleryItems.filter(item => item.category === selectedCategory)
+  const filteredItems =
+    selectedCategory === 'Todos'
+      ? galleryItems
+      : galleryItems.filter((item) => item.category === selectedCategory)
 
   return (
     <div className="min-h-screen bg-white">
@@ -102,7 +103,9 @@ const Galeria = () => {
                 key={category}
                 variant={selectedCategory === category ? 'default' : 'outline'}
                 onClick={() => setSelectedCategory(category)}
-                className={selectedCategory === category ? 'bg-emerald-600 hover:bg-emerald-700' : ''}
+                className={
+                  selectedCategory === category ? 'bg-emerald-600 hover:bg-emerald-700' : ''
+                }
               >
                 {category}
               </Button>
@@ -142,21 +145,25 @@ const Galeria = () => {
           className="fixed inset-0 bg-black/80 z-50 flex items-center justify-center p-4"
           onClick={() => setSelectedImage(null)}
         >
-          <div className="bg-white rounded-lg max-w-2xl w-full p-8" onClick={(e) => e.stopPropagation()}>
+          <div
+            className="bg-white rounded-lg max-w-2xl w-full p-8"
+            onClick={(e) => e.stopPropagation()}
+          >
             <div className="bg-gradient-to-br from-emerald-100 to-slate-100 rounded-lg flex items-center justify-center aspect-video mb-6">
               <span className="text-9xl">
-                {galleryItems.find(item => item.id === selectedImage)?.emoji}
+                {galleryItems.find((item) => item.id === selectedImage)?.emoji}
               </span>
             </div>
             <div>
               <h2 className="text-2xl font-bold text-slate-900 mb-2">
-                {galleryItems.find(item => item.id === selectedImage)?.title}
+                {galleryItems.find((item) => item.id === selectedImage)?.title}
               </h2>
               <p className="text-emerald-600 font-semibold mb-6">
-                {galleryItems.find(item => item.id === selectedImage)?.category}
+                {galleryItems.find((item) => item.id === selectedImage)?.category}
               </p>
               <p className="text-slate-600 mb-6">
-                Conheça de perto os espaços e instalações modernas da Clínica Canever, equipados com tecnologia de ponta para seu conforto e segurança.
+                Conheça de perto os espaços e instalações modernas da Clínica Canever, equipados com
+                tecnologia de ponta para seu conforto e segurança.
               </p>
               <Button
                 onClick={() => setSelectedImage(null)}

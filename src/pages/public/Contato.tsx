@@ -11,12 +11,12 @@ const Contato = () => {
     name: '',
     email: '',
     phone: '',
-    message: ''
+    message: '',
   })
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
+    setFormData((prev) => ({ ...prev, [name]: value }))
   }
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -93,7 +93,9 @@ const Contato = () => {
       {/* Contact Form */}
       <section className="py-20 px-4 bg-slate-50">
         <div className="container mx-auto max-w-2xl">
-          <h2 className="text-4xl font-bold text-slate-900 mb-12 text-center">Envie uma Mensagem</h2>
+          <h2 className="text-4xl font-bold text-slate-900 mb-12 text-center">
+            Envie uma Mensagem
+          </h2>
           <Card className="border-slate-200">
             <CardContent className="pt-8">
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -149,7 +151,11 @@ const Contato = () => {
                   />
                 </div>
 
-                <Button type="submit" size="lg" className="w-full bg-emerald-600 hover:bg-emerald-700">
+                <Button
+                  type="submit"
+                  size="lg"
+                  className="w-full bg-emerald-600 hover:bg-emerald-700"
+                >
                   Enviar Mensagem
                 </Button>
               </form>

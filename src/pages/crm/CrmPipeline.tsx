@@ -75,8 +75,7 @@ export function CrmPipeline() {
     }
   }
 
-  const getLeadsByStage = (stage: PipelineStage) =>
-    leads.filter((l) => l.pipeline_stage === stage)
+  const getLeadsByStage = (stage: PipelineStage) => leads.filter((l) => l.pipeline_stage === stage)
 
   const getClassificationIcon = (classification: string) => {
     switch (classification) {
@@ -111,9 +110,7 @@ export function CrmPipeline() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <p className="text-sm text-muted-foreground">
-          {leads.length} leads no pipeline
-        </p>
+        <p className="text-sm text-muted-foreground">{leads.length} leads no pipeline</p>
         <Button variant="outline" size="sm" onClick={loadLeads} disabled={loading}>
           <RefreshCw className={`w-4 h-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
           Atualizar
@@ -160,10 +157,7 @@ export function CrmPipeline() {
                             </span>
                           </div>
                           <DropdownMenu>
-                            <DropdownMenuTrigger
-                              asChild
-                              onClick={(e) => e.stopPropagation()}
-                            >
+                            <DropdownMenuTrigger asChild onClick={(e) => e.stopPropagation()}>
                               <Button variant="ghost" size="icon" className="h-6 w-6">
                                 <MoreVertical className="w-3.5 h-3.5" />
                               </Button>

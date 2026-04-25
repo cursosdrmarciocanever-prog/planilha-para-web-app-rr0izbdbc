@@ -1,10 +1,5 @@
 import { useEffect, useState } from 'react'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -222,9 +217,7 @@ export function LeadDetailDialog({ lead, open, onOpenChange, onUpdate }: Props) 
             <TabsTrigger value="info">Informações</TabsTrigger>
             <TabsTrigger value="qualification">Qualificação</TabsTrigger>
             <TabsTrigger value="whatsapp">WhatsApp</TabsTrigger>
-            <TabsTrigger value="activities">
-              Histórico ({activities.length})
-            </TabsTrigger>
+            <TabsTrigger value="activities">Histórico ({activities.length})</TabsTrigger>
           </TabsList>
 
           <ScrollArea className="h-[55vh] mt-4">
@@ -235,9 +228,7 @@ export function LeadDetailDialog({ lead, open, onOpenChange, onUpdate }: Props) 
                   <Label>Nome *</Label>
                   <Input
                     value={editedLead.name}
-                    onChange={(e) =>
-                      setEditedLead({ ...editedLead, name: e.target.value })
-                    }
+                    onChange={(e) => setEditedLead({ ...editedLead, name: e.target.value })}
                   />
                 </div>
                 <div>
@@ -245,27 +236,21 @@ export function LeadDetailDialog({ lead, open, onOpenChange, onUpdate }: Props) 
                   <Input
                     type="email"
                     value={editedLead.email || ''}
-                    onChange={(e) =>
-                      setEditedLead({ ...editedLead, email: e.target.value })
-                    }
+                    onChange={(e) => setEditedLead({ ...editedLead, email: e.target.value })}
                   />
                 </div>
                 <div>
                   <Label>Telefone</Label>
                   <Input
                     value={editedLead.phone || ''}
-                    onChange={(e) =>
-                      setEditedLead({ ...editedLead, phone: e.target.value })
-                    }
+                    onChange={(e) => setEditedLead({ ...editedLead, phone: e.target.value })}
                   />
                 </div>
                 <div>
                   <Label>WhatsApp</Label>
                   <Input
                     value={editedLead.whatsapp || ''}
-                    onChange={(e) =>
-                      setEditedLead({ ...editedLead, whatsapp: e.target.value })
-                    }
+                    onChange={(e) => setEditedLead({ ...editedLead, whatsapp: e.target.value })}
                     placeholder="5544999999999"
                   />
                 </div>
@@ -286,9 +271,7 @@ export function LeadDetailDialog({ lead, open, onOpenChange, onUpdate }: Props) 
                   <Label>Gênero</Label>
                   <Select
                     value={editedLead.gender || ''}
-                    onValueChange={(v) =>
-                      setEditedLead({ ...editedLead, gender: v })
-                    }
+                    onValueChange={(v) => setEditedLead({ ...editedLead, gender: v })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione" />
@@ -304,18 +287,14 @@ export function LeadDetailDialog({ lead, open, onOpenChange, onUpdate }: Props) 
                   <Label>Cidade</Label>
                   <Input
                     value={editedLead.city || ''}
-                    onChange={(e) =>
-                      setEditedLead({ ...editedLead, city: e.target.value })
-                    }
+                    onChange={(e) => setEditedLead({ ...editedLead, city: e.target.value })}
                   />
                 </div>
                 <div>
                   <Label>Estado</Label>
                   <Input
                     value={editedLead.state || ''}
-                    onChange={(e) =>
-                      setEditedLead({ ...editedLead, state: e.target.value })
-                    }
+                    onChange={(e) => setEditedLead({ ...editedLead, state: e.target.value })}
                     placeholder="PR"
                   />
                 </div>
@@ -346,9 +325,7 @@ export function LeadDetailDialog({ lead, open, onOpenChange, onUpdate }: Props) 
                   <Label>Atribuído a</Label>
                   <Input
                     value={editedLead.assigned_to || ''}
-                    onChange={(e) =>
-                      setEditedLead({ ...editedLead, assigned_to: e.target.value })
-                    }
+                    onChange={(e) => setEditedLead({ ...editedLead, assigned_to: e.target.value })}
                     placeholder="Nome do responsável"
                   />
                 </div>
@@ -382,9 +359,7 @@ export function LeadDetailDialog({ lead, open, onOpenChange, onUpdate }: Props) 
                 <Label>Observações</Label>
                 <Textarea
                   value={editedLead.notes || ''}
-                  onChange={(e) =>
-                    setEditedLead({ ...editedLead, notes: e.target.value })
-                  }
+                  onChange={(e) => setEditedLead({ ...editedLead, notes: e.target.value })}
                   rows={3}
                   placeholder="Notas sobre o lead..."
                 />
@@ -405,9 +380,7 @@ export function LeadDetailDialog({ lead, open, onOpenChange, onUpdate }: Props) 
                   <Label>Classificação</Label>
                   <Select
                     value={editedLead.classification}
-                    onValueChange={(v: any) =>
-                      setEditedLead({ ...editedLead, classification: v })
-                    }
+                    onValueChange={(v: any) => setEditedLead({ ...editedLead, classification: v })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -440,9 +413,7 @@ export function LeadDetailDialog({ lead, open, onOpenChange, onUpdate }: Props) 
                   <Label>Interesse Principal</Label>
                   <Select
                     value={editedLead.interest || ''}
-                    onValueChange={(v) =>
-                      setEditedLead({ ...editedLead, interest: v })
-                    }
+                    onValueChange={(v) => setEditedLead({ ...editedLead, interest: v })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione" />
@@ -460,9 +431,7 @@ export function LeadDetailDialog({ lead, open, onOpenChange, onUpdate }: Props) 
                   <Label>Faixa de Renda</Label>
                   <Select
                     value={editedLead.monthly_income_range || ''}
-                    onValueChange={(v) =>
-                      setEditedLead({ ...editedLead, monthly_income_range: v })
-                    }
+                    onValueChange={(v) => setEditedLead({ ...editedLead, monthly_income_range: v })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione" />
@@ -480,9 +449,7 @@ export function LeadDetailDialog({ lead, open, onOpenChange, onUpdate }: Props) 
                   <Label>Urgência</Label>
                   <Select
                     value={editedLead.urgency || ''}
-                    onValueChange={(v) =>
-                      setEditedLead({ ...editedLead, urgency: v })
-                    }
+                    onValueChange={(v) => setEditedLead({ ...editedLead, urgency: v })}
                   >
                     <SelectTrigger>
                       <SelectValue placeholder="Selecione" />
@@ -500,9 +467,7 @@ export function LeadDetailDialog({ lead, open, onOpenChange, onUpdate }: Props) 
                   <Label>Prioridade</Label>
                   <Select
                     value={editedLead.priority}
-                    onValueChange={(v: any) =>
-                      setEditedLead({ ...editedLead, priority: v })
-                    }
+                    onValueChange={(v: any) => setEditedLead({ ...editedLead, priority: v })}
                   >
                     <SelectTrigger>
                       <SelectValue />
@@ -520,9 +485,7 @@ export function LeadDetailDialog({ lead, open, onOpenChange, onUpdate }: Props) 
                 <Label>Objetivos de Saúde</Label>
                 <Textarea
                   value={editedLead.health_goals || ''}
-                  onChange={(e) =>
-                    setEditedLead({ ...editedLead, health_goals: e.target.value })
-                  }
+                  onChange={(e) => setEditedLead({ ...editedLead, health_goals: e.target.value })}
                   rows={3}
                   placeholder="Quais são os objetivos de saúde do lead..."
                 />
@@ -533,9 +496,7 @@ export function LeadDetailDialog({ lead, open, onOpenChange, onUpdate }: Props) 
                 <div className="bg-purple-50 border border-purple-200 rounded-lg p-4">
                   <div className="flex items-center gap-2 mb-2">
                     <Bot className="w-4 h-4 text-purple-600" />
-                    <span className="text-sm font-medium text-purple-800">
-                      Análise da IA
-                    </span>
+                    <span className="text-sm font-medium text-purple-800">Análise da IA</span>
                     {editedLead.ai_score && (
                       <Badge className="bg-purple-100 text-purple-700 border-purple-300">
                         Score IA: {editedLead.ai_score}/100
@@ -545,8 +506,7 @@ export function LeadDetailDialog({ lead, open, onOpenChange, onUpdate }: Props) 
                   <p className="text-sm text-purple-700">{editedLead.ai_summary}</p>
                   {editedLead.ai_qualified_at && (
                     <p className="text-xs text-purple-500 mt-2">
-                      Qualificado em{' '}
-                      {new Date(editedLead.ai_qualified_at).toLocaleString('pt-BR')}
+                      Qualificado em {new Date(editedLead.ai_qualified_at).toLocaleString('pt-BR')}
                     </p>
                   )}
                 </div>
@@ -583,12 +543,10 @@ export function LeadDetailDialog({ lead, open, onOpenChange, onUpdate }: Props) 
                     </div>
                     <div className="grid grid-cols-3 gap-3 text-xs text-green-700">
                       <div>
-                        <span className="font-medium">Status:</span>{' '}
-                        {editedLead.whatsapp_status}
+                        <span className="font-medium">Status:</span> {editedLead.whatsapp_status}
                       </div>
                       <div>
-                        <span className="font-medium">Mensagens:</span>{' '}
-                        {editedLead.total_messages}
+                        <span className="font-medium">Mensagens:</span> {editedLead.total_messages}
                       </div>
                       <div>
                         <span className="font-medium">Último contato:</span>{' '}
@@ -623,9 +581,7 @@ export function LeadDetailDialog({ lead, open, onOpenChange, onUpdate }: Props) 
 
                   {/* Quick messages */}
                   <div>
-                    <Label className="text-xs text-muted-foreground">
-                      Mensagens Rápidas
-                    </Label>
+                    <Label className="text-xs text-muted-foreground">Mensagens Rápidas</Label>
                     <div className="flex flex-wrap gap-2 mt-1">
                       {[
                         'Olá! Tudo bem? Vi que você demonstrou interesse na Clínica Canever. Posso te ajudar?',
@@ -674,10 +630,7 @@ export function LeadDetailDialog({ lead, open, onOpenChange, onUpdate }: Props) 
 
               <div className="space-y-3">
                 {activities.map((activity) => (
-                  <div
-                    key={activity.id}
-                    className="flex gap-3 p-3 rounded-lg border bg-muted/20"
-                  >
+                  <div key={activity.id} className="flex gap-3 p-3 rounded-lg border bg-muted/20">
                     <div className="mt-0.5">{getActivityIcon(activity.type)}</div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center justify-between">
@@ -692,9 +645,7 @@ export function LeadDetailDialog({ lead, open, onOpenChange, onUpdate }: Props) 
                         </span>
                       </div>
                       {activity.description && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {activity.description}
-                        </p>
+                        <p className="text-xs text-muted-foreground mt-1">{activity.description}</p>
                       )}
                       {activity.created_by && (
                         <p className="text-[10px] text-muted-foreground mt-1">

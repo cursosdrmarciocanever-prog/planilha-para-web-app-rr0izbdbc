@@ -12,8 +12,8 @@ const Servicos = () => {
         'Identificação de desequilíbrios hormonais',
         'Protocolos de reposição hormonal personalizados',
         'Implantes hormonais biodisponíveis',
-        'Monitoramento contínuo'
-      ]
+        'Monitoramento contínuo',
+      ],
     },
     {
       title: 'Medicina Esportiva Avançada',
@@ -22,8 +22,8 @@ const Servicos = () => {
         'Avaliação de performance para atletas',
         'Protocolos de recuperação muscular',
         'Otimização de composição corporal',
-        'Acompanhamento de atletas profissionais'
-      ]
+        'Acompanhamento de atletas profissionais',
+      ],
     },
     {
       title: 'Soroterapia Personalizada',
@@ -32,8 +32,8 @@ const Servicos = () => {
         'Vitaminas e minerais de alta biodisponibilidade',
         'Aminoácidos essenciais',
         'Desintoxicação celular',
-        'Fortalecimento do sistema imunológico'
-      ]
+        'Fortalecimento do sistema imunológico',
+      ],
     },
     {
       title: 'Análise Detalhada de Exames',
@@ -42,8 +42,8 @@ const Servicos = () => {
         'Análise além dos parâmetros convencionais',
         'Identificação de padrões subclínicos',
         'Prevenção de doenças futuras',
-        'Relatório personalizado'
-      ]
+        'Relatório personalizado',
+      ],
     },
     {
       title: 'Tratamentos Injetáveis',
@@ -52,8 +52,8 @@ const Servicos = () => {
         'Sala especializada e equipada',
         'Procedimentos seguros e confortáveis',
         'Profissionais treinados',
-        'Acompanhamento pós-procedimento'
-      ]
+        'Acompanhamento pós-procedimento',
+      ],
     },
     {
       title: 'Medicina do Estilo de Vida',
@@ -62,9 +62,9 @@ const Servicos = () => {
         'Orientação nutricional personalizada',
         'Programa de exercícios adaptado',
         'Gestão do estresse',
-        'Sono e recuperação'
-      ]
-    }
+        'Sono e recuperação',
+      ],
+    },
   ]
 
   return (
@@ -95,7 +95,10 @@ const Servicos = () => {
         <div className="container mx-auto max-w-6xl">
           <div className="grid md:grid-cols-2 gap-8">
             {services.map((service, idx) => (
-              <Card key={idx} className="border-slate-200 hover:border-emerald-200 hover:shadow-lg transition">
+              <Card
+                key={idx}
+                className="border-slate-200 hover:border-emerald-200 hover:shadow-lg transition"
+              >
                 <CardHeader>
                   <CardTitle className="text-2xl">{service.title}</CardTitle>
                   <p className="text-emerald-600 font-semibold mt-2">{service.description}</p>
@@ -121,7 +124,8 @@ const Servicos = () => {
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="text-4xl font-bold text-slate-900 mb-8">Investimento em Sua Saúde</h2>
           <p className="text-xl text-slate-600 mb-8">
-            Cada tratamento é personalizado conforme suas necessidades. Entre em contato para uma avaliação e orçamento específico.
+            Cada tratamento é personalizado conforme suas necessidades. Entre em contato para uma
+            avaliação e orçamento específico.
           </p>
           <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700">
             Solicitar Orçamento
@@ -139,23 +143,23 @@ const Servicos = () => {
               {
                 step: '1',
                 title: 'Avaliação Inicial',
-                description: 'Conhecemos sua história, objetivos e desafios de saúde'
+                description: 'Conhecemos sua história, objetivos e desafios de saúde',
               },
               {
                 step: '2',
                 title: 'Exames Detalhados',
-                description: 'Realizamos análises completas para entender seu corpo profundamente'
+                description: 'Realizamos análises completas para entender seu corpo profundamente',
               },
               {
                 step: '3',
                 title: 'Plano Personalizado',
-                description: 'Desenvolvemos um protocolo específico para seus objetivos'
+                description: 'Desenvolvemos um protocolo específico para seus objetivos',
               },
               {
                 step: '4',
                 title: 'Acompanhamento',
-                description: 'Monitoramos seu progresso e ajustamos conforme necessário'
-              }
+                description: 'Monitoramos seu progresso e ajustamos conforme necessário',
+              },
             ].map((item, idx) => (
               <div key={idx} className="flex gap-6">
                 <div className="flex-shrink-0">

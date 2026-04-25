@@ -95,10 +95,7 @@ export function CrmSettings() {
   async function loadData() {
     try {
       setLoading(true)
-      const [tokensData, configData] = await Promise.all([
-        fetchWebhookTokens(),
-        fetchAiConfig(),
-      ])
+      const [tokensData, configData] = await Promise.all([fetchWebhookTokens(), fetchAiConfig()])
       setTokens(tokensData)
       if (configData) {
         setAiConfig(configData)
@@ -147,9 +144,10 @@ export function CrmSettings() {
     }
   }
 
-  const webhookUrl = tokens.length > 0
-    ? `${window.location.origin}/api/webhook/meta-leads/${tokens[0]?.token}`
-    : 'Crie um token primeiro'
+  const webhookUrl =
+    tokens.length > 0
+      ? `${window.location.origin}/api/webhook/meta-leads/${tokens[0]?.token}`
+      : 'Crie um token primeiro'
 
   return (
     <div className="space-y-6 max-w-4xl">
@@ -188,11 +186,7 @@ export function CrmSettings() {
           <div>
             <Label className="text-xs text-muted-foreground">URL do Webhook</Label>
             <div className="flex items-center gap-2 mt-1">
-              <Input
-                value={webhookUrl}
-                readOnly
-                className="font-mono text-xs bg-muted"
-              />
+              <Input value={webhookUrl} readOnly className="font-mono text-xs bg-muted" />
               <Button
                 variant="outline"
                 size="icon"
@@ -206,9 +200,7 @@ export function CrmSettings() {
 
           {/* Supabase Edge Function URL */}
           <div>
-            <Label className="text-xs text-muted-foreground">
-              URL da Edge Function (Supabase)
-            </Label>
+            <Label className="text-xs text-muted-foreground">URL da Edge Function (Supabase)</Label>
             <div className="flex items-center gap-2 mt-1">
               <Input
                 value={
@@ -281,9 +273,7 @@ export function CrmSettings() {
                     {token.is_active ? 'Ativo' : 'Inativo'}
                   </span>
                   <span>{token.total_leads_received} leads recebidos</span>
-                  <span>
-                    Criado em {new Date(token.created_at).toLocaleDateString('pt-BR')}
-                  </span>
+                  <span>Criado em {new Date(token.created_at).toLocaleDateString('pt-BR')}</span>
                 </div>
               </div>
               <Button
@@ -320,9 +310,7 @@ export function CrmSettings() {
             </div>
             <Switch
               checked={aiConfig.is_active}
-              onCheckedChange={(checked) =>
-                setAiConfig({ ...aiConfig, is_active: checked })
-              }
+              onCheckedChange={(checked) => setAiConfig({ ...aiConfig, is_active: checked })}
             />
           </div>
 
@@ -344,9 +332,7 @@ export function CrmSettings() {
             </p>
             <Textarea
               value={aiConfig.welcome_message || ''}
-              onChange={(e) =>
-                setAiConfig({ ...aiConfig, welcome_message: e.target.value })
-              }
+              onChange={(e) => setAiConfig({ ...aiConfig, welcome_message: e.target.value })}
               rows={6}
               placeholder="Olá! Sou a assistente virtual..."
             />
@@ -359,9 +345,7 @@ export function CrmSettings() {
             </p>
             <Textarea
               value={aiConfig.system_prompt || ''}
-              onChange={(e) =>
-                setAiConfig({ ...aiConfig, system_prompt: e.target.value })
-              }
+              onChange={(e) => setAiConfig({ ...aiConfig, system_prompt: e.target.value })}
               rows={12}
               className="font-mono text-xs"
               placeholder="Você é a assistente virtual da Clínica Canever..."
@@ -377,9 +361,7 @@ export function CrmSettings() {
             </div>
             <Switch
               checked={aiConfig.auto_qualify}
-              onCheckedChange={(checked) =>
-                setAiConfig({ ...aiConfig, auto_qualify: checked })
-              }
+              onCheckedChange={(checked) => setAiConfig({ ...aiConfig, auto_qualify: checked })}
             />
           </div>
 
@@ -458,9 +440,7 @@ export function CrmSettings() {
                   </p>
                 </div>
               </div>
-              <Badge className="bg-green-50 text-green-600 border-green-200">
-                Integrado
-              </Badge>
+              <Badge className="bg-green-50 text-green-600 border-green-200">Integrado</Badge>
             </div>
 
             <div className="flex items-center justify-between p-3 rounded-lg border">
@@ -491,4 +471,3 @@ export function CrmSettings() {
     </div>
   )
 }
-

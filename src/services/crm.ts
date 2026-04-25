@@ -77,7 +77,9 @@ export async function fetchLeadById(id: string) {
 }
 
 export async function createLead(lead: Partial<CrmLead>) {
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
   if (!user) throw new Error('Não autenticado')
 
   const { data, error } = await supabase
@@ -100,7 +102,9 @@ export async function createLead(lead: Partial<CrmLead>) {
 }
 
 export async function updateLead(id: string, updates: Partial<CrmLead>) {
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
 
   const { data, error } = await supabase
     .from('crm_leads')
@@ -114,7 +118,9 @@ export async function updateLead(id: string, updates: Partial<CrmLead>) {
 }
 
 export async function updateLeadStage(id: string, stage: PipelineStage, reason?: string) {
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
   if (!user) throw new Error('Não autenticado')
 
   const updates: Partial<CrmLead> = { pipeline_stage: stage }
@@ -165,7 +171,9 @@ export async function fetchActivities(leadId: string) {
 }
 
 export async function createActivity(activity: Partial<CrmLeadActivity>) {
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
   if (!user) throw new Error('Não autenticado')
 
   const { data, error } = await supabase
@@ -191,7 +199,9 @@ export async function fetchCampaigns() {
 }
 
 export async function createCampaign(campaign: Partial<CrmCampaign>) {
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
   if (!user) throw new Error('Não autenticado')
 
   const { data, error } = await supabase
@@ -224,16 +234,15 @@ export async function deleteCampaign(id: string) {
 // ============================================================
 
 export async function fetchAiConfig() {
-  const { data, error } = await supabase
-    .from('crm_ai_config')
-    .select('*')
-    .single()
+  const { data, error } = await supabase.from('crm_ai_config').select('*').single()
   if (error && error.code !== 'PGRST116') throw error
   return data as CrmAiConfig | null
 }
 
 export async function upsertAiConfig(config: Partial<CrmAiConfig>) {
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
   if (!user) throw new Error('Não autenticado')
 
   const { data, error } = await supabase
@@ -259,7 +268,9 @@ export async function fetchWebhookTokens() {
 }
 
 export async function createWebhookToken() {
-  const { data: { user } } = await supabase.auth.getUser()
+  const {
+    data: { user },
+  } = await supabase.auth.getUser()
   if (!user) throw new Error('Não autenticado')
 
   const token = crypto.randomUUID().replace(/-/g, '') + crypto.randomUUID().replace(/-/g, '')
@@ -392,10 +403,7 @@ export async function sendWhatsAppToLead(leadId: string, message: string) {
   const lead = await fetchLeadById(leadId)
   if (!lead.whatsapp) throw new Error('Lead não possui WhatsApp')
 
-  const { data: integration } = await supabase
-    .from('user_integrations')
-    .select('*')
-    .single()
+  const { data: integration } = await supabase.from('user_integrations').select('*').single()
 
   if (!integration || !integration.instance_name) {
     throw new Error('Integração WhatsApp não configurada')

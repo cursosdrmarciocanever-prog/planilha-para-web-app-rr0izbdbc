@@ -100,7 +100,8 @@ export function CrmLeadsList() {
     setSourceFilter('all')
   }
 
-  const hasFilters = search || stageFilter !== 'all' || classFilter !== 'all' || sourceFilter !== 'all'
+  const hasFilters =
+    search || stageFilter !== 'all' || classFilter !== 'all' || sourceFilter !== 'all'
 
   const getClassificationBadge = (classification: string) => {
     switch (classification) {
@@ -257,9 +258,7 @@ export function CrmLeadsList() {
                     <TableCell>
                       <div className="flex items-center gap-2">
                         <span className="font-medium">{lead.name}</span>
-                        {lead.ai_qualified && (
-                          <Bot className="w-3.5 h-3.5 text-purple-500" />
-                        )}
+                        {lead.ai_qualified && <Bot className="w-3.5 h-3.5 text-purple-500" />}
                       </div>
                     </TableCell>
                     <TableCell>
@@ -281,10 +280,7 @@ export function CrmLeadsList() {
                     <TableCell>{getClassificationBadge(lead.classification)}</TableCell>
                     <TableCell>
                       <div className="flex items-center gap-1">
-                        <div
-                          className="h-2 rounded-full bg-muted"
-                          style={{ width: '60px' }}
-                        >
+                        <div className="h-2 rounded-full bg-muted" style={{ width: '60px' }}>
                           <div
                             className={`h-2 rounded-full ${
                               lead.score >= 70

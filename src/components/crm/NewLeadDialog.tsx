@@ -193,10 +193,7 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <Label>Origem</Label>
-              <Select
-                value={form.source}
-                onValueChange={(v) => setForm({ ...form, source: v })}
-              >
+              <Select value={form.source} onValueChange={(v) => setForm({ ...form, source: v })}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -288,10 +285,7 @@ export function NewLeadDialog({ open, onOpenChange, onCreated }: Props) {
             </div>
             <div>
               <Label>Urgência</Label>
-              <Select
-                value={form.urgency}
-                onValueChange={(v) => setForm({ ...form, urgency: v })}
-              >
+              <Select value={form.urgency} onValueChange={(v) => setForm({ ...form, urgency: v })}>
                 <SelectTrigger>
                   <SelectValue placeholder="Selecione" />
                 </SelectTrigger>

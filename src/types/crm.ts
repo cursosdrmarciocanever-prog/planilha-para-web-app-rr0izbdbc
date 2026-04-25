@@ -11,21 +11,11 @@ export type PipelineStage =
 
 export type LeadClassification = 'quente' | 'morno' | 'frio'
 
-export type LeadSource =
-  | 'meta_ads'
-  | 'whatsapp'
-  | 'manual'
-  | 'website'
-  | 'indicacao'
+export type LeadSource = 'meta_ads' | 'whatsapp' | 'manual' | 'website' | 'indicacao'
 
 export type LeadPriority = 'alta' | 'normal' | 'baixa'
 
-export type WhatsAppStatus =
-  | 'pending'
-  | 'sent'
-  | 'delivered'
-  | 'replied'
-  | 'failed'
+export type WhatsAppStatus = 'pending' | 'sent' | 'delivered' | 'replied' | 'failed'
 
 export type CampaignStatus = 'active' | 'paused' | 'archived'
 
@@ -192,13 +182,55 @@ export const PIPELINE_STAGES: {
   bgColor: string
   icon: string
 }[] = [
-  { key: 'novo', label: 'Novo', color: 'text-blue-600', bgColor: 'bg-blue-50 border-blue-200', icon: 'sparkles' },
-  { key: 'contatado', label: 'Contatado', color: 'text-cyan-600', bgColor: 'bg-cyan-50 border-cyan-200', icon: 'phone' },
-  { key: 'qualificando', label: 'Qualificando', color: 'text-yellow-600', bgColor: 'bg-yellow-50 border-yellow-200', icon: 'bot' },
-  { key: 'qualificado', label: 'Qualificado', color: 'text-orange-600', bgColor: 'bg-orange-50 border-orange-200', icon: 'check-circle' },
-  { key: 'agendado', label: 'Agendado', color: 'text-purple-600', bgColor: 'bg-purple-50 border-purple-200', icon: 'calendar' },
-  { key: 'convertido', label: 'Convertido', color: 'text-green-600', bgColor: 'bg-green-50 border-green-200', icon: 'trophy' },
-  { key: 'perdido', label: 'Perdido', color: 'text-red-600', bgColor: 'bg-red-50 border-red-200', icon: 'x-circle' },
+  {
+    key: 'novo',
+    label: 'Novo',
+    color: 'text-blue-600',
+    bgColor: 'bg-blue-50 border-blue-200',
+    icon: 'sparkles',
+  },
+  {
+    key: 'contatado',
+    label: 'Contatado',
+    color: 'text-cyan-600',
+    bgColor: 'bg-cyan-50 border-cyan-200',
+    icon: 'phone',
+  },
+  {
+    key: 'qualificando',
+    label: 'Qualificando',
+    color: 'text-yellow-600',
+    bgColor: 'bg-yellow-50 border-yellow-200',
+    icon: 'bot',
+  },
+  {
+    key: 'qualificado',
+    label: 'Qualificado',
+    color: 'text-orange-600',
+    bgColor: 'bg-orange-50 border-orange-200',
+    icon: 'check-circle',
+  },
+  {
+    key: 'agendado',
+    label: 'Agendado',
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-50 border-purple-200',
+    icon: 'calendar',
+  },
+  {
+    key: 'convertido',
+    label: 'Convertido',
+    color: 'text-green-600',
+    bgColor: 'bg-green-50 border-green-200',
+    icon: 'trophy',
+  },
+  {
+    key: 'perdido',
+    label: 'Perdido',
+    color: 'text-red-600',
+    bgColor: 'bg-red-50 border-red-200',
+    icon: 'x-circle',
+  },
 ]
 
 export const LEAD_SOURCES: { key: LeadSource; label: string }[] = [

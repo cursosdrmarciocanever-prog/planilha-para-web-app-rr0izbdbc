@@ -2,7 +2,7 @@ import { createClient } from 'jsr:@supabase/supabase-js@2'
 
 /**
  * CRM Handler - Integrates WhatsApp conversations with CRM lead qualification
- * 
+ *
  * This handler is called after the AI responds to a WhatsApp message.
  * It checks if the contact is linked to a CRM lead and triggers
  * AI qualification after enough conversation has happened.
@@ -56,7 +56,14 @@ export async function processCrmQualification(
 
           console.log(`[CRM Handler] Linked contact ${contactId} to lead ${leadByPhone.id}`)
           // Continue with this lead
-          return await qualifyLead(supabase, userId, leadByPhone, contactId, supabaseUrl, supabaseKey)
+          return await qualifyLead(
+            supabase,
+            userId,
+            leadByPhone,
+            contactId,
+            supabaseUrl,
+            supabaseKey,
+          )
         }
       }
 
@@ -122,7 +129,10 @@ async function qualifyLead(
 
       if (res.ok) {
         const result = await res.json()
-        console.log(`[CRM Handler] Lead ${lead.id} qualified successfully:`, JSON.stringify(result.qualification))
+        console.log(
+          `[CRM Handler] Lead ${lead.id} qualified successfully:`,
+          JSON.stringify(result.qualification),
+        )
       } else {
         console.error(`[CRM Handler] Qualification failed:`, await res.text())
       }

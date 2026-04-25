@@ -10,42 +10,48 @@ const FAQ = () => {
   const faqs = [
     {
       question: 'Como agendar uma consulta?',
-      answer: 'Você pode agendar através do WhatsApp, por telefone ou preenchendo o formulário de contato no site. Nossa equipe entrará em contato para confirmar o horário disponível.'
+      answer:
+        'Você pode agendar através do WhatsApp, por telefone ou preenchendo o formulário de contato no site. Nossa equipe entrará em contato para confirmar o horário disponível.',
     },
     {
       question: 'Qual é o valor de uma consulta?',
-      answer: 'O valor varia conforme o tipo de serviço e avaliação necessária. Recomendamos entrar em contato para uma avaliação inicial e orçamento personalizado.'
+      answer:
+        'O valor varia conforme o tipo de serviço e avaliação necessária. Recomendamos entrar em contato para uma avaliação inicial e orçamento personalizado.',
     },
     {
       question: 'Vocês aceitam convênios?',
-      answer: 'Não. A Clínica Canever trabalha com pacientes particulares, focando em qualidade e atendimento personalizado.'
+      answer:
+        'Não. A Clínica Canever trabalha com pacientes particulares, focando em qualidade e atendimento personalizado.',
     },
     {
       question: 'Quanto tempo dura uma consulta?',
-      answer: 'A primeira consulta geralmente dura entre 60 a 90 minutos, incluindo anamnese completa e avaliação. Consultas de acompanhamento têm duração de 30 a 45 minutos.'
+      answer:
+        'A primeira consulta geralmente dura entre 60 a 90 minutos, incluindo anamnese completa e avaliação. Consultas de acompanhamento têm duração de 30 a 45 minutos.',
     },
     {
       question: 'Quais exames vocês realizam?',
-      answer: 'Realizamos análises laboratoriais completas, avaliações hormonais, testes de performance e outros exames conforme necessário para cada paciente.'
+      answer:
+        'Realizamos análises laboratoriais completas, avaliações hormonais, testes de performance e outros exames conforme necessário para cada paciente.',
     },
     {
       question: 'Qual é a localização da clínica?',
-      answer: 'Estamos localizados em Maringá, PR, na Av. Pedro Taques, 294 - Ed. Atrium. Funciona de segunda a sexta, das 8h às 18h.'
+      answer:
+        'Estamos localizados em Maringá, PR, na Av. Pedro Taques, 294 - Ed. Atrium. Funciona de segunda a sexta, das 8h às 18h.',
     },
     {
       question: 'Vocês oferecem atendimento online?',
-      answer: 'Sim, oferecemos consultas de acompanhamento por videoconferência. A primeira consulta deve ser presencial para avaliação completa.'
+      answer:
+        'Sim, oferecemos consultas de acompanhamento por videoconferência. A primeira consulta deve ser presencial para avaliação completa.',
     },
     {
       question: 'Qual é o tempo para ver resultados?',
-      answer: 'Os resultados variam conforme o tratamento e o paciente. Geralmente, mudanças significativas são observadas entre 4 a 8 semanas de acompanhamento.'
-    }
+      answer:
+        'Os resultados variam conforme o tratamento e o paciente. Geralmente, mudanças significativas são observadas entre 4 a 8 semanas de acompanhamento.',
+    },
   ]
 
   const toggleItem = (idx: number) => {
-    setOpenItems(prev =>
-      prev.includes(idx) ? prev.filter(i => i !== idx) : [...prev, idx]
-    )
+    setOpenItems((prev) => (prev.includes(idx) ? prev.filter((i) => i !== idx) : [...prev, idx]))
   }
 
   return (
@@ -83,9 +89,7 @@ const FAQ = () => {
               >
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg text-slate-900">
-                      {faq.question}
-                    </CardTitle>
+                    <CardTitle className="text-lg text-slate-900">{faq.question}</CardTitle>
                     <ChevronDown
                       className={`w-5 h-5 text-emerald-600 transition-transform ${
                         openItems.includes(idx) ? 'transform rotate-180' : ''
@@ -95,9 +99,7 @@ const FAQ = () => {
                 </CardHeader>
                 {openItems.includes(idx) && (
                   <CardContent className="pt-0">
-                    <p className="text-slate-600 leading-relaxed">
-                      {faq.answer}
-                    </p>
+                    <p className="text-slate-600 leading-relaxed">{faq.answer}</p>
                   </CardContent>
                 )}
               </Card>

@@ -3,7 +3,7 @@ import { corsHeaders } from '../_shared/cors.ts'
 
 /**
  * CRM AI Lead Qualifier
- * 
+ *
  * This function is called after a WhatsApp conversation with a lead.
  * It analyzes the conversation history and qualifies the lead based on:
  * - Interest level and alignment with Clínica Canever services
@@ -11,7 +11,7 @@ import { corsHeaders } from '../_shared/cors.ts'
  * - Urgency
  * - Health goals
  * - Overall fit for premium health services
- * 
+ *
  * Uses OpenAI API (gpt-4.1-mini) for qualification.
  */
 
@@ -27,10 +27,10 @@ Deno.serve(async (req) => {
     const { lead_id, contact_id, user_id } = await req.json()
 
     if (!lead_id && !contact_id) {
-      return new Response(
-        JSON.stringify({ error: 'lead_id or contact_id is required' }),
-        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      )
+      return new Response(JSON.stringify({ error: 'lead_id or contact_id is required' }), {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
@@ -38,11 +38,7 @@ Deno.serve(async (req) => {
     // Find the CRM lead
     let lead: any = null
     if (lead_id) {
-      const { data } = await supabase
-        .from('crm_leads')
-        .select('*')
-        .eq('id', lead_id)
-        .single()
+      const { data } = await supabase.from('crm_leads').select('*').eq('id', lead_id).single()
       lead = data
     } else if (contact_id) {
       const { data } = await supabase
@@ -54,10 +50,10 @@ Deno.serve(async (req) => {
     }
 
     if (!lead) {
-      return new Response(
-        JSON.stringify({ error: 'Lead not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      )
+      return new Response(JSON.stringify({ error: 'Lead not found' }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
     const effectiveUserId = user_id || lead.user_id
@@ -70,10 +66,10 @@ Deno.serve(async (req) => {
       .single()
 
     if (!aiConfig) {
-      return new Response(
-        JSON.stringify({ error: 'AI config not found' }),
-        { status: 404, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      )
+      return new Response(JSON.stringify({ error: 'AI config not found' }), {
+        status: 404,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
     // Get conversation history
@@ -96,10 +92,10 @@ Deno.serve(async (req) => {
     // Get OpenAI API key
     const apiKey = Deno.env.get('OPENAI_API_KEY')
     if (!apiKey) {
-      return new Response(
-        JSON.stringify({ error: 'OPENAI_API_KEY not configured' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      )
+      return new Response(JSON.stringify({ error: 'OPENAI_API_KEY not configured' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
     const openaiBaseUrl = Deno.env.get('OPENAI_BASE_URL') || 'https://api.openai.com/v1'
@@ -149,19 +145,20 @@ Responda APENAS com o JSON, sem texto adicional.`
 
     // Call OpenAI API
     const apiUrl = `${openaiBaseUrl}/chat/completions`
-    
+
     const aiRes = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: 'gpt-4.1-mini',
         messages: [
           {
             role: 'system',
-            content: 'Você é um especialista em qualificação de leads. Responda APENAS com JSON válido, sem markdown ou texto adicional.',
+            content:
+              'Você é um especialista em qualificação de leads. Responda APENAS com JSON válido, sem markdown ou texto adicional.',
           },
           {
             role: 'user',
@@ -176,10 +173,10 @@ Responda APENAS com o JSON, sem texto adicional.`
     if (!aiRes.ok) {
       const errText = await aiRes.text()
       console.error('[CRM AI Qualify] OpenAI API error:', errText)
-      return new Response(
-        JSON.stringify({ error: 'AI API error' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      )
+      return new Response(JSON.stringify({ error: 'AI API error' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
     const aiData = await aiRes.json()
@@ -187,17 +184,20 @@ Responda APENAS com o JSON, sem texto adicional.`
 
     if (!responseText) {
       console.error('[CRM AI Qualify] Empty AI response')
-      return new Response(
-        JSON.stringify({ error: 'Empty AI response' }),
-        { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-      )
+      return new Response(JSON.stringify({ error: 'Empty AI response' }), {
+        status: 500,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      })
     }
 
     // Parse JSON response
     let qualification: any
     try {
       // Remove markdown code blocks if present
-      const cleanJson = responseText.replace(/```json\n?/g, '').replace(/```\n?/g, '').trim()
+      const cleanJson = responseText
+        .replace(/```json\n?/g, '')
+        .replace(/```\n?/g, '')
+        .trim()
       qualification = JSON.parse(cleanJson)
     } catch (parseErr) {
       console.error('[CRM AI Qualify] Failed to parse AI response:', responseText)
@@ -235,7 +235,10 @@ Responda APENAS com o JSON, sem texto adicional.`
     }
 
     // Update pipeline stage based on AI recommendation
-    if (qualification.pipeline_stage === 'qualificado' && qualification.score >= (aiConfig.min_score_qualified || 60)) {
+    if (
+      qualification.pipeline_stage === 'qualificado' &&
+      qualification.score >= (aiConfig.min_score_qualified || 60)
+    ) {
       updates.pipeline_stage = 'qualificado'
     } else if (qualification.pipeline_stage === 'perdido') {
       updates.pipeline_stage = 'perdido'
@@ -259,12 +262,18 @@ Responda APENAS com o JSON, sem texto adicional.`
       lead_id: lead.id,
       type: 'ai_qualification',
       title: `IA qualificou lead como "${qualification.classification}" (Score: ${qualification.score}/100)`,
-      description: qualification.summary + (qualification.recommended_action ? `\n\nAção recomendada: ${qualification.recommended_action}` : ''),
+      description:
+        qualification.summary +
+        (qualification.recommended_action
+          ? `\n\nAção recomendada: ${qualification.recommended_action}`
+          : ''),
       metadata: qualification,
       created_by: 'ai',
     })
 
-    console.log(`[CRM AI Qualify] Lead ${lead.id} qualified: score=${qualification.score}, class=${qualification.classification}`)
+    console.log(
+      `[CRM AI Qualify] Lead ${lead.id} qualified: score=${qualification.score}, class=${qualification.classification}`,
+    )
 
     return new Response(
       JSON.stringify({
@@ -279,9 +288,9 @@ Responda APENAS com o JSON, sem texto adicional.`
     )
   } catch (err) {
     console.error('[CRM AI Qualify] Error:', err)
-    return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
-    )
+    return new Response(JSON.stringify({ error: 'Internal server error' }), {
+      status: 500,
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+    })
   }
 })

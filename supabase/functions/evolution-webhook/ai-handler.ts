@@ -57,7 +57,8 @@ export async function processAiResponse(
 
     // Get API key - supports both OpenAI and Gemini (backwards compatible)
     // Priority: agent.gemini_api_key (which now stores OpenAI key) > OPENAI_API_KEY env > GEMINI_API_KEY env
-    const apiKey = agent.gemini_api_key || Deno.env.get('OPENAI_API_KEY') || Deno.env.get('GEMINI_API_KEY')
+    const apiKey =
+      agent.gemini_api_key || Deno.env.get('OPENAI_API_KEY') || Deno.env.get('GEMINI_API_KEY')
     if (!apiKey) {
       console.error(
         `[AI Handler] Exiting: API key missing from agent and environment secrets (checked OPENAI_API_KEY and GEMINI_API_KEY).`,
@@ -85,12 +86,10 @@ export async function processAiResponse(
     console.log(`[AI Handler] Retrieved ${messages.length} messages for context.`)
 
     // Build conversation history for OpenAI chat format
-    const conversationMessages = messages
-      .reverse()
-      .map((m: any) => ({
-        role: m.from_me ? 'assistant' as const : 'user' as const,
-        content: m.text || '',
-      }))
+    const conversationMessages = messages.reverse().map((m: any) => ({
+      role: m.from_me ? ('assistant' as const) : ('user' as const),
+      content: m.text || '',
+    }))
 
     // Build OpenAI messages array with system prompt
     const openaiMessages = [
@@ -109,7 +108,7 @@ export async function processAiResponse(
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${apiKey}`,
+        Authorization: `Bearer ${apiKey}`,
       },
       body: JSON.stringify({
         model: 'gpt-4.1-mini',

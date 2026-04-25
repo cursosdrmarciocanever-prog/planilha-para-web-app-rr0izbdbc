@@ -12,7 +12,7 @@ const Blog = () => {
       author: 'Dr. Marcio Canever',
       date: '15 de Março, 2026',
       category: 'Saúde',
-      image: '🔬'
+      image: '🔬',
     },
     {
       id: 2,
@@ -21,7 +21,7 @@ const Blog = () => {
       author: 'Edineia Canever',
       date: '12 de Março, 2026',
       category: 'Nutrição',
-      image: '🥗'
+      image: '🥗',
     },
     {
       id: 3,
@@ -30,7 +30,7 @@ const Blog = () => {
       author: 'Dr. Marcio Canever',
       date: '10 de Março, 2026',
       category: 'Esportes',
-      image: '💪'
+      image: '💪',
     },
     {
       id: 4,
@@ -39,7 +39,7 @@ const Blog = () => {
       author: 'Dr. Marcio Canever',
       date: '8 de Março, 2026',
       category: 'Bem-estar',
-      image: '🌟'
+      image: '🌟',
     },
     {
       id: 5,
@@ -48,7 +48,7 @@ const Blog = () => {
       author: 'Edineia Canever',
       date: '5 de Março, 2026',
       category: 'Tratamentos',
-      image: '💉'
+      image: '💉',
     },
     {
       id: 6,
@@ -57,8 +57,8 @@ const Blog = () => {
       author: 'Dr. Marcio Canever',
       date: '1 de Março, 2026',
       category: 'Bem-estar',
-      image: '😴'
-    }
+      image: '😴',
+    },
   ]
 
   return (
@@ -125,7 +125,10 @@ const Blog = () => {
           <h2 className="text-3xl font-bold text-slate-900 mb-8">Todos os Artigos</h2>
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
             {articles.slice(1).map((article) => (
-              <Card key={article.id} className="border-slate-200 hover:border-emerald-200 hover:shadow-lg transition flex flex-col">
+              <Card
+                key={article.id}
+                className="border-slate-200 hover:border-emerald-200 hover:shadow-lg transition flex flex-col"
+              >
                 <div className="bg-gradient-to-br from-emerald-100 to-slate-100 h-40 flex items-center justify-center">
                   <span className="text-6xl">{article.image}</span>
                 </div>
@@ -148,7 +151,11 @@ const Blog = () => {
                       <User className="w-3 h-3" />
                       {article.author}
                     </span>
-                    <Button variant="ghost" size="sm" className="text-emerald-600 hover:text-emerald-700">
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      className="text-emerald-600 hover:text-emerald-700"
+                    >
                       Ler <ArrowRight className="w-3 h-3 ml-1" />
                     </Button>
                   </div>

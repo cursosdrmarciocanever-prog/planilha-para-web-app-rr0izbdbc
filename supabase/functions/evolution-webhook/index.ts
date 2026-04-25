@@ -300,8 +300,8 @@ Deno.serve(async (req: Request) => {
                 console.error('[WEBHOOK] Background AI task failed:', err),
               )
               // CRM Lead Qualification - runs after AI response
-              processCrmQualification(userId, contact.id, supabaseUrl, supabaseKey).catch((err: any) =>
-                console.error('[WEBHOOK] Background CRM qualification failed:', err),
+              processCrmQualification(userId, contact.id, supabaseUrl, supabaseKey).catch(
+                (err: any) => console.error('[WEBHOOK] Background CRM qualification failed:', err),
               )
             }
           }

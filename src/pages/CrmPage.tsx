@@ -4,13 +4,7 @@ import { CrmPipeline } from './crm/CrmPipeline'
 import { CrmLeadsList } from './crm/CrmLeadsList'
 import { CrmCampaigns } from './crm/CrmCampaigns'
 import { CrmSettings } from './crm/CrmSettings'
-import {
-  LayoutDashboard,
-  Kanban,
-  List,
-  Megaphone,
-  Settings,
-} from 'lucide-react'
+import { LayoutDashboard, Kanban, List, Megaphone, Settings } from 'lucide-react'
 
 export default function CrmPage() {
   return (

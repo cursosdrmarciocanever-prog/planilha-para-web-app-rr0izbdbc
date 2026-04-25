@@ -8,18 +8,21 @@ const Home = () => {
     {
       icon: Heart,
       title: 'Avaliação Hormonal Completa',
-      description: 'Análise minuciosa do perfil hormonal para identificar desequilíbrios que comprometem a saúde e qualidade de vida'
+      description:
+        'Análise minuciosa do perfil hormonal para identificar desequilíbrios que comprometem a saúde e qualidade de vida',
     },
     {
       icon: Zap,
       title: 'Medicina Esportiva Avançada',
-      description: 'Otimização de desempenho físico, recuperação muscular e composição corporal para atletas'
+      description:
+        'Otimização de desempenho físico, recuperação muscular e composição corporal para atletas',
     },
     {
       icon: Award,
       title: 'Soroterapia Personalizada',
-      description: 'Protocolos exclusivos com vitaminas, minerais e aminoácidos para revitalização celular'
-    }
+      description:
+        'Protocolos exclusivos com vitaminas, minerais e aminoácidos para revitalização celular',
+    },
   ]
 
   const testimonials = [
@@ -27,20 +30,20 @@ const Home = () => {
       name: 'João Silva',
       role: 'Empresário',
       text: 'Transformou minha saúde e energia. Recomendo para todos que buscam qualidade de vida.',
-      avatar: '👨‍💼'
+      avatar: '👨‍💼',
     },
     {
       name: 'Maria Santos',
       role: 'Atleta',
       text: 'O melhor acompanhamento que já tive. Resultados visíveis em poucas semanas.',
-      avatar: '👩‍🦰'
+      avatar: '👩‍🦰',
     },
     {
       name: 'Carlos Mendes',
       role: 'Executivo',
       text: 'Profissionalismo e dedicação em cada consulta. Muito satisfeito com o tratamento.',
-      avatar: '👨‍💻'
-    }
+      avatar: '👨‍💻',
+    },
   ]
 
   return (
@@ -53,11 +56,21 @@ const Home = () => {
             <span className="font-bold text-xl text-slate-900">Clínica Canever</span>
           </div>
           <div className="hidden md:flex items-center gap-8">
-            <Link to="/sobre" className="text-slate-600 hover:text-emerald-600 transition">Sobre</Link>
-            <Link to="/servicos" className="text-slate-600 hover:text-emerald-600 transition">Serviços</Link>
-            <Link to="/blog" className="text-slate-600 hover:text-emerald-600 transition">Blog</Link>
-            <Link to="/galeria" className="text-slate-600 hover:text-emerald-600 transition">Galeria</Link>
-            <Link to="/contato" className="text-slate-600 hover:text-emerald-600 transition">Contato</Link>
+            <Link to="/sobre" className="text-slate-600 hover:text-emerald-600 transition">
+              Sobre
+            </Link>
+            <Link to="/servicos" className="text-slate-600 hover:text-emerald-600 transition">
+              Serviços
+            </Link>
+            <Link to="/blog" className="text-slate-600 hover:text-emerald-600 transition">
+              Blog
+            </Link>
+            <Link to="/galeria" className="text-slate-600 hover:text-emerald-600 transition">
+              Galeria
+            </Link>
+            <Link to="/contato" className="text-slate-600 hover:text-emerald-600 transition">
+              Contato
+            </Link>
           </div>
           <Button className="bg-emerald-600 hover:bg-emerald-700">
             <MessageCircle className="w-4 h-4 mr-2" />
@@ -73,7 +86,8 @@ const Home = () => {
             Saúde Integrativa para uma Vida Plena
           </h1>
           <p className="text-xl text-slate-600 mb-8 leading-relaxed">
-            Na Clínica Canever, combinamos medicina tradicional com práticas integrativas para tratar as origens dos problemas de saúde, não apenas os sintomas.
+            Na Clínica Canever, combinamos medicina tradicional com práticas integrativas para
+            tratar as origens dos problemas de saúde, não apenas os sintomas.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button size="lg" className="bg-emerald-600 hover:bg-emerald-700">
@@ -95,7 +109,10 @@ const Home = () => {
             {services.map((service, idx) => {
               const Icon = service.icon
               return (
-                <Card key={idx} className="border-slate-200 hover:border-emerald-200 hover:shadow-lg transition">
+                <Card
+                  key={idx}
+                  className="border-slate-200 hover:border-emerald-200 hover:shadow-lg transition"
+                >
                   <CardHeader>
                     <Icon className="w-12 h-12 text-emerald-600 mb-4" />
                     <CardTitle>{service.title}</CardTitle>
@@ -113,7 +130,9 @@ const Home = () => {
       {/* Testimonials Section */}
       <section className="py-20 px-4">
         <div className="container mx-auto max-w-6xl">
-          <h2 className="text-4xl font-bold text-center text-slate-900 mb-12">Depoimentos de Pacientes</h2>
+          <h2 className="text-4xl font-bold text-center text-slate-900 mb-12">
+            Depoimentos de Pacientes
+          </h2>
           <div className="grid md:grid-cols-3 gap-8">
             {testimonials.map((testimonial, idx) => (
               <Card key={idx} className="border-slate-200">
@@ -140,7 +159,8 @@ const Home = () => {
         <div className="container mx-auto max-w-4xl text-center">
           <h2 className="text-4xl font-bold mb-6">Pronto para Transformar Sua Saúde?</h2>
           <p className="text-xl mb-8 opacity-90">
-            Agende sua consulta com os especialistas da Clínica Canever e comece sua jornada para o bem-estar.
+            Agende sua consulta com os especialistas da Clínica Canever e comece sua jornada para o
+            bem-estar.
           </p>
           <Button size="lg" className="bg-white text-emerald-600 hover:bg-slate-100">
             Agendar Agora
@@ -160,9 +180,21 @@ const Home = () => {
             <div>
               <h4 className="font-bold mb-4">Links Rápidos</h4>
               <ul className="space-y-2 text-sm text-slate-400">
-                <li><Link to="/sobre" className="hover:text-white">Sobre</Link></li>
-                <li><Link to="/servicos" className="hover:text-white">Serviços</Link></li>
-                <li><Link to="/contato" className="hover:text-white">Contato</Link></li>
+                <li>
+                  <Link to="/sobre" className="hover:text-white">
+                    Sobre
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/servicos" className="hover:text-white">
+                    Serviços
+                  </Link>
+                </li>
+                <li>
+                  <Link to="/contato" className="hover:text-white">
+                    Contato
+                  </Link>
+                </li>
               </ul>
             </div>
             <div>

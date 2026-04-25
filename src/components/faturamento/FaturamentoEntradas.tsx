@@ -327,7 +327,7 @@ export function FaturamentoEntradas() {
                 <TableHead className="font-semibold h-12">Pagamento</TableHead>
                 <TableHead className="font-semibold h-12">Conta Recebimento</TableHead>
                 <TableHead className="font-semibold h-12">Status</TableHead>
-                      <TableHead className="w-[100px] print:hidden"></TableHead>
+                <TableHead className="w-[100px] print:hidden"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
