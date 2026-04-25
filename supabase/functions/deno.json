@@ -18,6 +18,7 @@
     "enviar_lembrete_whatsapp": 1,
     "processar_mensagem_whatsapp": 1,
     "gerar_relatorio_financeiro": 1,
-    "manage-users": 1
+    "manage-users": 1,
+    "parse-excel": 1
   }
 }
