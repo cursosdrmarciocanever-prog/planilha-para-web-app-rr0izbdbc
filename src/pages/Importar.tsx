@@ -139,7 +139,17 @@ export default function Importar() {
   const processParsedData = (data: any[]) => {
     return data.map((row) => {
       if (entity === 'lancamentos_pacientes') {
-        if (!row.forma_pagamento) row.forma_pagamento = 'Outro'
+        if (!row.forma_pagamento) {
+          row.forma_pagamento = 'Outro'
+        } else {
+          const lowerForma = String(row.forma_pagamento).toLowerCase()
+          if (lowerForma.includes('pix')) row.forma_pagamento = 'PIX'
+          else if (lowerForma.includes('dinheiro')) row.forma_pagamento = 'Dinheiro'
+          else if (lowerForma.includes('débito') || lowerForma.includes('debito'))
+            row.forma_pagamento = 'Cartão de Débito'
+          else if (lowerForma.includes('crédito') || lowerForma.includes('credito'))
+            row.forma_pagamento = 'Cartão de Crédito'
+        }
 
         if (mesReferencia) {
           let dataVal = row.data
@@ -179,7 +189,29 @@ export default function Importar() {
     const lines = text.split(/\r?\n/).filter((l) => l.trim() !== '')
     if (lines.length === 0) return []
 
-    const parsedHeaders = lines[0].split(',').map((h) => h.trim().toLowerCase().replace(/ /g, '_'))
+    const parsedHeaders = lines[0].split(',').map((h) => {
+      let norm = h
+        .trim()
+        .toLowerCase()
+        .replace(/ /g, '_')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+      if (entity === 'lancamentos_pacientes') {
+        if (norm.includes('paciente') || norm === 'nome') return 'paciente'
+        if (norm.includes('data')) return 'data'
+        if (norm.includes('categoria')) return 'categoria'
+        if (norm.includes('orcamento') && norm.includes('numero')) return 'numero_orcamento'
+        if (norm.includes('profissional')) return 'profissional_orcamento'
+        if (norm.includes('colaborador')) return 'colaborador_responsavel'
+        if (norm === 'valor' || norm === 'preco') return 'valor'
+        if (norm.includes('parcela')) return 'parcelas'
+        if (norm.includes('pagamento')) return 'forma_pagamento'
+        if (norm.includes('maquina') || norm.includes('documento')) return 'documento_maquina'
+        if (norm.includes('nota_fiscal') || norm === 'nf') return 'nota_fiscal'
+        if (norm.includes('observacao') || norm === 'obs') return 'observacoes'
+      }
+      return norm
+    })
     setHeaders(parsedHeaders)
 
     const data = lines.slice(1).map((line) => {
@@ -231,7 +263,30 @@ export default function Importar() {
 
           if (data && data.data && data.data.length > 0) {
             const rawHeaders = Object.keys(data.data[0])
-            const mappedHeaders = rawHeaders.map((h) => h.toLowerCase().trim().replace(/ /g, '_'))
+            const mappedHeaders = rawHeaders.map((h) => {
+              let norm = h
+                .toLowerCase()
+                .trim()
+                .replace(/ /g, '_')
+                .normalize('NFD')
+                .replace(/[\u0300-\u036f]/g, '')
+              if (entity === 'lancamentos_pacientes') {
+                if (norm.includes('paciente') || norm === 'nome') return 'paciente'
+                if (norm.includes('data')) return 'data'
+                if (norm.includes('categoria')) return 'categoria'
+                if (norm.includes('orcamento') && norm.includes('numero')) return 'numero_orcamento'
+                if (norm.includes('profissional')) return 'profissional_orcamento'
+                if (norm.includes('colaborador')) return 'colaborador_responsavel'
+                if (norm === 'valor' || norm === 'preco') return 'valor'
+                if (norm.includes('parcela')) return 'parcelas'
+                if (norm.includes('pagamento')) return 'forma_pagamento'
+                if (norm.includes('maquina') || norm.includes('documento'))
+                  return 'documento_maquina'
+                if (norm.includes('nota_fiscal') || norm === 'nf') return 'nota_fiscal'
+                if (norm.includes('observacao') || norm === 'obs') return 'observacoes'
+              }
+              return norm
+            })
             setHeaders(mappedHeaders)
 
             const parsedData = data.data.map((row: any) => {
@@ -337,21 +392,63 @@ export default function Importar() {
       chunks.push(previewData.slice(i, i + chunkSize))
     }
 
+    const validColumns: Record<string, string[]> = {
+      pacientes: ['nome', 'cpf', 'telefone', 'email', 'data_nascimento'],
+      despesas: [
+        'descricao',
+        'categoria',
+        'valor',
+        'data_vencimento',
+        'status',
+        'conta_pagamento',
+        'user_id',
+      ],
+      produtos_servicos: ['nome', 'descricao', 'preco', 'custo_estimado'],
+      salas: ['nome', 'status', 'taxa_hora', 'taxa_dia'],
+      lancamentos_pacientes: [
+        'nome_paciente',
+        'data_atendimento',
+        'categoria',
+        'numero_orcamento',
+        'profissional_orcamento',
+        'colaborador_responsavel',
+        'valor',
+        'parcelas',
+        'forma_pagamento',
+        'documento_maquina',
+        'nota_fiscal',
+        'observacoes',
+        'user_id',
+      ],
+    }
+
     for (let i = 0; i < chunks.length; i++) {
       const chunk = chunks[i].map((row) => {
+        let processedRow: any = { ...row }
+
         if (entity === 'lancamentos_pacientes' && user) {
-          const { paciente, data, ...rest } = row
-          return {
+          const { paciente, data, ...rest } = processedRow
+          processedRow = {
             ...rest,
-            nome_paciente: paciente || 'Paciente Sem Nome',
-            data_atendimento: data || new Date().toISOString().split('T')[0],
+            nome_paciente: paciente || row.nome_paciente || 'Paciente Sem Nome',
+            data_atendimento:
+              data || row.data_atendimento || new Date().toISOString().split('T')[0],
             user_id: user.id,
           }
         }
         if (entity === 'despesas' && user) {
-          return { ...row, user_id: user.id }
+          processedRow = { ...processedRow, user_id: user.id }
         }
-        return row
+
+        const allowedKeys = validColumns[entity] || []
+        const cleanRow: any = {}
+        Object.keys(processedRow).forEach((key) => {
+          if (allowedKeys.includes(key)) {
+            cleanRow[key] = processedRow[key]
+          }
+        })
+
+        return cleanRow
       })
 
       try {
