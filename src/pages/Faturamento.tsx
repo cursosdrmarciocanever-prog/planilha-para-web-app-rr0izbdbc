@@ -1,6 +1,8 @@
 import { useState } from 'react'
-import { DollarSign } from 'lucide-react'
+import { DollarSign, Upload } from 'lucide-react'
+import { Link } from 'react-router-dom'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
+import { Button } from '@/components/ui/button'
 import { FaturamentoDashboard } from '@/components/faturamento/FaturamentoDashboard'
 import { FaturamentoEntradas } from '@/components/faturamento/FaturamentoEntradas'
 import { FaturamentoSaidas } from '@/components/faturamento/FaturamentoSaidas'
@@ -19,6 +21,11 @@ export default function Faturamento() {
             Módulo completo de faturamento e controle de recebíveis
           </p>
         </div>
+        <Button asChild variant="outline" className="gap-2 rounded-full shadow-sm">
+          <Link to="/importar">
+            <Upload className="w-4 h-4" /> Importar Planilha
+          </Link>
+        </Button>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col gap-6">

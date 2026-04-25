@@ -1,5 +1,15 @@
 import { useState, useEffect } from 'react'
-import { Receipt, Plus, Trash2, Edit, TrendingDown, CalendarDays, CreditCard } from 'lucide-react'
+import { Link } from 'react-router-dom'
+import {
+  Receipt,
+  Plus,
+  Trash2,
+  Edit,
+  TrendingDown,
+  CalendarDays,
+  CreditCard,
+  Upload,
+} from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
@@ -197,10 +207,17 @@ export default function Despesas() {
             Registre custos, despesas fixas e acompanhe seus vencimentos.
           </p>
         </div>
-        <Button onClick={handleOpenNew} className="gap-2 rounded-full shadow-sm">
-          <Plus className="w-4 h-4" />{' '}
-          {activeTab === 'calendario' ? 'Nova Conta Fixa' : 'Nova Despesa'}
-        </Button>
+        <div className="flex items-center gap-3 flex-wrap">
+          <Button asChild variant="outline" className="gap-2 rounded-full shadow-sm">
+            <Link to="/importar">
+              <Upload className="w-4 h-4" /> Importar
+            </Link>
+          </Button>
+          <Button onClick={handleOpenNew} className="gap-2 rounded-full shadow-sm">
+            <Plus className="w-4 h-4" />{' '}
+            {activeTab === 'calendario' ? 'Nova Conta Fixa' : 'Nova Despesa'}
+          </Button>
+        </div>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col gap-6">

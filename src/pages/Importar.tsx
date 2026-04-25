@@ -32,7 +32,7 @@ import { supabase } from '@/lib/supabase/client'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { logAction } from '@/services/audit'
 
-type EntityType = 'pacientes' | 'despesas' | 'produtos_servicos' | 'salas'
+type EntityType = 'pacientes' | 'despesas' | 'produtos_servicos' | 'salas' | 'transacoes'
 
 const TEMPLATES: Record<EntityType, string> = {
   pacientes:
@@ -40,6 +40,8 @@ const TEMPLATES: Record<EntityType, string> = {
   despesas: 'categoria,valor,data_vencimento,status\nEnergia,150.50,2023-10-10,Pendente',
   produtos_servicos: 'nome,descricao,preco\nConsulta Geral,Consulta de rotina,250.00',
   salas: 'nome,status,taxa_hora,taxa_dia\nSala 01,Ativa,50.00,300.00',
+  transacoes:
+    'tipo,valor,data,descricao,status\nreceita,1500.00,2023-10-10,Atendimento,confirmado\ndespesa,150.50,2023-10-10,Luz,pago',
 }
 
 const REQUIRED_FIELDS: Record<EntityType, string[]> = {
@@ -47,6 +49,7 @@ const REQUIRED_FIELDS: Record<EntityType, string[]> = {
   despesas: ['valor'],
   produtos_servicos: ['nome'],
   salas: ['nome'],
+  transacoes: ['tipo', 'valor', 'data'],
 }
 
 export default function Importar() {
@@ -258,6 +261,7 @@ export default function Importar() {
                     <SelectItem value="despesas">Despesas</SelectItem>
                     <SelectItem value="produtos_servicos">Produtos e Serviços</SelectItem>
                     <SelectItem value="salas">Salas</SelectItem>
+                    <SelectItem value="transacoes">Transações (Entradas/Saídas)</SelectItem>
                   </SelectContent>
                 </Select>
 
