@@ -75,7 +75,7 @@ export default function Importar() {
   const [headers, setHeaders] = useState<string[]>([])
   const [loading, setLoading] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [mesReferencia, setMesReferencia] = useState(format(new Date(), 'yyyy-MM'))
+  const [mesReferencia, setMesReferencia] = useState('')
   const [result, setResult] = useState<{
     success: number
     errors: number
@@ -107,32 +107,79 @@ export default function Importar() {
     localStorage.setItem('import_category_rules', JSON.stringify(rules))
   }, [rules])
 
+  const mapHeader = (h: string, entityType: EntityType | '') => {
+    let norm = h
+      .toLowerCase()
+      .trim()
+      .replace(/ /g, '_')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+
+    if (entityType === 'lancamentos_pacientes') {
+      if (norm.includes('paciente') || norm === 'nome') return 'paciente'
+      if (norm === 'data' || norm.includes('data')) return 'data_atendimento'
+      if (norm.includes('categoria')) return 'categoria'
+      if (norm.includes('orcamento') && norm.includes('numero')) return 'numero_orcamento'
+      if (norm.includes('profissional')) return 'profissional_orcamento'
+      if (norm.includes('colaborador')) return 'colaborador_responsavel'
+      if (norm === 'valor' || norm === 'preco') return 'valor'
+      if (norm.includes('parcela')) return 'parcelas'
+      if (norm.includes('pagamento')) return 'forma_pagamento'
+      if (norm.includes('maquina') || norm.includes('documento')) return 'documento_maquina'
+      if (norm.includes('nota_fiscal') || norm === 'nf') return 'nota_fiscal'
+      if (norm.includes('observacao') || norm === 'obs') return 'observacoes'
+    }
+    return norm
+  }
+
   const parseNumericValue = (val: any, header: string) => {
     if (val === undefined || val === null || val === '') return null
     const strVal = String(val).trim()
-    if (
-      [
-        'cpf',
-        'telefone',
-        'data',
-        'conta_recebimento',
-        'forma_pagamento',
-        'paciente_nome',
-        'descricao',
-        'categoria',
-      ].includes(header)
-    ) {
+
+    const stringHeaders = [
+      'cpf',
+      'telefone',
+      'data',
+      'data_atendimento',
+      'conta_recebimento',
+      'forma_pagamento',
+      'paciente',
+      'nome_paciente',
+      'descricao',
+      'categoria',
+      'numero_orcamento',
+      'profissional_orcamento',
+      'colaborador_responsavel',
+      'documento_maquina',
+      'nota_fiscal',
+      'observacoes',
+    ]
+
+    if (stringHeaders.includes(header)) {
       return strVal
     }
+
     if (typeof val === 'number') return val
 
-    let cleanStr = strVal.replace(/R\$\s?/g, '').trim()
-    if (!isNaN(Number(cleanStr)) && cleanStr !== '') return Number(cleanStr)
+    let cleanStr = strVal.replace(/R\$\s?/gi, '').trim()
 
     if (cleanStr.includes(',')) {
-      const dotStr = cleanStr.replace(/\./g, '').replace(',', '.')
-      if (!isNaN(Number(dotStr)) && dotStr !== '') return Number(dotStr)
+      const lastComma = cleanStr.lastIndexOf(',')
+      const lastDot = cleanStr.lastIndexOf('.')
+
+      if (lastComma > lastDot) {
+        // Formato BR (ex: 1.500,50 ou 1500,50)
+        const dotStr = cleanStr.replace(/\./g, '').replace(',', '.')
+        if (!isNaN(Number(dotStr)) && dotStr !== '') return Number(dotStr)
+      } else {
+        // Formato US (ex: 1,500.50)
+        const usStr = cleanStr.replace(/,/g, '')
+        if (!isNaN(Number(usStr)) && usStr !== '') return Number(usStr)
+      }
     }
+
+    if (!isNaN(Number(cleanStr)) && cleanStr !== '') return Number(cleanStr)
+
     return strVal
   }
 
@@ -147,28 +194,13 @@ export default function Importar() {
           else if (lowerForma.includes('dinheiro')) row.forma_pagamento = 'Dinheiro'
           else if (lowerForma.includes('débito') || lowerForma.includes('debito'))
             row.forma_pagamento = 'Cartão de Débito'
-          else if (lowerForma.includes('crédito') || lowerForma.includes('credito'))
+          else if (
+            lowerForma.includes('crédito') ||
+            lowerForma.includes('credito') ||
+            lowerForma.includes('cartao') ||
+            lowerForma.includes('cartão')
+          )
             row.forma_pagamento = 'Cartão de Crédito'
-        }
-
-        if (mesReferencia) {
-          let dataVal = row.data
-          let day = '01'
-          if (dataVal && typeof dataVal === 'string') {
-            if (dataVal.includes('/')) {
-              const parts = dataVal.split('/')
-              if (parts.length >= 2) day = parts[0].padStart(2, '0')
-            } else if (dataVal.includes('-')) {
-              const parts = dataVal.split('-')
-              if (parts.length === 3) day = parts[2].substring(0, 2).padStart(2, '0')
-            }
-          }
-          const dayNum = parseInt(day, 10)
-          if (isNaN(dayNum) || dayNum < 1 || dayNum > 31) day = '01'
-
-          row.data = `${mesReferencia}-${day}`
-        } else if (!row.data) {
-          row.data = `${format(new Date(), 'yyyy-MM')}-01`
         }
       }
 
@@ -189,29 +221,7 @@ export default function Importar() {
     const lines = text.split(/\r?\n/).filter((l) => l.trim() !== '')
     if (lines.length === 0) return []
 
-    const parsedHeaders = lines[0].split(',').map((h) => {
-      let norm = h
-        .trim()
-        .toLowerCase()
-        .replace(/ /g, '_')
-        .normalize('NFD')
-        .replace(/[\u0300-\u036f]/g, '')
-      if (entity === 'lancamentos_pacientes') {
-        if (norm.includes('paciente') || norm === 'nome') return 'paciente'
-        if (norm.includes('data')) return 'data'
-        if (norm.includes('categoria')) return 'categoria'
-        if (norm.includes('orcamento') && norm.includes('numero')) return 'numero_orcamento'
-        if (norm.includes('profissional')) return 'profissional_orcamento'
-        if (norm.includes('colaborador')) return 'colaborador_responsavel'
-        if (norm === 'valor' || norm === 'preco') return 'valor'
-        if (norm.includes('parcela')) return 'parcelas'
-        if (norm.includes('pagamento')) return 'forma_pagamento'
-        if (norm.includes('maquina') || norm.includes('documento')) return 'documento_maquina'
-        if (norm.includes('nota_fiscal') || norm === 'nf') return 'nota_fiscal'
-        if (norm.includes('observacao') || norm === 'obs') return 'observacoes'
-      }
-      return norm
-    })
+    const parsedHeaders = lines[0].split(',').map((h) => mapHeader(h, entity))
     setHeaders(parsedHeaders)
 
     const data = lines.slice(1).map((line) => {
@@ -263,30 +273,7 @@ export default function Importar() {
 
           if (data && data.data && data.data.length > 0) {
             const rawHeaders = Object.keys(data.data[0])
-            const mappedHeaders = rawHeaders.map((h) => {
-              let norm = h
-                .toLowerCase()
-                .trim()
-                .replace(/ /g, '_')
-                .normalize('NFD')
-                .replace(/[\u0300-\u036f]/g, '')
-              if (entity === 'lancamentos_pacientes') {
-                if (norm.includes('paciente') || norm === 'nome') return 'paciente'
-                if (norm.includes('data')) return 'data'
-                if (norm.includes('categoria')) return 'categoria'
-                if (norm.includes('orcamento') && norm.includes('numero')) return 'numero_orcamento'
-                if (norm.includes('profissional')) return 'profissional_orcamento'
-                if (norm.includes('colaborador')) return 'colaborador_responsavel'
-                if (norm === 'valor' || norm === 'preco') return 'valor'
-                if (norm.includes('parcela')) return 'parcelas'
-                if (norm.includes('pagamento')) return 'forma_pagamento'
-                if (norm.includes('maquina') || norm.includes('documento'))
-                  return 'documento_maquina'
-                if (norm.includes('nota_fiscal') || norm === 'nf') return 'nota_fiscal'
-                if (norm.includes('observacao') || norm === 'obs') return 'observacoes'
-              }
-              return norm
-            })
+            const mappedHeaders = rawHeaders.map((h) => mapHeader(h, entity))
             setHeaders(mappedHeaders)
 
             const parsedData = data.data.map((row: any) => {
@@ -366,6 +353,15 @@ export default function Importar() {
   const processImport = async () => {
     if (!entity || previewData.length === 0) return
 
+    if (entity === 'lancamentos_pacientes' && !mesReferencia) {
+      toast({
+        title: 'Mês de Referência obrigatório',
+        description: 'Por favor, selecione o mês e ano para o qual os dados serão importados.',
+        variant: 'destructive',
+      })
+      return
+    }
+
     const required = REQUIRED_FIELDS[entity as EntityType]
     const missingFields = required.filter((req) => !headers.includes(req))
 
@@ -427,15 +423,46 @@ export default function Importar() {
         let processedRow: any = { ...row }
 
         if (entity === 'lancamentos_pacientes' && user) {
-          const { paciente, data, ...rest } = processedRow
+          const { paciente, data_atendimento, data, ...rest } = processedRow
+
+          let finalDate = new Date().toISOString().split('T')[0]
+          let dateFromRow = data_atendimento || data
+          let parsedDate = new Date()
+
+          if (dateFromRow && typeof dateFromRow === 'string') {
+            if (dateFromRow.includes('/')) {
+              const parts = dateFromRow.split('/')
+              if (parts.length >= 3) {
+                parsedDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T12:00:00Z`)
+                if (isNaN(parsedDate.getTime())) {
+                  parsedDate = new Date(`${parts[2]}-${parts[0]}-${parts[1]}T12:00:00Z`)
+                }
+              }
+            } else if (dateFromRow.includes('-')) {
+              parsedDate = new Date(`${dateFromRow}T12:00:00Z`)
+            }
+          }
+
+          if (isNaN(parsedDate.getTime())) {
+            parsedDate = new Date()
+          }
+
+          if (mesReferencia) {
+            const [year, month] = mesReferencia.split('-')
+            parsedDate.setUTCFullYear(parseInt(year, 10))
+            parsedDate.setUTCMonth(parseInt(month, 10) - 1)
+          }
+
+          finalDate = parsedDate.toISOString().split('T')[0]
+
           processedRow = {
             ...rest,
             nome_paciente: paciente || row.nome_paciente || 'Paciente Sem Nome',
-            data_atendimento:
-              data || row.data_atendimento || new Date().toISOString().split('T')[0],
+            data_atendimento: finalDate,
             user_id: user.id,
           }
         }
+
         if (entity === 'despesas' && user) {
           processedRow = { ...processedRow, user_id: user.id }
         }
@@ -484,6 +511,7 @@ export default function Importar() {
       )
       setFile(null)
       setPreviewData([])
+      setMesReferencia('')
       if (fileInputRef.current) fileInputRef.current.value = ''
     } else {
       toast({
@@ -515,7 +543,7 @@ export default function Importar() {
           Importação de Dados
         </h1>
         <p className="text-muted-foreground mt-2 text-base">
-          Traga seus dados legados de planilhas CSV para dentro do sistema de forma rápida e segura.
+          Traga seus dados legados de planilhas para dentro do sistema de forma rápida e segura.
         </p>
       </div>
 
@@ -553,14 +581,19 @@ export default function Importar() {
                 {entity === 'lancamentos_pacientes' && (
                   <div className="space-y-3 mt-4 animate-fade-in">
                     <label className="text-sm font-medium text-foreground">
-                      Mês de Referência (Obrigatório para Faturamento)
+                      Mês de Referência <span className="text-destructive">*</span>
                     </label>
                     <Input
                       type="month"
                       value={mesReferencia}
                       onChange={(e) => setMesReferencia(e.target.value)}
                       className="h-11 rounded-xl"
+                      required
                     />
+                    <p className="text-xs text-muted-foreground leading-relaxed">
+                      Este campo é obrigatório para faturamentos. Todos os dados da planilha serão
+                      forçados para o mês/ano que você selecionar aqui.
+                    </p>
                   </div>
                 )}
 
@@ -665,7 +698,7 @@ export default function Importar() {
               </div>
 
               <div className="space-y-3">
-                <label className="text-sm font-medium text-foreground">2. Arquivo CSV</label>
+                <label className="text-sm font-medium text-foreground">2. Arquivo</label>
                 <div
                   className={`border-2 border-dashed rounded-xl p-6 flex flex-col items-center justify-center text-center transition-colors
                     ${file ? 'border-primary bg-primary/5' : 'border-border/80 hover:border-primary/50 hover:bg-secondary/50'}
@@ -714,9 +747,8 @@ export default function Importar() {
               <Info className="h-4 w-4 text-blue-600 dark:text-blue-400" />
               <AlertTitle className="text-sm font-semibold mb-1">Dica de Mapeamento</AlertTitle>
               <AlertDescription className="text-xs leading-relaxed opacity-90">
-                Os nomes das colunas na primeira linha do seu CSV devem corresponder aos nomes dos
-                campos no banco de dados. Campos obrigatórios para{' '}
-                <strong className="font-bold">{entity}</strong>:{' '}
+                Os nomes das colunas na primeira linha da sua planilha devem corresponder aos campos
+                aceitos. Campos obrigatórios para <strong className="font-bold">{entity}</strong>:{' '}
                 {REQUIRED_FIELDS[entity as EntityType].join(', ')}.
               </AlertDescription>
             </Alert>
@@ -749,7 +781,7 @@ export default function Importar() {
                     Nenhum arquivo selecionado
                   </p>
                   <p className="text-sm text-muted-foreground mt-1">
-                    Selecione a entidade e carregue um CSV para visualizar.
+                    Selecione a entidade e carregue um arquivo para visualizar.
                   </p>
                 </div>
               )}
