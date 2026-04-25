@@ -2,6 +2,7 @@ import 'jsr:@supabase/functions-js/edge-runtime.d.ts'
 import { createClient } from 'jsr:@supabase/supabase-js@2'
 import { extractCanonicalPhone } from '../_shared/utils.ts'
 import { processAiResponse } from './ai-handler.ts'
+import { processCrmQualification } from './crm-handler.ts'
 
 Deno.serve(async (req: Request) => {
   try {
@@ -290,9 +291,17 @@ Deno.serve(async (req: Request) => {
               ;(globalThis as any).EdgeRuntime.waitUntil(
                 processAiResponse(userId, contact.id, supabaseUrl, supabaseKey),
               )
+              // CRM Lead Qualification - runs after AI response
+              ;(globalThis as any).EdgeRuntime.waitUntil(
+                processCrmQualification(userId, contact.id, supabaseUrl, supabaseKey),
+              )
             } else {
               processAiResponse(userId, contact.id, supabaseUrl, supabaseKey).catch((err: any) =>
                 console.error('[WEBHOOK] Background AI task failed:', err),
+              )
+              // CRM Lead Qualification - runs after AI response
+              processCrmQualification(userId, contact.id, supabaseUrl, supabaseKey).catch((err: any) =>
+                console.error('[WEBHOOK] Background CRM qualification failed:', err),
               )
             }
           }

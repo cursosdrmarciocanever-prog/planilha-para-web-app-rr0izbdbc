@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Plus, Download, FileDown, Search, Trash2 } from 'lucide-react'
+import { Plus, Download, FileDown, Search, Trash2, MessageCircle } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -23,6 +23,7 @@ import { supabase } from '@/lib/supabase/client'
 import { format, parseISO, endOfMonth } from 'date-fns'
 import { useToast } from '@/hooks/use-toast'
 import { Link } from 'react-router-dom'
+import { WhatsAppNotification } from '../WhatsAppNotification'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
@@ -193,6 +194,12 @@ export function FaturamentoEntradas() {
     doc.save(`relatorio_entradas_${filtroMes || 'todos'}.pdf`)
   }
 
+  // Função para enviar notificação de faturamento via WhatsApp
+  const handleSendWhatsAppNotification = (lancamento: any) => {
+    const mensagem = `Faturamento registrado!\nPaciente: ${lancamento.paciente_nome}\nValor: R$ ${formatCurrency(getValorTotal(lancamento))}\nData: ${format(parseISO(lancamento.data), 'dd/MM/yyyy')}\n\nClínica Canever`
+    return mensagem
+  }
+
   return (
     <div className="space-y-6 animate-fade-in-up">
       <div className="flex flex-col lg:flex-row gap-4 items-end bg-card p-5 rounded-2xl border border-border/60 shadow-sm print:hidden">
@@ -320,7 +327,7 @@ export function FaturamentoEntradas() {
                 <TableHead className="font-semibold h-12">Pagamento</TableHead>
                 <TableHead className="font-semibold h-12">Conta Recebimento</TableHead>
                 <TableHead className="font-semibold h-12">Status</TableHead>
-                <TableHead className="w-[60px] print:hidden"></TableHead>
+                      <TableHead className="w-[100px] print:hidden"></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -377,7 +384,14 @@ export function FaturamentoEntradas() {
                         </Badge>
                       </TableCell>
                       <TableCell className="print:hidden">
-                        <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity">
+                        <div className="flex justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <WhatsAppNotification
+                            defaultMessage={handleSendWhatsAppNotification(l)}
+                            buttonVariant="ghost"
+                            buttonSize="icon"
+                            buttonText=""
+                            instanceName="clinica-canever"
+                          />
                           <Button
                             variant="ghost"
                             size="icon"
