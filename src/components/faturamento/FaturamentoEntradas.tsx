@@ -30,6 +30,7 @@ import autoTable from 'jspdf-autotable'
 export function FaturamentoEntradas() {
   const [lancamentos, setLancamentos] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [selectedIds, setSelectedIds] = useState<string[]>([])
 
   const [filtroMes, setFiltroMes] = useState(format(new Date(), 'yyyy-MM'))
   const [filtroTipo, setFiltroTipo] = useState('Todos')
@@ -83,6 +84,7 @@ export function FaturamentoEntradas() {
   }, [filtroMes, filtroTipo, filtroStatus, buscaGeral])
 
   useEffect(() => {
+    setSelectedIds([])
     loadData()
 
     const channel = supabase
@@ -107,6 +109,17 @@ export function FaturamentoEntradas() {
     if (error) toast({ title: 'Erro ao excluir', variant: 'destructive' })
     else {
       toast({ title: 'Excluído com sucesso' })
+      loadData()
+    }
+  }
+
+  const handleBulkDelete = async () => {
+    if (!confirm(`Deseja excluir ${selectedIds.length} lançamentos selecionados?`)) return
+    const { error } = await supabase.from('lancamentos_pacientes').delete().in('id', selectedIds)
+    if (error) toast({ title: 'Erro ao excluir', variant: 'destructive' })
+    else {
+      toast({ title: `${selectedIds.length} lançamentos excluídos com sucesso` })
+      setSelectedIds([])
       loadData()
     }
   }
@@ -254,7 +267,17 @@ export function FaturamentoEntradas() {
             />
           </div>
         </div>
-        <div className="flex gap-2 w-full lg:w-auto mt-2 lg:mt-0">
+        <div className="flex flex-wrap gap-2 w-full lg:w-auto mt-2 lg:mt-0">
+          {selectedIds.length > 0 && (
+            <Button
+              variant="destructive"
+              onClick={handleBulkDelete}
+              className="h-11 px-4 rounded-xl shadow-sm"
+              title="Excluir Selecionados"
+            >
+              <Trash2 className="w-4 h-4 mr-2" /> Excluir ({selectedIds.length})
+            </Button>
+          )}
           <Button
             variant="outline"
             onClick={exportCSV}
@@ -316,6 +339,20 @@ export function FaturamentoEntradas() {
           <Table>
             <TableHeader className="bg-secondary/30">
               <TableRow className="hover:bg-transparent">
+                <TableHead className="w-[40px] print:hidden">
+                  <input
+                    type="checkbox"
+                    className="w-4 h-4 rounded border-gray-300 cursor-pointer accent-primary"
+                    checked={lancamentos.length > 0 && selectedIds.length === lancamentos.length}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        setSelectedIds(lancamentos.map((l) => l.id))
+                      } else {
+                        setSelectedIds([])
+                      }
+                    }}
+                  />
+                </TableHead>
                 <TableHead className="font-semibold h-12">Data</TableHead>
                 <TableHead className="font-semibold h-12">Paciente</TableHead>
                 <TableHead className="font-semibold h-12">Tipo</TableHead>
@@ -329,7 +366,7 @@ export function FaturamentoEntradas() {
             <TableBody>
               {loading ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="h-24 text-center">
+                  <TableCell colSpan={9} className="h-24 text-center">
                     <div className="flex justify-center">
                       <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
                     </div>
@@ -337,7 +374,7 @@ export function FaturamentoEntradas() {
                 </TableRow>
               ) : lancamentos.length === 0 ? (
                 <TableRow>
-                  <TableCell colSpan={8} className="h-32 text-center text-muted-foreground">
+                  <TableCell colSpan={9} className="h-32 text-center text-muted-foreground">
                     Nenhum lançamento encontrado para os filtros atuais.
                   </TableCell>
                 </TableRow>
@@ -352,6 +389,20 @@ export function FaturamentoEntradas() {
 
                   return (
                     <TableRow key={l.id} className="group hover:bg-secondary/10 transition-colors">
+                      <TableCell className="print:hidden">
+                        <input
+                          type="checkbox"
+                          className="w-4 h-4 rounded border-gray-300 cursor-pointer accent-primary"
+                          checked={selectedIds.includes(l.id)}
+                          onChange={(e) => {
+                            if (e.target.checked) {
+                              setSelectedIds([...selectedIds, l.id])
+                            } else {
+                              setSelectedIds(selectedIds.filter((id) => id !== l.id))
+                            }
+                          }}
+                        />
+                      </TableCell>
                       <TableCell className="text-muted-foreground font-medium whitespace-nowrap">
                         {l.data_atendimento
                           ? format(parseISO(l.data_atendimento), 'dd/MM/yyyy')
