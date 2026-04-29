@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { AlertCircle, CheckCircle2, TrendingUp, Bell, ChevronDown, ChevronUp } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
-import { startOfMonth, endOfMonth, subMonths } from 'date-fns'
+import { startOfMonth, endOfMonth, subMonths, format } from 'date-fns'
 import { Link } from 'react-router-dom'
 import { useLocalStorage } from '@/hooks/use-local-storage'
 import { Button } from '@/components/ui/button'
@@ -21,15 +21,15 @@ export function SystemAlerts() {
     async function loadAlerts() {
       try {
         const today = new Date()
-        const startCurrent = startOfMonth(today).toISOString()
-        const endCurrent = endOfMonth(today).toISOString()
+        const startCurrentDay = format(startOfMonth(today), 'yyyy-MM-dd')
+        const endCurrentDay = format(endOfMonth(today), 'yyyy-MM-dd')
 
-        // Fetch despesas current month
+        // Fetch despesas current month baseadas em vencimento
         const { data: despesasCurrent } = await supabase
           .from('despesas')
           .select('valor')
-          .gte('created_at', startCurrent)
-          .lte('created_at', endCurrent)
+          .gte('data_vencimento', startCurrentDay)
+          .lte('data_vencimento', endCurrentDay)
 
         const totalDespesas = (despesasCurrent || []).reduce(
           (acc, d) => acc + Number(d.valor || 0),
@@ -56,11 +56,14 @@ export function SystemAlerts() {
         }
 
         // Fetch ocupacoes current month
+        const startCurrentISO = startOfMonth(today).toISOString()
+        const endCurrentISO = endOfMonth(today).toISOString()
+
         const { data: ocupacoes } = await supabase
           .from('ocupacao_salas')
           .select('horario_inicio, horario_fim')
-          .gte('horario_inicio', startCurrent)
-          .lte('horario_inicio', endCurrent)
+          .gte('horario_inicio', startCurrentISO)
+          .lte('horario_inicio', endCurrentISO)
 
         let horasOcupadas = 0
         ;(ocupacoes || []).forEach((o) => {
@@ -82,13 +85,13 @@ export function SystemAlerts() {
         }
 
         // 3. Alerta Despesas (avg last 3 months)
-        const start3M = startOfMonth(subMonths(today, 3)).toISOString()
-        const endLastM = endOfMonth(subMonths(today, 1)).toISOString()
+        const start3MDate = format(startOfMonth(subMonths(today, 3)), 'yyyy-MM-dd')
+        const endLastMDate = format(endOfMonth(subMonths(today, 1)), 'yyyy-MM-dd')
         const { data: despesas3M } = await supabase
           .from('despesas')
           .select('valor')
-          .gte('created_at', start3M)
-          .lte('created_at', endLastM)
+          .gte('data_vencimento', start3MDate)
+          .lte('data_vencimento', endLastMDate)
 
         const total3M = (despesas3M || []).reduce((acc, d) => acc + Number(d.valor || 0), 0)
         const avg3M = total3M / 3
@@ -99,6 +102,55 @@ export function SystemAlerts() {
             id: 'despesas_alta',
             type: 'warning',
             title: `Despesas: Aumento de ${percAumento.toFixed(1)}% em relação à média dos últimos 3 meses`,
+            link: '/despesas',
+          })
+        }
+
+        // 4. NOVO ALERTA: Comprometimento Mensal vs Faturamento Médio
+        const start3MISO = startOfMonth(subMonths(today, 3)).toISOString()
+        const endLastMISO = endOfMonth(subMonths(today, 1)).toISOString()
+        const { data: lancamentos3M } = await supabase
+          .from('lancamentos_pacientes')
+          .select('valor')
+          .gte('data_atendimento', start3MISO)
+          .lte('data_atendimento', endLastMISO)
+
+        const totalFaturamento3M = (lancamentos3M || []).reduce(
+          (acc, d) => acc + Number(d.valor || 0),
+          0,
+        )
+        const avgFaturamento = Math.max(totalFaturamento3M / 3, 1000)
+
+        // current month contas fixas
+        const { data: contasFixas } = await supabase
+          .from('contas_fixas')
+          .select('valor, data_vencimento, frequencia, status')
+        let fixasCurrentTotal = 0
+        ;(contasFixas || []).forEach((c) => {
+          if (!c.data_vencimento) return
+          const dataVenc = new Date(c.data_vencimento)
+
+          if (c.frequencia === 'Única') {
+            if (
+              dataVenc.getMonth() === today.getMonth() &&
+              dataVenc.getFullYear() === today.getFullYear()
+            ) {
+              fixasCurrentTotal += Number(c.valor)
+            }
+          } else {
+            if (dataVenc <= endOfMonth(today)) {
+              fixasCurrentTotal += Number(c.valor)
+            }
+          }
+        })
+
+        const comprometimentoAtual = totalDespesas + fixasCurrentTotal
+
+        if (comprometimentoAtual > avgFaturamento) {
+          newAlerts.push({
+            id: 'comprometimento_risco',
+            type: 'danger',
+            title: `Risco Financeiro: O comprometimento deste mês (R$ ${comprometimentoAtual.toFixed(2)}) ultrapassa sua média de faturamento (R$ ${avgFaturamento.toFixed(2)})`,
             link: '/despesas',
           })
         }

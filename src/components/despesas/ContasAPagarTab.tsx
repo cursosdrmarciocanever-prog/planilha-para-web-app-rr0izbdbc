@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import {
   startOfMonth,
   endOfMonth,
@@ -42,6 +42,7 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { Label } from '@/components/ui/label'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { cn } from '@/lib/utils'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
@@ -50,11 +51,18 @@ interface ContasAPagarTabProps {
   contas: any[]
   onOpenNew: () => void
   onEdit: (conta: any) => void
+  faturamentoMedio?: number
 }
 
-export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabProps) {
+export function ContasAPagarTab({
+  contas,
+  onOpenNew,
+  onEdit,
+  faturamentoMedio = 15000,
+}: ContasAPagarTabProps) {
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()))
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date())
+  const [viewMode, setViewMode] = useState<'consolidada' | 'detalhada'>('consolidada')
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSendingEmail, setIsSendingEmail] = useState(false)
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
@@ -79,6 +87,20 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
     })
     return map
   }, [contas])
+
+  const cumulativeByDate = useMemo(() => {
+    let acc = 0
+    const map = new Map<string, number>()
+    const sortedDays = eachDayOfInterval({ start: monthStart, end: monthEnd })
+    sortedDays.forEach((day) => {
+      const dateStr = format(day, 'yyyy-MM-dd')
+      const expenses = expensesByDate.get(dateStr) || []
+      const dayTotal = expenses.reduce((sum, d) => sum + Number(d.valor || 0), 0)
+      acc += dayTotal
+      map.set(dateStr, acc)
+    })
+    return map
+  }, [monthStart, monthEnd, expensesByDate])
 
   const selectedMonthExpenses = useMemo(() => {
     return contas
@@ -164,7 +186,6 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
   const handleTestEmail = async () => {
     setIsSendingEmail(true)
     try {
-      // Pega qualquer conta para realizar o teste (deve ser contas_fixas devido ao requisito da edge function)
       const contaTeste = contas.find((c: any) => c._table === 'conta_fixa')
 
       if (!contaTeste) {
@@ -221,35 +242,51 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
     <div className="flex flex-col xl:flex-row gap-6 animate-fade-in-up">
       {/* Calendário Visual */}
       <Card className="flex-1 rounded-3xl shadow-sm border-border/60 overflow-hidden bg-card min-w-[300px]">
-        <div className="p-5 border-b border-border/40 flex justify-between items-center bg-secondary/20">
+        <div className="p-5 border-b border-border/40 flex justify-between items-center bg-secondary/20 flex-wrap gap-4">
           <h2 className="text-xl font-bold capitalize text-foreground flex items-center gap-2">
             {format(currentMonth, 'MMMM yyyy', { locale: ptBR })}
           </h2>
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setCurrentMonth(startOfMonth(new Date()))}
-              className="h-9 px-4 rounded-full mr-2 shadow-sm"
+          <div className="flex items-center gap-4 flex-wrap">
+            <Tabs
+              value={viewMode}
+              onValueChange={(v) => setViewMode(v as any)}
+              className="w-[220px]"
             >
-              Hoje
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-              className="h-9 w-9 rounded-full shadow-sm"
-            >
-              <ChevronLeft className="w-4 h-4" />
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-              className="h-9 w-9 rounded-full shadow-sm"
-            >
-              <ChevronRight className="w-4 h-4" />
-            </Button>
+              <TabsList className="grid w-full grid-cols-2 h-9">
+                <TabsTrigger value="consolidada" className="text-xs">
+                  Consolidada
+                </TabsTrigger>
+                <TabsTrigger value="detalhada" className="text-xs">
+                  Detalhada
+                </TabsTrigger>
+              </TabsList>
+            </Tabs>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setCurrentMonth(startOfMonth(new Date()))}
+                className="h-9 px-4 rounded-full shadow-sm"
+              >
+                Hoje
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+                className="h-9 w-9 rounded-full shadow-sm"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+                className="h-9 w-9 rounded-full shadow-sm"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </Button>
+            </div>
           </div>
         </div>
 
@@ -271,6 +308,12 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
             const isSelected = selectedDate && isSameDay(day, selectedDate)
             const isCurrentMonth = isSameMonth(day, monthStart)
 
+            const cumulative = cumulativeByDate.get(dateStr) || 0
+            const perc = faturamentoMedio > 0 ? (cumulative / faturamentoMedio) * 100 : 0
+            let indicatorColor = 'bg-emerald-500/50'
+            if (perc > 90) indicatorColor = 'bg-rose-500/60'
+            else if (perc > 60) indicatorColor = 'bg-amber-500/60'
+
             const dayExpenses: any[] = []
             const groupedCards = new Map<string, any>()
 
@@ -278,45 +321,62 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
               const isCartao =
                 d.conta_pagamento?.toLowerCase().includes('cartão') ||
                 d.categoria?.toLowerCase().includes('cartão')
+              const isContaFixa = d._table === 'conta_fixa'
 
-              if (isCartao) {
-                const groupName = d.conta_pagamento || 'Cartão de Crédito'
-                if (!groupedCards.has(groupName)) {
-                  groupedCards.set(groupName, {
-                    id: `group-${groupName}-${dateStr}`,
-                    descricao: `Fatura: ${groupName}`,
-                    valor: 0,
-                    status: 'Pago',
-                    data_vencimento: d.data_vencimento,
-                    _table: 'despesa',
-                    isGroup: true,
-                    originalItems: [],
-                  })
-                }
-                const group = groupedCards.get(groupName)!
-                group.valor += Number(d.valor)
-                group.originalItems.push(d)
-                if (d.status !== 'Pago' && d.status !== 'Confirmado') {
-                  group.status = 'Pendente'
+              if (viewMode === 'consolidada') {
+                if (!isCartao && !isContaFixa) return // ignora despesas avulsas na view consolidada
+                if (isCartao) {
+                  const groupName = d.conta_pagamento || 'Cartão de Crédito'
+                  if (!groupedCards.has(groupName)) {
+                    groupedCards.set(groupName, {
+                      id: `group-${groupName}-${dateStr}`,
+                      descricao: `Fatura: ${groupName}`,
+                      valor: 0,
+                      status: 'Pago',
+                      data_vencimento: d.data_vencimento,
+                      _table: 'despesa',
+                      isGroup: true,
+                      originalItems: [],
+                    })
+                  }
+                  const group = groupedCards.get(groupName)!
+                  group.valor += Number(d.valor)
+                  group.originalItems.push(d)
+                  if (d.status !== 'Pago' && d.status !== 'Confirmado') {
+                    group.status = 'Pendente'
+                  }
+                } else {
+                  dayExpenses.push(d)
                 }
               } else {
+                // View detalhada
                 dayExpenses.push(d)
               }
             })
 
-            groupedCards.forEach((group) => dayExpenses.push(group))
+            if (viewMode === 'consolidada') {
+              groupedCards.forEach((group) => dayExpenses.push(group))
+            }
 
             return (
               <div
                 key={day.toString()}
                 onClick={() => setSelectedDate(day)}
                 className={cn(
-                  'min-h-[120px] p-1.5 border-r border-b border-border/40 cursor-pointer transition-colors relative hover:bg-secondary/20 group flex flex-col',
+                  'min-h-[120px] p-1.5 border-r border-b border-border/40 cursor-pointer transition-colors relative hover:bg-secondary/20 group flex flex-col overflow-hidden',
                   !isCurrentMonth && 'bg-secondary/10 opacity-40',
                   isSelected && 'ring-2 ring-primary ring-inset bg-primary/5',
                 )}
               >
-                <div className="flex justify-between items-start mb-1">
+                {isCurrentMonth && (
+                  <div
+                    className={cn(
+                      'absolute top-0 left-0 right-0 h-1 transition-colors',
+                      indicatorColor,
+                    )}
+                  />
+                )}
+                <div className="flex justify-between items-start mb-1 mt-1">
                   <div
                     className={cn(
                       'text-[13px] font-semibold w-7 h-7 flex items-center justify-center rounded-full transition-colors',
@@ -359,7 +419,7 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
                           if (d.isGroup) {
                             toast({
                               title: d.descricao,
-                              description: `Valor consolidado de ${d.originalItems.length} despesas. Clique nas despesas no painel lateral para editar.`,
+                              description: `Valor consolidado de ${d.originalItems.length} despesas. Alternar para a visualização Detalhada para gerenciar.`,
                             })
                           } else {
                             onEdit(d)

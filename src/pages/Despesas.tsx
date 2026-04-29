@@ -52,6 +52,7 @@ import {
   setDate,
   startOfMonth,
   endOfMonth,
+  subMonths,
   isSameMonth,
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
@@ -88,6 +89,7 @@ export default function Despesas() {
   const [activeTab, setActiveTab] = useLocalStorage('despesas_activeTab', 'lancamentos')
   const [todasDespesas, setTodasDespesas] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [faturamentoMedio, setFaturamentoMedio] = useState(15000)
   // Filtro de Contas
   const [activeContaFilter, setActiveContaFilter] = useLocalStorage<
     'all' | 'Unicred' | 'Sicoob' | 'ESPÉCIE'
@@ -108,13 +110,15 @@ export default function Despesas() {
 
   const fetchDados = async () => {
     setLoading(true)
-    const [despesasRes, contasRes, subRes] = await Promise.all([
+    const data3m = format(startOfMonth(subMonths(new Date(), 3)), 'yyyy-MM-dd')
+    const [despesasRes, contasRes, subRes, lancRes] = await Promise.all([
       supabase.from('despesas').select('*').order('data_vencimento', { ascending: false }),
       supabase.from('contas_fixas').select('*').order('data_vencimento', { ascending: false }),
       supabase
         .from('subcategorias_despesas' as any)
         .select('*')
         .order('nome', { ascending: true }),
+      supabase.from('lancamentos_pacientes').select('valor').gte('data_atendimento', data3m),
     ])
 
     const d = (despesasRes.data || []).map((x) => ({ ...x, _table: 'despesa' }))
@@ -131,6 +135,12 @@ export default function Despesas() {
 
     setTodasDespesas(combined)
     setSubcategorias(subRes.data || [])
+
+    if (lancRes.data && lancRes.data.length > 0) {
+      const total = lancRes.data.reduce((acc, l) => acc + Number(l.valor || 0), 0)
+      setFaturamentoMedio(Math.max(total / 3, 1000))
+    }
+
     setLoading(false)
   }
 
@@ -695,6 +705,7 @@ export default function Despesas() {
               contas={displayedDespesas}
               onOpenNew={handleOpenNew}
               onEdit={(d: any) => handleOpenEdit(d, d._table as any)}
+              faturamentoMedio={faturamentoMedio}
             />
           </TabsContent>
 
