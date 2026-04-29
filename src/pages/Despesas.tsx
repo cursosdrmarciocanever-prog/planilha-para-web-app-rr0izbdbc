@@ -44,7 +44,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/use-auth'
-import { format, parseISO, addMonths } from 'date-fns'
+import { format, parseISO, addMonths, setDate } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -62,6 +62,7 @@ interface Despesa {
   data_vencimento: string
   descricao: string
   categoria: string
+  subcategoria?: string
   valor: number
   status: string
   conta_pagamento?: string
@@ -80,6 +81,12 @@ export default function Despesas() {
   const [activeContaFilter, setActiveContaFilter] = useState<
     'all' | 'Unicred' | 'Sicoob' | 'ESPÉCIE'
   >('all')
+
+  // Subcategorias
+  const [subcategorias, setSubcategorias] = useState<{ id: string; nome: string }[]>([])
+  const [subcategoria, setSubcategoria] = useState('none')
+  const [novaSubcategoria, setNovaSubcategoria] = useState('')
+  const [isCreatingSubcategoria, setIsCreatingSubcategoria] = useState(false)
 
   // Form State
   const [editId, setEditId] = useState<string | null>(null)
@@ -105,9 +112,13 @@ export default function Despesas() {
 
   const fetchDados = async () => {
     setLoading(true)
-    const [despesasRes, contasRes] = await Promise.all([
+    const [despesasRes, contasRes, subRes] = await Promise.all([
       supabase.from('despesas').select('*').order('data_vencimento', { ascending: false }),
       supabase.from('contas_fixas').select('*').order('data_vencimento', { ascending: false }),
+      supabase
+        .from('subcategorias_despesas' as any)
+        .select('*')
+        .order('nome', { ascending: true }),
     ])
 
     const d = (despesasRes.data || []).map((x) => ({ ...x, _table: 'despesa' }))
@@ -123,12 +134,33 @@ export default function Despesas() {
     })
 
     setTodasDespesas(combined)
+    setSubcategorias(subRes.data || [])
     setLoading(false)
   }
 
   useEffect(() => {
     fetchDados()
   }, [])
+
+  // Regra automática de data de vencimento com base na conta/cartão selecionada
+  useEffect(() => {
+    if (!open) return
+    if (contaPagamento === 'Cartão de Crédito Unicred') {
+      if (dataVencimento) {
+        const d = parseISO(dataVencimento)
+        setDataVencimento(format(setDate(d, 10), 'yyyy-MM-dd'))
+      } else {
+        setDataVencimento(format(setDate(new Date(), 10), 'yyyy-MM-dd'))
+      }
+    } else if (contaPagamento === 'Cartão de Crédito Sicoob') {
+      if (dataVencimento) {
+        const d = parseISO(dataVencimento)
+        setDataVencimento(format(setDate(d, 19), 'yyyy-MM-dd'))
+      } else {
+        setDataVencimento(format(setDate(new Date(), 19), 'yyyy-MM-dd'))
+      }
+    }
+  }, [contaPagamento, open])
 
   const handleOpenNew = () => {
     const isContaFixa = activeTab === 'calendario'
@@ -137,6 +169,9 @@ export default function Despesas() {
     setDataVencimento(format(new Date(), 'yyyy-MM-dd'))
     setDescricao('')
     setCategoria('')
+    setSubcategoria('none')
+    setIsCreatingSubcategoria(false)
+    setNovaSubcategoria('')
     setValor('')
     setStatus('Pendente')
     setContaPagamento('Unicred')
@@ -151,11 +186,12 @@ export default function Despesas() {
     setDataVencimento(item.data_vencimento || '')
     setDescricao(item.descricao || '')
     setCategoria(item.categoria || '')
+    setSubcategoria(item.subcategoria || 'none')
+    setIsCreatingSubcategoria(false)
+    setNovaSubcategoria('')
     setValor(item.valor.toString())
     setStatus(item.status || 'Pendente')
-    setContaPagamento(
-      item.conta_pagamento?.includes('Unicred') ? 'Unicred' : item.conta_pagamento || 'Unicred',
-    )
+    setContaPagamento(item.conta_pagamento || 'Unicred')
     setRecorrencia(type === 'conta_fixa' ? 'Recorrente' : 'Única')
     setOpen(true)
   }
@@ -166,9 +202,25 @@ export default function Despesas() {
       return
     }
 
+    let finalSubcategoria = subcategoria
+    if (isCreatingSubcategoria && novaSubcategoria.trim()) {
+      const { data, error } = await supabase
+        .from('subcategorias_despesas' as any)
+        .insert({ nome: novaSubcategoria.trim(), user_id: user?.id })
+        .select()
+        .single()
+      if (!error && data) {
+        finalSubcategoria = data.nome
+        setSubcategorias((prev) => [...prev, data])
+      }
+    } else if (isCreatingSubcategoria && !novaSubcategoria.trim()) {
+      finalSubcategoria = 'none'
+    }
+
     const payloadBase: any = {
       descricao,
       categoria,
+      subcategoria: finalSubcategoria === 'none' ? null : finalSubcategoria,
       conta_pagamento: contaPagamento,
       status,
       valor: parseFloat(valor),
@@ -271,10 +323,10 @@ export default function Despesas() {
     .filter((d) => d.conta_pagamento?.includes('Unicred'))
     .reduce((acc, d) => acc + Number(d.valor), 0)
   const totalSicoob = todasDespesas
-    .filter((d) => d.conta_pagamento === 'Sicoob')
+    .filter((d) => d.conta_pagamento?.includes('Sicoob'))
     .reduce((acc, d) => acc + Number(d.valor), 0)
   const totalEspecie = todasDespesas
-    .filter((d) => d.conta_pagamento === 'ESPÉCIE')
+    .filter((d) => d.conta_pagamento?.includes('ESPÉCIE'))
     .reduce((acc, d) => acc + Number(d.valor), 0)
 
   // Filtragem
@@ -612,9 +664,16 @@ export default function Despesas() {
                             </div>
                           </TableCell>
                           <TableCell className="py-4">
-                            <span className="bg-secondary/50 text-secondary-foreground px-3 py-1 rounded-md text-xs font-medium border border-border/50">
-                              {d.categoria}
-                            </span>
+                            <div className="flex flex-col gap-1 items-start">
+                              <span className="bg-secondary/50 text-secondary-foreground px-3 py-1 rounded-md text-xs font-medium border border-border/50">
+                                {d.categoria}
+                              </span>
+                              {d.subcategoria && (
+                                <span className="text-[10px] text-muted-foreground px-1 font-semibold">
+                                  {d.subcategoria}
+                                </span>
+                              )}
+                            </div>
                           </TableCell>
                           <TableCell className="py-4">
                             <Badge
@@ -833,6 +892,65 @@ export default function Despesas() {
                 </Select>
               </div>
 
+              <div className="space-y-2">
+                <Label className="font-semibold text-foreground flex justify-between">
+                  Subcategoria
+                </Label>
+                {!isCreatingSubcategoria ? (
+                  <Select
+                    value={subcategoria}
+                    onValueChange={(val) => {
+                      if (val === 'new') {
+                        setIsCreatingSubcategoria(true)
+                        setSubcategoria('none')
+                      } else {
+                        setSubcategoria(val)
+                      }
+                    }}
+                  >
+                    <SelectTrigger className="bg-secondary/20 h-11">
+                      <SelectValue placeholder="Selecione ou crie..." />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="none">Nenhuma</SelectItem>
+                      {subcategorias.map((sub) => (
+                        <SelectItem key={sub.id} value={sub.nome}>
+                          {sub.nome}
+                        </SelectItem>
+                      ))}
+                      <SelectItem value="new" className="font-semibold text-primary">
+                        <Plus className="w-4 h-4 inline mr-2" />
+                        Nova Subcategoria...
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                ) : (
+                  <div className="flex gap-2">
+                    <Input
+                      placeholder="Nome da subcategoria"
+                      value={novaSubcategoria}
+                      onChange={(e) => setNovaSubcategoria(e.target.value)}
+                      className="bg-secondary/20 h-11"
+                      autoFocus
+                    />
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      className="h-11 w-11 shrink-0"
+                      onClick={() => {
+                        setIsCreatingSubcategoria(false)
+                        setNovaSubcategoria('')
+                        setSubcategoria('none')
+                      }}
+                    >
+                      <Trash2 className="w-4 h-4 text-muted-foreground" />
+                    </Button>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
               {recorrencia === 'Parcelada' && !editId && (
                 <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
                   <Label className="font-semibold text-foreground">Quantidade de Parcelas</Label>
@@ -848,7 +966,6 @@ export default function Despesas() {
                 </div>
               )}
 
-              {/* Se não for parcelada, podemos colocar o Status no lugar */}
               {recorrencia !== 'Parcelada' && (
                 <div className="space-y-2">
                   <Label className="font-semibold text-foreground">Status</Label>
@@ -864,20 +981,24 @@ export default function Despesas() {
                   </Select>
                 </div>
               )}
-            </div>
 
-            <div className="space-y-2">
-              <Label className="font-semibold text-foreground">Conta / Cartão</Label>
-              <Select value={contaPagamento} onValueChange={setContaPagamento}>
-                <SelectTrigger className="bg-secondary/20 h-11">
-                  <SelectValue placeholder="Selecione a conta..." />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Unicred">Conta Unicred</SelectItem>
-                  <SelectItem value="Sicoob">Conta Sicoob</SelectItem>
-                  <SelectItem value="ESPÉCIE">Conta ESPÉCIE</SelectItem>
-                </SelectContent>
-              </Select>
+              <div className="space-y-2">
+                <Label className="font-semibold text-foreground">Conta / Cartão</Label>
+                <Select value={contaPagamento} onValueChange={setContaPagamento}>
+                  <SelectTrigger className="bg-secondary/20 h-11">
+                    <SelectValue placeholder="Selecione a conta..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Unicred">Conta Unicred</SelectItem>
+                    <SelectItem value="Sicoob">Conta Sicoob</SelectItem>
+                    <SelectItem value="ESPÉCIE">Conta ESPÉCIE</SelectItem>
+                    <SelectItem value="Cartão de Crédito Unicred">
+                      Cartão de Créd. Unicred
+                    </SelectItem>
+                    <SelectItem value="Cartão de Crédito Sicoob">Cartão de Créd. Sicoob</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <div className="flex gap-3 pt-4 mt-2 border-t border-border/40">

@@ -438,6 +438,11 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
                               {d.frequencia}
                             </span>
                           )}
+                          {d.subcategoria && (
+                            <span className="text-[10px] px-2 py-0.5 rounded-md font-medium bg-primary/5 text-primary border border-primary/20">
+                              {d.subcategoria}
+                            </span>
+                          )}
                           {d.conta_pagamento && (
                             <span className="text-[10px] px-2 py-0.5 rounded-md font-medium border border-border/50 text-muted-foreground flex items-center gap-1">
                               <CreditCard className="w-3 h-3" />
