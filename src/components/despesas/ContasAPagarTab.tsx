@@ -267,9 +267,44 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
         <div className="grid grid-cols-7 auto-rows-fr">
           {days.map((day) => {
             const dateStr = format(day, 'yyyy-MM-dd')
-            const dayExpenses = expensesByDate.get(dateStr) || []
+            const dayExpensesRaw = expensesByDate.get(dateStr) || []
             const isSelected = selectedDate && isSameDay(day, selectedDate)
             const isCurrentMonth = isSameMonth(day, monthStart)
+
+            const dayExpenses: any[] = []
+            const groupedCards = new Map<string, any>()
+
+            dayExpensesRaw.forEach((d: any) => {
+              const isCartao =
+                d.conta_pagamento?.toLowerCase().includes('cartão') ||
+                d.categoria?.toLowerCase().includes('cartão')
+
+              if (isCartao) {
+                const groupName = d.conta_pagamento || 'Cartão de Crédito'
+                if (!groupedCards.has(groupName)) {
+                  groupedCards.set(groupName, {
+                    id: `group-${groupName}-${dateStr}`,
+                    descricao: `Fatura: ${groupName}`,
+                    valor: 0,
+                    status: 'Pago',
+                    data_vencimento: d.data_vencimento,
+                    _table: 'despesa',
+                    isGroup: true,
+                    originalItems: [],
+                  })
+                }
+                const group = groupedCards.get(groupName)!
+                group.valor += Number(d.valor)
+                group.originalItems.push(d)
+                if (d.status !== 'Pago' && d.status !== 'Confirmado') {
+                  group.status = 'Pendente'
+                }
+              } else {
+                dayExpenses.push(d)
+              }
+            })
+
+            groupedCards.forEach((group) => dayExpenses.push(group))
 
             return (
               <div
@@ -321,7 +356,14 @@ export function ContasAPagarTab({ contas, onOpenNew, onEdit }: ContasAPagarTabPr
                         title={`${d.descricao} - ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(d.valor)}`}
                         onClick={(e) => {
                           e.stopPropagation()
-                          onEdit(d)
+                          if (d.isGroup) {
+                            toast({
+                              title: d.descricao,
+                              description: `Valor consolidado de ${d.originalItems.length} despesas. Clique nas despesas no painel lateral para editar.`,
+                            })
+                          } else {
+                            onEdit(d)
+                          }
                         }}
                       >
                         <div

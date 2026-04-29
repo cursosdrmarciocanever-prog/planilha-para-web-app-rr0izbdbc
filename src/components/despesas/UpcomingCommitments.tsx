@@ -124,22 +124,24 @@ export function UpcomingCommitments({ contas }: { contas: any[] }) {
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)
 
+  const nextMonthProjection = projection.length > 1 ? projection[1] : projection[0]
+
   return (
     <div className="space-y-6">
       {/* Alerta de Faturamento Mínimo */}
-      {projection.length > 0 && (
+      {nextMonthProjection && (
         <Alert
           variant="default"
           className="bg-amber-500/10 text-amber-900 dark:text-amber-400 border-amber-500/20 shadow-sm"
         >
           <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-500" />
           <AlertTitle className="font-bold text-lg text-amber-800 dark:text-amber-500">
-            Faturamento Mínimo Necessário ({projection[0].label})
+            Faturamento Mínimo Necessário ({nextMonthProjection.label})
           </AlertTitle>
           <AlertDescription className="mt-2 text-sm flex items-center gap-2 font-medium">
             Seu comprometimento total para o próximo mês é de{' '}
-            <span className="font-bold text-lg">{formatCurrency(projection[0].total)}</span>. Fature
-            pelo menos este valor para não ter prejuízo.
+            <span className="font-bold text-lg">{formatCurrency(nextMonthProjection.total)}</span>.
+            Fature pelo menos este valor para não ter prejuízo.
           </AlertDescription>
         </Alert>
       )}

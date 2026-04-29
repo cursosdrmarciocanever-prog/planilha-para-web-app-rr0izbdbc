@@ -45,7 +45,15 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/use-auth'
-import { format, parseISO, addMonths, setDate } from 'date-fns'
+import {
+  format,
+  parseISO,
+  addMonths,
+  setDate,
+  startOfMonth,
+  endOfMonth,
+  isSameMonth,
+} from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
@@ -172,6 +180,31 @@ export default function Despesas() {
       : todasDespesas.filter((d) => d.conta_pagamento?.includes(activeContaFilter))
 
   const totalFiltrado = displayedDespesas.reduce((acc, curr) => acc + Number(curr.valor), 0)
+
+  // Projeção do Próximo Mês
+  const nextMonthDate = addMonths(startOfMonth(new Date()), 1)
+  const projecaoProximoMes = displayedDespesas.reduce((acc, c) => {
+    if (!c.data_vencimento) return acc
+    const dataVenc = parseISO(c.data_vencimento)
+
+    if (c._table === 'despesa') {
+      if (isSameMonth(dataVenc, nextMonthDate)) {
+        return acc + Number(c.valor)
+      }
+    } else if (c._table === 'conta_fixa') {
+      if (c.frequencia === 'Única') {
+        if (isSameMonth(dataVenc, nextMonthDate)) {
+          return acc + Number(c.valor)
+        }
+      } else {
+        // Recorrente
+        if (dataVenc <= endOfMonth(nextMonthDate)) {
+          return acc + Number(c.valor)
+        }
+      }
+    }
+    return acc
+  }, 0)
 
   // Bulk Edit Logic
   const handleSelectAll = (checked: boolean) => {
@@ -379,30 +412,49 @@ export default function Despesas() {
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
-                <div className="bg-card border border-border/60 rounded-3xl p-6 shadow-sm flex items-center justify-between gap-5">
-                  <div className="flex items-center gap-5">
-                    <div className="bg-destructive/10 p-4 rounded-full">
-                      <TrendingDown className="w-8 h-8 text-destructive" />
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="bg-card border border-border/60 rounded-3xl p-6 shadow-sm flex items-center justify-between gap-5 relative">
+                    <div className="flex items-center gap-5">
+                      <div className="bg-destructive/10 p-4 rounded-full shrink-0">
+                        <TrendingDown className="w-8 h-8 text-destructive" />
+                      </div>
+                      <div>
+                        <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-widest mb-1 line-clamp-1">
+                          Total{' '}
+                          {activeContaFilter !== 'all' ? `(${activeContaFilter})` : 'Histórico'}
+                        </p>
+                        <h3 className="text-3xl font-black text-foreground tracking-tight">
+                          {formatCurrency(totalFiltrado)}
+                        </h3>
+                      </div>
                     </div>
-                    <div>
-                      <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-widest mb-1">
-                        Total{' '}
-                        {activeContaFilter !== 'all' ? `(${activeContaFilter})` : 'Consolidado'}
-                      </p>
-                      <h3 className="text-4xl font-black text-foreground tracking-tight">
-                        {formatCurrency(totalFiltrado)}
-                      </h3>
+                    {activeContaFilter !== 'all' && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => setActiveContaFilter('all')}
+                        className="text-muted-foreground absolute top-2 right-2 h-7 px-2 text-xs"
+                      >
+                        Limpar
+                      </Button>
+                    )}
+                  </div>
+
+                  <div className="bg-card border border-border/60 rounded-3xl p-6 shadow-sm flex items-center justify-between gap-5">
+                    <div className="flex items-center gap-5">
+                      <div className="bg-amber-500/10 p-4 rounded-full shrink-0">
+                        <TrendingUp className="w-8 h-8 text-amber-600" />
+                      </div>
+                      <div>
+                        <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-widest mb-1 line-clamp-1">
+                          Projeção Próximo Mês
+                        </p>
+                        <h3 className="text-3xl font-black text-foreground tracking-tight">
+                          {formatCurrency(projecaoProximoMes)}
+                        </h3>
+                      </div>
                     </div>
                   </div>
-                  {activeContaFilter !== 'all' && (
-                    <Button
-                      variant="ghost"
-                      onClick={() => setActiveContaFilter('all')}
-                      className="text-muted-foreground"
-                    >
-                      Limpar Filtro
-                    </Button>
-                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -412,7 +464,7 @@ export default function Despesas() {
               </div>
 
               <div className="lg:col-span-1">
-                <BreakEvenProjection totalDespesas={totalFiltrado} />
+                <BreakEvenProjection totalDespesas={projecaoProximoMes} />
               </div>
             </div>
 
