@@ -56,6 +56,7 @@ import { CostDistributionChart } from '@/components/despesas/CostDistributionCha
 import { MonthlyComparisonChart } from '@/components/despesas/MonthlyComparisonChart'
 import { BreakEvenProjection } from '@/components/despesas/BreakEvenProjection'
 import { ContasAPagarTab } from '@/components/despesas/ContasAPagarTab'
+import { CreditCardsDashboard } from '@/components/despesas/CreditCardsDashboard'
 
 interface Despesa {
   id: string
@@ -572,6 +573,8 @@ export default function Despesas() {
                 <BreakEvenProjection totalDespesas={totalFiltrado} />
               </div>
             </div>
+
+            <CreditCardsDashboard despesas={displayedDespesas} />
 
             <div className="bg-card border border-border/60 rounded-3xl shadow-sm overflow-hidden flex-1 flex flex-col">
               <div className="p-6 border-b border-border/40 bg-secondary/10">
