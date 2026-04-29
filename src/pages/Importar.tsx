@@ -16,6 +16,7 @@ import {
   Loader2,
 } from 'lucide-react'
 import { useToast } from '@/hooks/use-toast'
+import { Skeleton } from '@/components/ui/skeleton'
 
 const EXPECTED_COLUMNS = [
   'Descrição',
@@ -62,12 +63,14 @@ export default function Importar() {
   const [isSaving, setIsSaving] = useState(false)
   const [parsedRows, setParsedRows] = useState<any[]>([])
   const [jobs, setJobs] = useState<any[]>([])
+  const [loadingJobs, setLoadingJobs] = useState(true)
 
   useEffect(() => {
     if (user) fetchJobs()
   }, [user])
 
   const fetchJobs = async () => {
+    setLoadingJobs(true)
     const { data } = await supabase
       .from('import_jobs')
       .select('*')
@@ -77,6 +80,7 @@ export default function Importar() {
       .limit(20)
 
     if (data) setJobs(data)
+    setLoadingJobs(false)
   }
 
   const downloadTemplate = () => {
@@ -418,7 +422,25 @@ export default function Importar() {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              {jobs.length === 0 ? (
+              {loadingJobs ? (
+                <div className="space-y-4">
+                  {Array.from({ length: 3 }).map((_, idx) => (
+                    <div
+                      key={idx}
+                      className="flex justify-between items-center p-4 border rounded-lg bg-card"
+                    >
+                      <div className="space-y-2">
+                        <Skeleton className="h-5 w-40" />
+                        <Skeleton className="h-4 w-32" />
+                      </div>
+                      <div className="space-y-2 flex flex-col items-end">
+                        <Skeleton className="h-5 w-24" />
+                        <Skeleton className="h-4 w-20" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : jobs.length === 0 ? (
                 <p className="text-muted-foreground text-center py-8">
                   Nenhuma importação registrada.
                 </p>

@@ -30,6 +30,7 @@ import {
 import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
+import { Skeleton } from '@/components/ui/skeleton'
 
 export default function Despesas() {
   const { user } = useAuth()
@@ -355,8 +356,17 @@ export default function Despesas() {
             </div>
 
             {loading ? (
-              <div className="flex-1 flex items-center justify-center min-h-[400px]">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              <div className="flex-1 grid grid-cols-7 auto-rows-[minmax(120px,1fr)]">
+                {Array.from({ length: 35 }).map((_, i) => (
+                  <div
+                    key={`skeleton-${i}`}
+                    className="border-b border-r p-2 min-h-[120px] flex flex-col gap-2"
+                  >
+                    <Skeleton className="w-7 h-7 rounded-full" />
+                    <Skeleton className="w-full h-8 rounded-md" />
+                    {i % 3 === 0 && <Skeleton className="w-full h-8 rounded-md" />}
+                  </div>
+                ))}
               </div>
             ) : (
               <div className="flex-1 grid grid-cols-7 auto-rows-[minmax(120px,1fr)]">

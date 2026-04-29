@@ -18,8 +18,14 @@ export default function Login() {
 
   if (authLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background space-y-4">
+        <div className="bg-primary/10 p-4 rounded-full animate-pulse">
+          <HeartPulse className="w-10 h-10 text-primary stroke-[1.5]" />
+        </div>
+        <div className="flex flex-col items-center space-y-2">
+          <Loader2 className="w-6 h-6 animate-spin text-primary" />
+          <p className="text-muted-foreground font-medium animate-pulse">Aguarde, conectando...</p>
+        </div>
       </div>
     )
   }

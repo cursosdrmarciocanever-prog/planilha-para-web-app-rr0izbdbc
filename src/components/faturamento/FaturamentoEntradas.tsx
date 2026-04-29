@@ -24,6 +24,7 @@ import { format, parseISO, endOfMonth } from 'date-fns'
 import { useToast } from '@/hooks/use-toast'
 import { Link } from 'react-router-dom'
 import { WhatsAppNotification } from '../WhatsAppNotification'
+import { Skeleton } from '@/components/ui/skeleton'
 import jsPDF from 'jspdf'
 import autoTable from 'jspdf-autotable'
 
@@ -365,13 +366,37 @@ export function FaturamentoEntradas() {
             </TableHeader>
             <TableBody>
               {loading ? (
-                <TableRow>
-                  <TableCell colSpan={9} className="h-24 text-center">
-                    <div className="flex justify-center">
-                      <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin"></div>
-                    </div>
-                  </TableCell>
-                </TableRow>
+                Array.from({ length: 5 }).map((_, idx) => (
+                  <TableRow key={idx}>
+                    <TableCell className="print:hidden">
+                      <Skeleton className="w-4 h-4 rounded" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-[80px]" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-[150px]" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-5 w-[80px] rounded" />
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Skeleton className="h-4 w-[100px] ml-auto" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-[120px]" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-4 w-[100px]" />
+                    </TableCell>
+                    <TableCell>
+                      <Skeleton className="h-5 w-[80px] rounded" />
+                    </TableCell>
+                    <TableCell className="print:hidden">
+                      <Skeleton className="h-8 w-16 ml-auto" />
+                    </TableCell>
+                  </TableRow>
+                ))
               ) : lancamentos.length === 0 ? (
                 <TableRow>
                   <TableCell colSpan={9} className="h-32 text-center text-muted-foreground">

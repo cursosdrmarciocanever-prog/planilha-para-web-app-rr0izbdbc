@@ -8,8 +8,13 @@ export function ProtectedRoute() {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
-        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      <div className="min-h-screen flex flex-col items-center justify-center bg-background space-y-4">
+        <div className="flex flex-col items-center space-y-2 animate-fade-in">
+          <Loader2 className="w-8 h-8 animate-spin text-primary" />
+          <p className="text-muted-foreground font-medium animate-pulse">
+            Aguarde, carregando informações...
+          </p>
+        </div>
       </div>
     )
   }
