@@ -9,6 +9,9 @@ import {
   CalendarDays,
   CreditCard,
   Upload,
+  Building2,
+  Landmark,
+  Wallet,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import {
@@ -18,6 +21,7 @@ import {
   DialogTitle,
   DialogFooter,
   DialogTrigger,
+  DialogDescription,
 } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -36,15 +40,17 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { supabase } from '@/lib/supabase/client'
 import { useToast } from '@/hooks/use-toast'
 import { useAuth } from '@/hooks/use-auth'
-import { format, parseISO } from 'date-fns'
+import { format, parseISO, addMonths } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import { Skeleton } from '@/components/ui/skeleton'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
+import { cn } from '@/lib/utils'
 
 import { CostDistributionChart } from '@/components/despesas/CostDistributionChart'
 import { MonthlyComparisonChart } from '@/components/despesas/MonthlyComparisonChart'
@@ -61,13 +67,7 @@ interface Despesa {
   conta_pagamento?: string
 }
 
-interface ContaFixa extends Despesa {
-  frequencia: string
-  usuario_id?: string
-}
-
 const CATEGORIAS = ['Fixas', 'Variáveis', 'Pessoal', 'Impostos', 'Marketing']
-const FREQUENCIAS = ['Única', 'Mensal', 'Bimestral', 'Trimestral', 'Anual']
 
 export default function Despesas() {
   const { user } = useAuth()
@@ -75,6 +75,11 @@ export default function Despesas() {
   const [todasDespesas, setTodasDespesas] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [open, setOpen] = useState(false)
+
+  // Filtro de Contas
+  const [activeContaFilter, setActiveContaFilter] = useState<
+    'all' | 'Unicred' | 'Sicoob' | 'ESPÉCIE'
+  >('all')
 
   // Form State
   const [editId, setEditId] = useState<string | null>(null)
@@ -84,8 +89,11 @@ export default function Despesas() {
   const [categoria, setCategoria] = useState('')
   const [valor, setValor] = useState('')
   const [status, setStatus] = useState('Pendente')
-  const [frequencia, setFrequencia] = useState('Mensal')
-  const [contaPagamento, setContaPagamento] = useState('Carnê Leão / Unicred')
+  const [contaPagamento, setContaPagamento] = useState('Unicred')
+
+  // Novos estados para recorrência
+  const [recorrencia, setRecorrencia] = useState('Única')
+  const [parcelas, setParcelas] = useState('2')
 
   // Bulk Edit State
   const [selectedItems, setSelectedItems] = useState<string[]>([])
@@ -131,8 +139,9 @@ export default function Despesas() {
     setCategoria('')
     setValor('')
     setStatus('Pendente')
-    setFrequencia(isContaFixa ? 'Mensal' : 'Única')
-    setContaPagamento('Carnê Leão / Unicred')
+    setContaPagamento('Unicred')
+    setRecorrencia(isContaFixa ? 'Recorrente' : 'Única')
+    setParcelas('2')
     setOpen(true)
   }
 
@@ -144,8 +153,10 @@ export default function Despesas() {
     setCategoria(item.categoria || '')
     setValor(item.valor.toString())
     setStatus(item.status || 'Pendente')
-    if (type === 'conta_fixa') setFrequencia(item.frequencia || 'Mensal')
-    setContaPagamento(item.conta_pagamento || 'Carnê Leão / Unicred')
+    setContaPagamento(
+      item.conta_pagamento?.includes('Unicred') ? 'Unicred' : item.conta_pagamento || 'Unicred',
+    )
+    setRecorrencia(type === 'conta_fixa' ? 'Recorrente' : 'Única')
     setOpen(true)
   }
 
@@ -155,39 +166,87 @@ export default function Despesas() {
       return
     }
 
-    const payload: any = {
-      data_vencimento: dataVencimento,
+    const payloadBase: any = {
       descricao,
       categoria,
       conta_pagamento: contaPagamento,
-      valor: parseFloat(valor),
       status,
+      valor: parseFloat(valor),
     }
 
-    const table = editType === 'conta_fixa' ? 'contas_fixas' : 'despesas'
+    if (!editId && recorrencia === 'Parcelada') {
+      const numParcelas = parseInt(parcelas)
+      if (isNaN(numParcelas) || numParcelas < 2) {
+        toast({
+          title: 'Atenção',
+          description: 'Número de parcelas inválido.',
+          variant: 'destructive',
+        })
+        return
+      }
 
-    if (user) {
-      if (editType === 'conta_fixa') {
-        payload.usuario_id = user.id
-        payload.frequencia = frequencia
+      const valorParcela = parseFloat(valor) / numParcelas
+      const inserts = []
+
+      for (let i = 0; i < numParcelas; i++) {
+        const dataParcela = addMonths(parseISO(dataVencimento), i)
+        inserts.push({
+          ...payloadBase,
+          valor: valorParcela,
+          descricao: `${descricao} (${i + 1}/${numParcelas})`,
+          data_vencimento: format(dataParcela, 'yyyy-MM-dd'),
+          user_id: user?.id,
+        })
+      }
+
+      const { error } = await supabase.from('despesas').insert(inserts)
+      if (error) {
+        toast({ title: 'Erro', description: 'Falha ao salvar parcelas.', variant: 'destructive' })
+        return
+      }
+    } else if (!editId && recorrencia === 'Recorrente') {
+      const { error } = await supabase.from('contas_fixas').insert([
+        {
+          ...payloadBase,
+          data_vencimento: dataVencimento,
+          frequencia: 'Mensal',
+          usuario_id: user?.id,
+        },
+      ])
+      if (error) {
+        toast({
+          title: 'Erro',
+          description: 'Falha ao salvar conta recorrente.',
+          variant: 'destructive',
+        })
+        return
+      }
+    } else {
+      // Única ou Edição
+      const table = editId ? (editType === 'conta_fixa' ? 'contas_fixas' : 'despesas') : 'despesas'
+
+      const finalPayload = { ...payloadBase, data_vencimento: dataVencimento }
+      if (table === 'contas_fixas') {
+        finalPayload.usuario_id = user?.id
+        if (!editId) finalPayload.frequencia = 'Mensal'
       } else {
-        payload.user_id = user.id
+        finalPayload.user_id = user?.id
+      }
+
+      const query = editId
+        ? supabase.from(table).update(finalPayload).eq('id', editId)
+        : supabase.from(table).insert([finalPayload])
+
+      const { error } = await query
+      if (error) {
+        toast({ title: 'Erro', description: 'Falha ao salvar o registro.', variant: 'destructive' })
+        return
       }
     }
 
-    const query = editId
-      ? supabase.from(table).update(payload).eq('id', editId)
-      : supabase.from(table).insert([payload])
-
-    const { error } = await query
-
-    if (error) {
-      toast({ title: 'Erro', description: 'Falha ao salvar o registro.', variant: 'destructive' })
-    } else {
-      toast({ title: 'Sucesso', description: 'Registro salvo com sucesso.' })
-      fetchDados()
-      setOpen(false)
-    }
+    toast({ title: 'Sucesso', description: 'Registro salvo com sucesso.' })
+    fetchDados()
+    setOpen(false)
   }
 
   const handleDelete = async (id: string, type: 'despesa' | 'conta_fixa' = 'despesa') => {
@@ -207,32 +266,34 @@ export default function Despesas() {
   const formatCurrency = (val: number) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)
 
-  const totalDespesas = todasDespesas.reduce((acc, curr) => acc + Number(curr.valor), 0)
+  // Totais por conta
+  const totalUnicred = todasDespesas
+    .filter((d) => d.conta_pagamento?.includes('Unicred'))
+    .reduce((acc, d) => acc + Number(d.valor), 0)
+  const totalSicoob = todasDespesas
+    .filter((d) => d.conta_pagamento === 'Sicoob')
+    .reduce((acc, d) => acc + Number(d.valor), 0)
+  const totalEspecie = todasDespesas
+    .filter((d) => d.conta_pagamento === 'ESPÉCIE')
+    .reduce((acc, d) => acc + Number(d.valor), 0)
 
-  const categoryTotals = CATEGORIAS.reduce(
-    (acc, cat) => {
-      acc[cat] = todasDespesas
-        .filter((d) => d.categoria === cat)
-        .reduce((sum, d) => sum + Number(d.valor || 0), 0)
-      return acc
-    },
-    {} as Record<string, number>,
-  )
+  // Filtragem
+  const displayedDespesas =
+    activeContaFilter === 'all'
+      ? todasDespesas
+      : todasDespesas.filter((d) => d.conta_pagamento?.includes(activeContaFilter))
 
+  const totalFiltrado = displayedDespesas.reduce((acc, curr) => acc + Number(curr.valor), 0)
+
+  // Bulk Edit Logic
   const handleSelectAll = (checked: boolean) => {
-    if (checked) {
-      setSelectedItems(todasDespesas.map((d) => d.id))
-    } else {
-      setSelectedItems([])
-    }
+    if (checked) setSelectedItems(displayedDespesas.map((d) => d.id))
+    else setSelectedItems([])
   }
 
   const handleSelectItem = (id: string, checked: boolean) => {
-    if (checked) {
-      setSelectedItems((prev) => [...prev, id])
-    } else {
-      setSelectedItems((prev) => prev.filter((i) => i !== id))
-    }
+    if (checked) setSelectedItems((prev) => [...prev, id])
+    else setSelectedItems((prev) => prev.filter((i) => i !== id))
   }
 
   const handleBulkSave = async () => {
@@ -251,10 +312,9 @@ export default function Despesas() {
 
     let errorCount = 0
     for (const id of selectedItems) {
-      const item = todasDespesas.find((d) => d.id === id)
+      const item = displayedDespesas.find((d) => d.id === id)
       if (!item) continue
       const table = item._table === 'conta_fixa' ? 'contas_fixas' : 'despesas'
-
       const { error } = await supabase.from(table).update(updates).eq('id', id)
       if (error) errorCount++
     }
@@ -281,10 +341,9 @@ export default function Despesas() {
 
     let errorCount = 0
     for (const id of selectedItems) {
-      const item = todasDespesas.find((d) => d.id === id)
+      const item = displayedDespesas.find((d) => d.id === id)
       if (!item) continue
       const table = item._table === 'conta_fixa' ? 'contas_fixas' : 'despesas'
-
       const { error } = await supabase.from(table).delete().eq('id', id)
       if (error) errorCount++
     }
@@ -301,6 +360,10 @@ export default function Despesas() {
 
     setSelectedItems([])
     fetchDados()
+  }
+
+  const toggleContaFilter = (conta: 'Unicred' | 'Sicoob' | 'ESPÉCIE') => {
+    setActiveContaFilter((prev) => (prev === conta ? 'all' : conta))
   }
 
   return (
@@ -322,8 +385,7 @@ export default function Despesas() {
             </Link>
           </Button>
           <Button onClick={handleOpenNew} className="gap-2 rounded-full shadow-sm">
-            <Plus className="w-4 h-4" />{' '}
-            {activeTab === 'calendario' ? 'Nova Conta Fixa' : 'Nova Despesa'}
+            <Plus className="w-4 h-4" /> Nova Despesa
           </Button>
         </div>
       </div>
@@ -351,53 +413,118 @@ export default function Despesas() {
             value="lancamentos"
             className="mt-0 outline-none space-y-8 animate-fade-in-up"
           >
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
-              {CATEGORIAS.map((cat) => (
-                <div
-                  key={cat}
-                  className="bg-card border border-border/60 rounded-3xl p-5 shadow-sm flex flex-col justify-between"
-                >
-                  <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-wider mb-3">
-                    {cat}
-                  </p>
-                  <h4 className="text-2xl font-black text-foreground tracking-tight">
-                    {formatCurrency(categoryTotals[cat] || 0)}
-                  </h4>
-                </div>
-              ))}
+            {/* Cards de Contas Específicas */}
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              <Card
+                className={cn(
+                  'cursor-pointer transition-all border-border/60 shadow-sm',
+                  activeContaFilter === 'Unicred'
+                    ? 'ring-2 ring-primary bg-primary/5'
+                    : 'hover:bg-secondary/20',
+                )}
+                onClick={() => toggleContaFilter('Unicred')}
+              >
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                    Conta Unicred
+                  </CardTitle>
+                  <Building2 className="w-5 h-5 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-black text-foreground">
+                    {formatCurrency(totalUnicred)}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card
+                className={cn(
+                  'cursor-pointer transition-all border-border/60 shadow-sm',
+                  activeContaFilter === 'Sicoob'
+                    ? 'ring-2 ring-primary bg-primary/5'
+                    : 'hover:bg-secondary/20',
+                )}
+                onClick={() => toggleContaFilter('Sicoob')}
+              >
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                    Conta Sicoob
+                  </CardTitle>
+                  <Landmark className="w-5 h-5 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-black text-foreground">
+                    {formatCurrency(totalSicoob)}
+                  </div>
+                </CardContent>
+              </Card>
+
+              <Card
+                className={cn(
+                  'cursor-pointer transition-all border-border/60 shadow-sm',
+                  activeContaFilter === 'ESPÉCIE'
+                    ? 'ring-2 ring-primary bg-primary/5'
+                    : 'hover:bg-secondary/20',
+                )}
+                onClick={() => toggleContaFilter('ESPÉCIE')}
+              >
+                <CardHeader className="flex flex-row items-center justify-between pb-2">
+                  <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
+                    Conta Espécie
+                  </CardTitle>
+                  <Wallet className="w-5 h-5 text-muted-foreground" />
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-black text-foreground">
+                    {formatCurrency(totalEspecie)}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
               <div className="lg:col-span-2 space-y-6">
-                <div className="bg-card border border-border/60 rounded-3xl p-6 shadow-sm flex items-center gap-5">
-                  <div className="bg-destructive/10 p-4 rounded-full">
-                    <TrendingDown className="w-8 h-8 text-destructive" />
+                <div className="bg-card border border-border/60 rounded-3xl p-6 shadow-sm flex items-center justify-between gap-5">
+                  <div className="flex items-center gap-5">
+                    <div className="bg-destructive/10 p-4 rounded-full">
+                      <TrendingDown className="w-8 h-8 text-destructive" />
+                    </div>
+                    <div>
+                      <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-widest mb-1">
+                        Total{' '}
+                        {activeContaFilter !== 'all' ? `(${activeContaFilter})` : 'Consolidado'}
+                      </p>
+                      <h3 className="text-4xl font-black text-foreground tracking-tight">
+                        {formatCurrency(totalFiltrado)}
+                      </h3>
+                    </div>
                   </div>
-                  <div>
-                    <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-widest mb-1">
-                      Total Consolidado
-                    </p>
-                    <h3 className="text-4xl font-black text-foreground tracking-tight">
-                      {formatCurrency(totalDespesas)}
-                    </h3>
-                  </div>
+                  {activeContaFilter !== 'all' && (
+                    <Button
+                      variant="ghost"
+                      onClick={() => setActiveContaFilter('all')}
+                      className="text-muted-foreground"
+                    >
+                      Limpar Filtro
+                    </Button>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <CostDistributionChart despesas={todasDespesas} />
-                  <MonthlyComparisonChart despesas={todasDespesas} />
+                  <CostDistributionChart despesas={displayedDespesas} />
+                  <MonthlyComparisonChart despesas={displayedDespesas} />
                 </div>
               </div>
 
               <div className="lg:col-span-1">
-                <BreakEvenProjection totalDespesas={totalDespesas} />
+                <BreakEvenProjection totalDespesas={totalFiltrado} />
               </div>
             </div>
 
             <div className="bg-card border border-border/60 rounded-3xl shadow-sm overflow-hidden flex-1 flex flex-col">
               <div className="p-6 border-b border-border/40 bg-secondary/10">
                 <h2 className="text-[16px] font-bold text-foreground uppercase tracking-widest">
-                  Lançamentos Recentes
+                  Lançamentos Recentes {activeContaFilter !== 'all' && `- ${activeContaFilter}`}
                 </h2>
               </div>
 
@@ -407,19 +534,21 @@ export default function Despesas() {
                   <Skeleton className="h-12 w-full" />
                   <Skeleton className="h-12 w-full" />
                 </div>
-              ) : todasDespesas.length === 0 ? (
+              ) : displayedDespesas.length === 0 ? (
                 <div className="flex-1 flex flex-col items-center justify-center p-16">
                   <div className="bg-primary/5 p-6 rounded-full mb-6">
                     <Receipt className="w-16 h-16 text-primary/40" strokeWidth={1.5} />
                   </div>
                   <h3 className="text-xl font-bold text-foreground mb-2">
-                    Nenhuma despesa registrada
+                    Nenhuma despesa encontrada
                   </h3>
                   <p className="text-muted-foreground mb-6 text-center max-w-sm">
-                    Comece a registrar seus custos para ter um Raio-X Financeiro mais preciso.
+                    {activeContaFilter !== 'all'
+                      ? `Não há registros para a conta ${activeContaFilter}.`
+                      : 'Comece a registrar seus custos para ter um Raio-X Financeiro mais preciso.'}
                   </p>
                   <Button onClick={handleOpenNew} variant="outline" className="gap-2 rounded-full">
-                    <Plus className="w-4 h-4" /> Registrar Primeira Despesa
+                    <Plus className="w-4 h-4" /> Registrar Nova Despesa
                   </Button>
                 </div>
               ) : (
@@ -431,8 +560,8 @@ export default function Despesas() {
                           <div className="flex items-center justify-center">
                             <Checkbox
                               checked={
-                                selectedItems.length === todasDespesas.length &&
-                                todasDespesas.length > 0
+                                selectedItems.length === displayedDespesas.length &&
+                                displayedDespesas.length > 0
                               }
                               onCheckedChange={handleSelectAll}
                             />
@@ -447,7 +576,7 @@ export default function Despesas() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {todasDespesas.map((d) => (
+                      {displayedDespesas.map((d) => (
                         <TableRow
                           key={d.id}
                           className="group hover:bg-secondary/20 transition-colors"
@@ -529,14 +658,13 @@ export default function Despesas() {
                 </div>
               )}
 
+              {/* Barra de Ações em Lote */}
               {selectedItems.length > 0 && (
                 <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-popover border border-border shadow-2xl rounded-full px-6 py-3 flex items-center gap-4 z-50 animate-in slide-in-from-bottom-5">
                   <span className="text-sm font-bold bg-primary/10 text-primary px-3 py-1.5 rounded-full whitespace-nowrap">
                     {selectedItems.length} selecionados
                   </span>
-
                   <div className="h-6 w-px bg-border mx-1" />
-
                   <Dialog open={isBulkEditOpen} onOpenChange={setIsBulkEditOpen}>
                     <DialogTrigger asChild>
                       <Button
@@ -594,7 +722,6 @@ export default function Despesas() {
                       </DialogFooter>
                     </DialogContent>
                   </Dialog>
-
                   <Button
                     variant="destructive"
                     className="rounded-full shadow-sm gap-2 h-10 whitespace-nowrap px-6"
@@ -609,7 +736,7 @@ export default function Despesas() {
 
           <TabsContent value="calendario" className="mt-0 outline-none w-full">
             <ContasAPagarTab
-              contas={todasDespesas}
+              contas={displayedDespesas}
               onOpenNew={handleOpenNew}
               onEdit={(d: any) => handleOpenEdit(d, d._table as any)}
             />
@@ -617,61 +744,84 @@ export default function Despesas() {
         </div>
       </Tabs>
 
+      {/* Modal Nova Transação */}
       <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[450px]">
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
-            <DialogTitle>
-              {editId
-                ? editType === 'conta_fixa'
-                  ? 'Editar Conta Fixa'
-                  : 'Editar Despesa'
-                : editType === 'conta_fixa'
-                  ? 'Nova Conta Fixa'
-                  : 'Nova Despesa'}
-            </DialogTitle>
+            <DialogTitle className="text-xl">Nova Transação</DialogTitle>
+            <DialogDescription>
+              Registre uma nova entrada ou saída na conta {contaPagamento}.
+            </DialogDescription>
           </DialogHeader>
-          <div className="space-y-4 pt-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Data Vencimento</Label>
-                <Input
-                  type="date"
-                  value={dataVencimento}
-                  onChange={(e) => setDataVencimento(e.target.value)}
-                  className="bg-secondary/20"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select value={status} onValueChange={setStatus}>
-                  <SelectTrigger className="bg-secondary/20">
-                    <SelectValue placeholder="Status" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Pendente">Pendente</SelectItem>
-                    <SelectItem value="Pago">Pago</SelectItem>
-                    <SelectItem value="Vencido">Vencido</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
+          <div className="space-y-5 pt-2">
             <div className="space-y-2">
-              <Label>Descrição</Label>
+              <Label className="font-semibold text-foreground">Descrição</Label>
               <Input
-                placeholder="Ex: Aluguel, Internet..."
+                placeholder="Ex: Aluguel, Fornecedor..."
                 value={descricao}
                 onChange={(e) => setDescricao(e.target.value)}
-                className="bg-secondary/20"
+                className="bg-secondary/20 h-11"
               />
             </div>
 
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Categoria</Label>
-                <Select value={categoria} onValueChange={setCategoria}>
-                  <SelectTrigger className="bg-secondary/20">
+                <Label className="font-semibold text-foreground">Valor Total (R$)</Label>
+                <Input
+                  type="number"
+                  step="0.01"
+                  placeholder="0.00"
+                  value={valor}
+                  onChange={(e) => setValor(e.target.value)}
+                  className="bg-secondary/20 font-medium h-11"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label className="font-semibold text-foreground">Data Inicial</Label>
+                <Input
+                  type="date"
+                  value={dataVencimento}
+                  onChange={(e) => setDataVencimento(e.target.value)}
+                  className="bg-secondary/20 h-11"
+                />
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="font-semibold text-foreground">Tipo</Label>
+                <Select value="Saída" disabled>
+                  <SelectTrigger className="bg-secondary/20 h-11 opacity-70">
+                    <SelectValue placeholder="Tipo" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Saída">Saída</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label className="font-semibold text-foreground">Recorrência</Label>
+                <Select value={recorrencia} onValueChange={setRecorrencia} disabled={!!editId}>
+                  <SelectTrigger className="border-primary text-primary font-medium h-11">
                     <SelectValue placeholder="Selecione..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Única">Única</SelectItem>
+                    <SelectItem value="Recorrente">Recorrente</SelectItem>
+                    <SelectItem value="Parcelada">Parcelada</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="font-semibold text-foreground flex justify-between">
+                  Categoria
+                </Label>
+                <Select value={categoria} onValueChange={setCategoria}>
+                  <SelectTrigger className="bg-secondary/20 h-11">
+                    <SelectValue placeholder="Selecione" />
                   </SelectTrigger>
                   <SelectContent>
                     {CATEGORIAS.map((cat) => (
@@ -682,52 +832,55 @@ export default function Despesas() {
                   </SelectContent>
                 </Select>
               </div>
-              <div className="space-y-2">
-                <Label>Conta de Pagamento *</Label>
-                <Select value={contaPagamento} onValueChange={setContaPagamento}>
-                  <SelectTrigger className="bg-secondary/20">
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Carnê Leão / Unicred">Carnê Leão / Unicred</SelectItem>
-                    <SelectItem value="Conta Jurídica / Sicoob">Conta Jurídica / Sicoob</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Valor (R$)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={valor}
-                  onChange={(e) => setValor(e.target.value)}
-                  className="bg-secondary/20 font-medium"
-                />
-              </div>
-              {editType === 'conta_fixa' && (
+              {recorrencia === 'Parcelada' && !editId && (
+                <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
+                  <Label className="font-semibold text-foreground">Quantidade de Parcelas</Label>
+                  <Input
+                    type="number"
+                    min="2"
+                    max="120"
+                    placeholder="2"
+                    value={parcelas}
+                    onChange={(e) => setParcelas(e.target.value)}
+                    className="bg-secondary/20 h-11 border-primary"
+                  />
+                </div>
+              )}
+
+              {/* Se não for parcelada, podemos colocar o Status no lugar */}
+              {recorrencia !== 'Parcelada' && (
                 <div className="space-y-2">
-                  <Label>Frequência</Label>
-                  <Select value={frequencia} onValueChange={setFrequencia}>
-                    <SelectTrigger className="bg-secondary/20">
-                      <SelectValue placeholder="Selecione..." />
+                  <Label className="font-semibold text-foreground">Status</Label>
+                  <Select value={status} onValueChange={setStatus}>
+                    <SelectTrigger className="bg-secondary/20 h-11">
+                      <SelectValue placeholder="Status" />
                     </SelectTrigger>
                     <SelectContent>
-                      {FREQUENCIAS.map((freq) => (
-                        <SelectItem key={freq} value={freq}>
-                          {freq}
-                        </SelectItem>
-                      ))}
+                      <SelectItem value="Pendente">Pendente</SelectItem>
+                      <SelectItem value="Pago">Pago</SelectItem>
+                      <SelectItem value="Vencido">Vencido</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
               )}
             </div>
 
-            <div className="flex gap-3 pt-2 mt-4 border-t border-border/40">
+            <div className="space-y-2">
+              <Label className="font-semibold text-foreground">Conta / Cartão</Label>
+              <Select value={contaPagamento} onValueChange={setContaPagamento}>
+                <SelectTrigger className="bg-secondary/20 h-11">
+                  <SelectValue placeholder="Selecione a conta..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Unicred">Conta Unicred</SelectItem>
+                  <SelectItem value="Sicoob">Conta Sicoob</SelectItem>
+                  <SelectItem value="ESPÉCIE">Conta ESPÉCIE</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div className="flex gap-3 pt-4 mt-2 border-t border-border/40">
               {editId && (
                 <Button
                   variant="outline"
@@ -738,8 +891,11 @@ export default function Despesas() {
                   Excluir
                 </Button>
               )}
-              <Button onClick={handleSave} className="flex-1 rounded-full h-11">
-                {editId ? 'Salvar Alterações' : 'Cadastrar'}
+              <Button
+                onClick={handleSave}
+                className="flex-1 rounded-xl h-11 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
+              >
+                Salvar Transação
               </Button>
             </div>
           </div>
