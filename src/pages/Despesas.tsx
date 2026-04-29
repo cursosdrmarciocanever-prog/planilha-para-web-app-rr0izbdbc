@@ -1,719 +1,407 @@
-import { useState, useEffect } from 'react'
-import { Link } from 'react-router-dom'
-import {
-  Receipt,
-  Plus,
-  Trash2,
-  Edit,
-  TrendingDown,
-  TrendingUp,
-  CalendarDays,
-  CreditCard,
-  Upload,
-  Building2,
-  Landmark,
-  Wallet,
-} from 'lucide-react'
-import { Button } from '@/components/ui/button'
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  DialogTrigger,
-  DialogDescription,
-} from '@/components/ui/dialog'
-import { Input } from '@/components/ui/input'
-import { Label } from '@/components/ui/label'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select'
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { supabase } from '@/lib/supabase/client'
-import { useToast } from '@/hooks/use-toast'
-import { useAuth } from '@/hooks/use-auth'
+import { useState, useEffect, useMemo } from 'react'
 import {
   format,
-  parseISO,
   addMonths,
-  setDate,
+  subMonths,
   startOfMonth,
   endOfMonth,
-  subMonths,
+  eachDayOfInterval,
   isSameMonth,
+  isSameDay,
+  parseISO,
+  isToday,
 } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
-import { Skeleton } from '@/components/ui/skeleton'
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
-import { Badge } from '@/components/ui/badge'
-import { Checkbox } from '@/components/ui/checkbox'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
+import { Button } from '@/components/ui/button'
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group'
+import { Progress } from '@/components/ui/progress'
+import {
+  Calendar as CalendarIcon,
+  ChevronLeft,
+  ChevronRight,
+  LayoutList,
+  CreditCard,
+  Repeat,
+  Wallet,
+  TrendingUp,
+  AlertTriangle,
+} from 'lucide-react'
+import { supabase } from '@/lib/supabase/client'
+import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
-import { useLocalStorage } from '@/hooks/use-local-storage'
-import { useExpenseModalStore } from '@/stores/use-expense-modal'
-
-import { CostDistributionChart } from '@/components/despesas/CostDistributionChart'
-import { MonthlyComparisonChart } from '@/components/despesas/MonthlyComparisonChart'
-import { BreakEvenProjection } from '@/components/despesas/BreakEvenProjection'
-import { ContasAPagarTab } from '@/components/despesas/ContasAPagarTab'
-import { CreditCardsDashboard } from '@/components/despesas/CreditCardsDashboard'
-import { UpcomingCommitments } from '@/components/despesas/UpcomingCommitments'
-
-interface Despesa {
-  id: string
-  data_vencimento: string
-  descricao: string
-  categoria: string
-  subcategoria?: string
-  valor: number
-  status: string
-  conta_pagamento?: string
-}
-
-const CATEGORIAS = ['Fixas', 'Variáveis', 'Pessoal', 'Impostos', 'Marketing']
 
 export default function Despesas() {
   const { user } = useAuth()
-  const [activeTab, setActiveTab] = useLocalStorage('despesas_activeTab', 'lancamentos')
-  const [todasDespesas, setTodasDespesas] = useState<any[]>([])
+  const [currentDate, setCurrentDate] = useState(new Date())
+  const [viewMode, setViewMode] = useState('consolidada')
+  const [faturamentoMedio, setFaturamentoMedio] = useState(0)
+  const [rawDespesas, setRawDespesas] = useState<any[]>([])
+  const [rawFixas, setRawFixas] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [faturamentoMedio, setFaturamentoMedio] = useState(15000)
-  // Filtro de Contas
-  const [activeContaFilter, setActiveContaFilter] = useLocalStorage<
-    'all' | 'Unicred' | 'Sicoob' | 'ESPÉCIE'
-  >('despesas_activeContaFilter', 'all')
-
-  // Subcategorias
-  const [subcategorias, setSubcategorias] = useState<{ id: string; nome: string }[]>([])
-
-  // Bulk Edit State
-  const [selectedItems, setSelectedItems] = useState<string[]>([])
-  const [isBulkEditOpen, setIsBulkEditOpen] = useState(false)
-  const [bulkCategory, setBulkCategory] = useState('none')
-  const [bulkDate, setBulkDate] = useState('')
-
-  const { toast } = useToast()
-
-  const { openModal, refreshTrigger } = useExpenseModalStore()
-
-  const fetchDados = async () => {
-    setLoading(true)
-    const data3m = format(startOfMonth(subMonths(new Date(), 3)), 'yyyy-MM-dd')
-    const [despesasRes, contasRes, subRes, lancRes] = await Promise.all([
-      supabase.from('despesas').select('*').order('data_vencimento', { ascending: false }),
-      supabase.from('contas_fixas').select('*').order('data_vencimento', { ascending: false }),
-      supabase
-        .from('subcategorias_despesas' as any)
-        .select('*')
-        .order('nome', { ascending: true }),
-      supabase.from('lancamentos_pacientes').select('valor').gte('data_atendimento', data3m),
-    ])
-
-    const d = (despesasRes.data || []).map((x) => ({ ...x, _table: 'despesa' }))
-    const c = (contasRes.data || []).map((x) => ({ ...x, _table: 'conta_fixa' }))
-
-    const filteredD = user ? d.filter((x) => !x.user_id || x.user_id === user.id) : d
-    const filteredC = user ? c.filter((x) => !x.usuario_id || x.usuario_id === user.id) : c
-
-    const combined = [...filteredD, ...filteredC].sort((a, b) => {
-      const dateA = new Date(a.data_vencimento || 0).getTime()
-      const dateB = new Date(b.data_vencimento || 0).getTime()
-      return dateB - dateA
-    })
-
-    setTodasDespesas(combined)
-    setSubcategorias(subRes.data || [])
-
-    if (lancRes.data && lancRes.data.length > 0) {
-      const total = lancRes.data.reduce((acc, l) => acc + Number(l.valor || 0), 0)
-      setFaturamentoMedio(Math.max(total / 3, 1000))
-    }
-
-    setLoading(false)
-  }
 
   useEffect(() => {
-    fetchDados()
-  }, [refreshTrigger])
+    if (user) fetchData()
+  }, [user])
 
-  const handleOpenNew = () => {
-    openModal(null, activeTab === 'calendario' ? 'conta_fixa' : 'despesa')
-  }
+  const fetchData = async () => {
+    setLoading(true)
+    try {
+      const [despRes, fixasRes, recRes] = await Promise.all([
+        supabase.from('despesas').select('*').eq('user_id', user?.id),
+        supabase.from('contas_fixas').select('*').eq('usuario_id', user?.id),
+        supabase.from('transacoes').select('valor').eq('tipo', 'receita'),
+      ])
 
-  const handleOpenEdit = (item: any, type: 'despesa' | 'conta_fixa') => {
-    openModal(item.id, type)
-  }
+      if (despRes.data) setRawDespesas(despRes.data)
+      if (fixasRes.data) setRawFixas(fixasRes.data)
 
-  const handleDelete = async (id: string, type: 'despesa' | 'conta_fixa' = 'despesa') => {
-    if (!confirm('Tem certeza que deseja excluir este registro?')) return
-    const table = type === 'conta_fixa' ? 'contas_fixas' : 'despesas'
-    const { error } = await supabase.from(table).delete().eq('id', id)
-
-    if (error) {
-      toast({ title: 'Erro', description: 'Falha ao excluir.', variant: 'destructive' })
-    } else {
-      toast({ title: 'Sucesso', description: 'Registro excluído com sucesso.' })
-      fetchDados()
-    }
-  }
-
-  const formatCurrency = (val: number) =>
-    new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val)
-
-  // Totais por conta
-  const totalUnicred = todasDespesas
-    .filter((d) => d.conta_pagamento?.includes('Unicred'))
-    .reduce((acc, d) => acc + Number(d.valor), 0)
-  const totalSicoob = todasDespesas
-    .filter((d) => d.conta_pagamento?.includes('Sicoob'))
-    .reduce((acc, d) => acc + Number(d.valor), 0)
-  const totalEspecie = todasDespesas
-    .filter((d) => d.conta_pagamento?.includes('ESPÉCIE'))
-    .reduce((acc, d) => acc + Number(d.valor), 0)
-
-  // Filtragem
-  const displayedDespesas =
-    activeContaFilter === 'all'
-      ? todasDespesas
-      : todasDespesas.filter((d) => d.conta_pagamento?.includes(activeContaFilter))
-
-  const totalFiltrado = displayedDespesas.reduce((acc, curr) => acc + Number(curr.valor), 0)
-
-  // Projeção do Próximo Mês
-  const nextMonthDate = addMonths(startOfMonth(new Date()), 1)
-  const projecaoProximoMes = displayedDespesas.reduce((acc, c) => {
-    if (!c.data_vencimento) return acc
-    const dataVenc = parseISO(c.data_vencimento)
-
-    if (c._table === 'despesa') {
-      if (isSameMonth(dataVenc, nextMonthDate)) {
-        return acc + Number(c.valor)
-      }
-    } else if (c._table === 'conta_fixa') {
-      if (c.frequencia === 'Única') {
-        if (isSameMonth(dataVenc, nextMonthDate)) {
-          return acc + Number(c.valor)
-        }
+      if (recRes.data && recRes.data.length > 0) {
+        const total = recRes.data.reduce((acc, curr) => acc + Number(curr.valor), 0)
+        // Calcula média mensal simulada ou usa um piso de 15.000 para visualização
+        const avg = Math.max((total / Math.max(recRes.data.length / 30, 1)) * 30, 15000)
+        setFaturamentoMedio(avg)
       } else {
-        // Recorrente
-        if (dataVenc <= endOfMonth(nextMonthDate)) {
-          return acc + Number(c.valor)
-        }
+        setFaturamentoMedio(30000) // Fallback seguro
       }
+    } catch (error) {
+      console.error('Erro ao buscar dados:', error)
+    } finally {
+      setLoading(false)
     }
-    return acc
-  }, 0)
-
-  // Bulk Edit Logic
-  const handleSelectAll = (checked: boolean) => {
-    if (checked) setSelectedItems(displayedDespesas.map((d) => d.id))
-    else setSelectedItems([])
   }
 
-  const handleSelectItem = (id: string, checked: boolean) => {
-    if (checked) setSelectedItems((prev) => [...prev, id])
-    else setSelectedItems((prev) => prev.filter((i) => i !== id))
+  // Gera as projeções dinâmicas de parcelamentos e contas fixas para o mês visualizado
+  const projectedItems = useMemo(() => {
+    const items: any[] = []
+
+    rawDespesas.forEach((d) => {
+      if (d.parcelamento) {
+        const parts = d.parcelamento.split('/')
+        if (parts.length === 2) {
+          const current = parseInt(parts[0])
+          const total = parseInt(parts[1])
+          const start = d.data_vencimento ? parseISO(d.data_vencimento) : new Date()
+
+          for (let i = 0; i <= total - current; i++) {
+            const pDate = addMonths(start, i)
+            if (isSameMonth(pDate, currentDate)) {
+              items.push({
+                ...d,
+                id: `${d.id}-p${i}`,
+                parcelamento: `${current + i}/${total}`,
+                data_vencimento: pDate.toISOString(),
+                isProjected: i > 0,
+                isFixa: false,
+              })
+            }
+          }
+        } else if (d.data_vencimento && isSameMonth(parseISO(d.data_vencimento), currentDate)) {
+          items.push({ ...d, isProjected: false, isFixa: false })
+        }
+      } else if (d.data_vencimento && isSameMonth(parseISO(d.data_vencimento), currentDate)) {
+        items.push({ ...d, isProjected: false, isFixa: false })
+      }
+    })
+
+    rawFixas.forEach((f) => {
+      if (f.status !== 'Inativo') {
+        const fDate = new Date(currentDate)
+        const orig = f.data_vencimento ? parseISO(f.data_vencimento) : new Date()
+        fDate.setDate(orig.getDate())
+
+        items.push({
+          id: `fixa-${f.id}`,
+          descricao: f.descricao,
+          valor: f.valor,
+          data_vencimento: fDate.toISOString(),
+          forma_pagamento: f.conta_pagamento || 'Débito Automático',
+          status: 'Pendente',
+          categoria: f.categoria,
+          isProjected: true,
+          isFixa: true,
+        })
+      }
+    })
+
+    return items.sort(
+      (a, b) => new Date(a.data_vencimento).getTime() - new Date(b.data_vencimento).getTime(),
+    )
+  }, [rawDespesas, rawFixas, currentDate])
+
+  // Lógica de Cores baseada no risco de comprometimento do faturamento
+  const monthlyTotal = projectedItems.reduce((acc, curr) => acc + Number(curr.valor), 0)
+  const riskRatio = faturamentoMedio > 0 ? monthlyTotal / faturamentoMedio : 0
+  const riskColor = riskRatio > 0.9 ? 'red' : riskRatio > 0.7 ? 'yellow' : 'green'
+
+  const getCalendarDays = () => {
+    const start = startOfMonth(currentDate)
+    const end = endOfMonth(currentDate)
+    const days = eachDayOfInterval({ start, end })
+    const blanks = Array.from({ length: start.getDay() })
+    return { blanks, days }
   }
+  const { blanks, days } = getCalendarDays()
 
-  const handleBulkSave = async () => {
-    if (bulkCategory === 'none' && !bulkDate) {
-      toast({
-        title: 'Atenção',
-        description: 'Nenhuma alteração definida.',
-        variant: 'destructive',
-      })
-      return
+  const handlePrevMonth = () => setCurrentDate(subMonths(currentDate, 1))
+  const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1))
+
+  const renderDayItems = (day: Date) => {
+    let dayItems = projectedItems.filter((item) => isSameDay(parseISO(item.data_vencimento), day))
+
+    if (viewMode === 'consolidada') {
+      const ccItems = dayItems.filter(
+        (i) =>
+          i.forma_pagamento?.toLowerCase().includes('cartão') ||
+          i.forma_pagamento?.toLowerCase().includes('cartao'),
+      )
+      const otherItems = dayItems.filter(
+        (i) =>
+          !(
+            i.forma_pagamento?.toLowerCase().includes('cartão') ||
+            i.forma_pagamento?.toLowerCase().includes('cartao')
+          ),
+      )
+
+      if (ccItems.length > 0) {
+        const total = ccItems.reduce((acc, curr) => acc + Number(curr.valor), 0)
+        otherItems.push({
+          id: `cc-cons-${day.toISOString()}`,
+          descricao: 'Fatura Cartão de Crédito',
+          valor: total,
+          forma_pagamento: 'Cartão de Crédito',
+          isConsolidated: true,
+        })
+      }
+      dayItems = otherItems
     }
 
-    const updates: any = {}
-    if (bulkCategory && bulkCategory !== 'none') updates.categoria = bulkCategory
-    if (bulkDate) updates.data_vencimento = bulkDate
-
-    let errorCount = 0
-    for (const id of selectedItems) {
-      const item = displayedDespesas.find((d) => d.id === id)
-      if (!item) continue
-      const table = item._table === 'conta_fixa' ? 'contas_fixas' : 'despesas'
-      const { error } = await supabase.from(table).update(updates).eq('id', id)
-      if (error) errorCount++
-    }
-
-    if (errorCount > 0) {
-      toast({
-        title: 'Aviso',
-        description: `Houve erro ao atualizar ${errorCount} registros.`,
-        variant: 'destructive',
-      })
-    } else {
-      toast({ title: 'Sucesso', description: 'Registros atualizados com sucesso.' })
-    }
-
-    setIsBulkEditOpen(false)
-    setSelectedItems([])
-    setBulkCategory('none')
-    setBulkDate('')
-    fetchDados()
-  }
-
-  const handleBulkDelete = async () => {
-    if (!confirm(`Tem certeza que deseja excluir ${selectedItems.length} registros?`)) return
-
-    let errorCount = 0
-    for (const id of selectedItems) {
-      const item = displayedDespesas.find((d) => d.id === id)
-      if (!item) continue
-      const table = item._table === 'conta_fixa' ? 'contas_fixas' : 'despesas'
-      const { error } = await supabase.from(table).delete().eq('id', id)
-      if (error) errorCount++
-    }
-
-    if (errorCount > 0) {
-      toast({
-        title: 'Aviso',
-        description: `Houve erro ao excluir ${errorCount} registros.`,
-        variant: 'destructive',
-      })
-    } else {
-      toast({ title: 'Sucesso', description: 'Registros excluídos com sucesso.' })
-    }
-
-    setSelectedItems([])
-    fetchDados()
-  }
-
-  const toggleContaFilter = (conta: 'Unicred' | 'Sicoob' | 'ESPÉCIE') => {
-    setActiveContaFilter((prev) => (prev === conta ? 'all' : conta))
+    return dayItems.map((item) => (
+      <div
+        key={item.id}
+        className={cn(
+          'text-[11px] p-2 rounded-md border-l-4 shadow-sm mb-1.5 leading-tight transition-all hover:scale-[1.02]',
+          riskColor === 'red'
+            ? 'border-l-red-500 bg-red-50 dark:bg-red-950/40 text-red-900 dark:text-red-100'
+            : riskColor === 'yellow'
+              ? 'border-l-yellow-500 bg-yellow-50 dark:bg-yellow-950/40 text-yellow-900 dark:text-yellow-100'
+              : 'border-l-green-500 bg-green-50 dark:bg-green-950/40 text-green-900 dark:text-green-100',
+        )}
+      >
+        <div className="font-semibold truncate" title={item.descricao}>
+          {item.descricao}
+        </div>
+        <div className="flex justify-between items-center mt-1">
+          <span className="font-bold">R$ {Number(item.valor).toFixed(2)}</span>
+          <div className="flex gap-1">
+            {item.isConsolidated && (
+              <CreditCard className="w-3.5 h-3.5 opacity-70" title="Fatura Consolidada" />
+            )}
+            {item.isFixa && !item.isConsolidated && (
+              <Repeat className="w-3.5 h-3.5 opacity-70" title="Conta Fixa Recorrente" />
+            )}
+          </div>
+        </div>
+      </div>
+    ))
   }
 
   return (
-    <div className="p-6 md:p-10 animate-fade-in flex flex-col min-h-[calc(100vh-4rem)] lg:min-h-screen">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
+    <div className="p-6 md:p-10 animate-fade-in max-w-7xl mx-auto space-y-6">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h1 className="text-3xl font-bold text-foreground tracking-tight flex items-center gap-3">
-            <Receipt className="w-8 h-8 text-primary" />
-            Despesas e Contas a Pagar
+            <Wallet className="w-8 h-8 text-primary" />
+            Contas a Pagar
           </h1>
-          <p className="text-muted-foreground mt-2 text-lg">
-            Registre custos, despesas fixas e acompanhe seus vencimentos.
+          <p className="text-muted-foreground mt-2 text-base">
+            Projeção de despesas, parcelamentos e contas fixas recorrentes.
           </p>
         </div>
-        <div className="flex items-center gap-3 flex-wrap">
-          <Button asChild variant="outline" className="gap-2 rounded-full shadow-sm">
-            <Link to="/importar">
-              <Upload className="w-4 h-4" /> Importar
-            </Link>
-          </Button>
-          <Button onClick={handleOpenNew} className="gap-2 rounded-full shadow-sm">
-            <Plus className="w-4 h-4" /> Nova Despesa
-          </Button>
+
+        <div className="flex items-center gap-2 bg-secondary/50 p-1.5 rounded-xl border">
+          <ToggleGroup
+            type="single"
+            value={viewMode}
+            onValueChange={(val) => val && setViewMode(val)}
+          >
+            <ToggleGroupItem
+              value="consolidada"
+              className="rounded-lg text-xs px-3 h-8 gap-2 data-[state=on]:bg-background data-[state=on]:shadow-sm"
+            >
+              <CalendarIcon className="w-3.5 h-3.5" /> Consolidada
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="detalhada"
+              className="rounded-lg text-xs px-3 h-8 gap-2 data-[state=on]:bg-background data-[state=on]:shadow-sm"
+            >
+              <LayoutList className="w-3.5 h-3.5" /> Detalhada
+            </ToggleGroupItem>
+          </ToggleGroup>
         </div>
       </div>
 
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col gap-6">
-        <TabsList className="h-auto p-1.5 bg-secondary/40 rounded-2xl w-full sm:w-fit inline-flex flex-wrap shadow-sm border border-border/50">
-          <TabsTrigger
-            value="lancamentos"
-            className="px-5 py-2.5 rounded-xl flex gap-2 items-center data-[state=active]:shadow-sm data-[state=active]:bg-background transition-all"
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+        {/* Painel Lateral de Resumo */}
+        <div className="space-y-6">
+          <Card
+            className={cn(
+              'border-border/60 shadow-sm rounded-2xl overflow-hidden transition-colors',
+              riskColor === 'red'
+                ? 'bg-red-50/50 dark:bg-red-950/20 border-red-200 dark:border-red-900/50'
+                : riskColor === 'yellow'
+                  ? 'bg-yellow-50/50 dark:bg-yellow-950/20 border-yellow-200 dark:border-yellow-900/50'
+                  : 'bg-card',
+            )}
           >
-            <TrendingDown className="w-4 h-4" />{' '}
-            <span className="font-medium">Dashboard & Lançamentos</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="calendario"
-            className="px-5 py-2.5 rounded-xl flex gap-2 items-center data-[state=active]:shadow-sm data-[state=active]:bg-background transition-all"
-          >
-            <CalendarDays className="w-4 h-4" />{' '}
-            <span className="font-medium">Contas a Pagar (Calendário)</span>
-          </TabsTrigger>
-          <TabsTrigger
-            value="projecao"
-            className="px-5 py-2.5 rounded-xl flex gap-2 items-center data-[state=active]:shadow-sm data-[state=active]:bg-background transition-all"
-          >
-            <TrendingUp className="w-4 h-4" />{' '}
-            <span className="font-medium">Projeção & Parcelas</span>
-          </TabsTrigger>
-        </TabsList>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold flex items-center justify-between">
+                Risco de Comprometimento
+                {riskColor === 'red' && <AlertTriangle className="w-4 h-4 text-red-500" />}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold mb-2">
+                R$ {monthlyTotal.toFixed(2).replace('.', ',')}
+              </div>
+              <p className="text-xs text-muted-foreground mb-4">
+                Total projetado para {format(currentDate, 'MMMM', { locale: ptBR })}
+              </p>
 
-        <div className="w-full">
-          <TabsContent
-            value="lancamentos"
-            className="mt-0 outline-none space-y-8 animate-fade-in-up"
-          >
-            {/* Cards de Contas Específicas */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-              <Card
-                className={cn(
-                  'cursor-pointer transition-all border-border/60 shadow-sm',
-                  activeContaFilter === 'Unicred'
-                    ? 'ring-2 ring-primary bg-primary/5'
-                    : 'hover:bg-secondary/20',
-                )}
-                onClick={() => toggleContaFilter('Unicred')}
-              >
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
-                    Conta Unicred
-                  </CardTitle>
-                  <Building2 className="w-5 h-5 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black text-foreground">
-                    {formatCurrency(totalUnicred)}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card
-                className={cn(
-                  'cursor-pointer transition-all border-border/60 shadow-sm',
-                  activeContaFilter === 'Sicoob'
-                    ? 'ring-2 ring-primary bg-primary/5'
-                    : 'hover:bg-secondary/20',
-                )}
-                onClick={() => toggleContaFilter('Sicoob')}
-              >
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
-                    Conta Sicoob
-                  </CardTitle>
-                  <Landmark className="w-5 h-5 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black text-foreground">
-                    {formatCurrency(totalSicoob)}
-                  </div>
-                </CardContent>
-              </Card>
-
-              <Card
-                className={cn(
-                  'cursor-pointer transition-all border-border/60 shadow-sm',
-                  activeContaFilter === 'ESPÉCIE'
-                    ? 'ring-2 ring-primary bg-primary/5'
-                    : 'hover:bg-secondary/20',
-                )}
-                onClick={() => toggleContaFilter('ESPÉCIE')}
-              >
-                <CardHeader className="flex flex-row items-center justify-between pb-2">
-                  <CardTitle className="text-sm font-bold text-muted-foreground uppercase tracking-wider">
-                    Conta Espécie
-                  </CardTitle>
-                  <Wallet className="w-5 h-5 text-muted-foreground" />
-                </CardHeader>
-                <CardContent>
-                  <div className="text-3xl font-black text-foreground">
-                    {formatCurrency(totalEspecie)}
-                  </div>
-                </CardContent>
-              </Card>
-            </div>
-
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2 space-y-6">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="bg-card border border-border/60 rounded-3xl p-6 shadow-sm flex items-center justify-between gap-5 relative">
-                    <div className="flex items-center gap-5">
-                      <div className="bg-destructive/10 p-4 rounded-full shrink-0">
-                        <TrendingDown className="w-8 h-8 text-destructive" />
-                      </div>
-                      <div>
-                        <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-widest mb-1 line-clamp-1">
-                          Total{' '}
-                          {activeContaFilter !== 'all' ? `(${activeContaFilter})` : 'Histórico'}
-                        </p>
-                        <h3 className="text-3xl font-black text-foreground tracking-tight">
-                          {formatCurrency(totalFiltrado)}
-                        </h3>
-                      </div>
-                    </div>
-                    {activeContaFilter !== 'all' && (
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setActiveContaFilter('all')}
-                        className="text-muted-foreground absolute top-2 right-2 h-7 px-2 text-xs"
-                      >
-                        Limpar
-                      </Button>
-                    )}
-                  </div>
-
-                  <div className="bg-card border border-border/60 rounded-3xl p-6 shadow-sm flex items-center justify-between gap-5">
-                    <div className="flex items-center gap-5">
-                      <div className="bg-amber-500/10 p-4 rounded-full shrink-0">
-                        <TrendingUp className="w-8 h-8 text-amber-600" />
-                      </div>
-                      <div>
-                        <p className="text-[13px] font-bold text-muted-foreground uppercase tracking-widest mb-1 line-clamp-1">
-                          Projeção Próximo Mês
-                        </p>
-                        <h3 className="text-3xl font-black text-foreground tracking-tight">
-                          {formatCurrency(projecaoProximoMes)}
-                        </h3>
-                      </div>
-                    </div>
-                  </div>
+              <div className="space-y-2">
+                <div className="flex justify-between text-xs font-medium">
+                  <span>Comprometido</span>
+                  <span>{(riskRatio * 100).toFixed(1)}%</span>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <CostDistributionChart despesas={displayedDespesas} />
-                  <MonthlyComparisonChart despesas={displayedDespesas} />
+                <Progress
+                  value={Math.min(riskRatio * 100, 100)}
+                  className={cn(
+                    'h-2.5',
+                    riskColor === 'red'
+                      ? '[&>div]:bg-red-500'
+                      : riskColor === 'yellow'
+                        ? '[&>div]:bg-yellow-500'
+                        : '[&>div]:bg-green-500',
+                  )}
+                />
+                <div className="flex justify-between text-xs text-muted-foreground pt-1">
+                  <span>Limite Seguro</span>
+                  <span>R$ {faturamentoMedio.toFixed(2).replace('.', ',')}</span>
                 </div>
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="lg:col-span-1">
-                <BreakEvenProjection totalDespesas={projecaoProximoMes} />
+          <Card className="border-border/60 shadow-sm rounded-2xl bg-card">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-semibold flex items-center gap-2">
+                <TrendingUp className="w-4 h-4 text-primary" /> Informações do Mês
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4 pt-2">
+              <div className="flex justify-between items-center border-b pb-2">
+                <span className="text-sm text-muted-foreground">Qtd. Lançamentos</span>
+                <span className="font-semibold">{projectedItems.length}</span>
               </div>
-            </div>
-
-            <CreditCardsDashboard despesas={displayedDespesas} />
-
-            <div className="bg-card border border-border/60 rounded-3xl shadow-sm overflow-hidden flex-1 flex flex-col">
-              <div className="p-6 border-b border-border/40 bg-secondary/10">
-                <h2 className="text-[16px] font-bold text-foreground uppercase tracking-widest">
-                  Lançamentos Recentes {activeContaFilter !== 'all' && `- ${activeContaFilter}`}
-                </h2>
+              <div className="flex justify-between items-center border-b pb-2">
+                <span className="text-sm text-muted-foreground">Contas Fixas</span>
+                <span className="font-semibold">
+                  {projectedItems.filter((i) => i.isFixa).length}
+                </span>
               </div>
-
-              {loading ? (
-                <div className="p-6 space-y-4">
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                  <Skeleton className="h-12 w-full" />
-                </div>
-              ) : displayedDespesas.length === 0 ? (
-                <div className="flex-1 flex flex-col items-center justify-center p-16">
-                  <div className="bg-primary/5 p-6 rounded-full mb-6">
-                    <Receipt className="w-16 h-16 text-primary/40" strokeWidth={1.5} />
-                  </div>
-                  <h3 className="text-xl font-bold text-foreground mb-2">
-                    Nenhuma despesa encontrada
-                  </h3>
-                  <p className="text-muted-foreground mb-6 text-center max-w-sm">
-                    {activeContaFilter !== 'all'
-                      ? `Não há registros para a conta ${activeContaFilter}.`
-                      : 'Comece a registrar seus custos para ter um Raio-X Financeiro mais preciso.'}
-                  </p>
-                  <Button onClick={handleOpenNew} variant="outline" className="gap-2 rounded-full">
-                    <Plus className="w-4 h-4" /> Registrar Nova Despesa
-                  </Button>
-                </div>
-              ) : (
-                <div className="overflow-x-auto p-0">
-                  <Table>
-                    <TableHeader className="bg-secondary/30">
-                      <TableRow className="hover:bg-transparent">
-                        <TableHead className="w-[50px] text-center">
-                          <div className="flex items-center justify-center">
-                            <Checkbox
-                              checked={
-                                selectedItems.length === displayedDespesas.length &&
-                                displayedDespesas.length > 0
-                              }
-                              onCheckedChange={handleSelectAll}
-                            />
-                          </div>
-                        </TableHead>
-                        <TableHead className="h-12 font-semibold">Data</TableHead>
-                        <TableHead className="h-12 font-semibold">Descrição</TableHead>
-                        <TableHead className="h-12 font-semibold">Categoria</TableHead>
-                        <TableHead className="h-12 font-semibold">Status</TableHead>
-                        <TableHead className="h-12 text-right font-semibold">Valor</TableHead>
-                        <TableHead className="w-[100px]"></TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {displayedDespesas.map((d) => (
-                        <TableRow
-                          key={d.id}
-                          className="group hover:bg-secondary/20 transition-colors"
-                        >
-                          <TableCell className="py-4">
-                            <div className="flex items-center justify-center">
-                              <Checkbox
-                                checked={selectedItems.includes(d.id)}
-                                onCheckedChange={(checked) =>
-                                  handleSelectItem(d.id, checked as boolean)
-                                }
-                              />
-                            </div>
-                          </TableCell>
-                          <TableCell className="font-medium py-4 text-muted-foreground">
-                            {d.data_vencimento
-                              ? format(parseISO(d.data_vencimento), 'dd/MM/yyyy', { locale: ptBR })
-                              : '-'}
-                          </TableCell>
-                          <TableCell className="py-4">
-                            <div className="font-semibold">{d.descricao}</div>
-                            <div className="text-xs text-muted-foreground font-normal mt-1 flex items-center gap-2">
-                              {d._table === 'conta_fixa' && (
-                                <span className="bg-primary/10 text-primary px-1.5 py-0.5 rounded-sm">
-                                  Fixa
-                                </span>
-                              )}
-                              {d.conta_pagamento && (
-                                <span className="flex items-center gap-1">
-                                  <CreditCard className="w-3 h-3" /> {d.conta_pagamento}
-                                </span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="py-4">
-                            <div className="flex flex-col gap-1 items-start">
-                              <span className="bg-secondary/50 text-secondary-foreground px-3 py-1 rounded-md text-xs font-medium border border-border/50">
-                                {d.categoria}
-                              </span>
-                              {d.subcategoria && (
-                                <span className="text-[10px] text-muted-foreground px-1 font-semibold">
-                                  {d.subcategoria}
-                                </span>
-                              )}
-                            </div>
-                          </TableCell>
-                          <TableCell className="py-4">
-                            <Badge
-                              variant={d.status === 'Pago' ? 'default' : 'outline'}
-                              className={
-                                d.status === 'Pago'
-                                  ? 'bg-green-100 text-green-700 hover:bg-green-200 border-none'
-                                  : 'bg-yellow-100 text-yellow-700 hover:bg-yellow-200 border-none'
-                              }
-                            >
-                              {d.status || 'Pendente'}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-right font-bold text-foreground py-4">
-                            {formatCurrency(d.valor)}
-                          </TableCell>
-                          <TableCell className="py-4">
-                            <div className="flex items-center justify-end gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleOpenEdit(d, d._table as any)}
-                                className="h-8 w-8 text-muted-foreground hover:text-primary rounded-full"
-                              >
-                                <Edit className="h-4 w-4" />
-                              </Button>
-                              <Button
-                                variant="ghost"
-                                size="icon"
-                                onClick={() => handleDelete(d.id, d._table as any)}
-                                className="h-8 w-8 text-muted-foreground hover:text-destructive rounded-full"
-                              >
-                                <Trash2 className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-
-              {/* Barra de Ações em Lote */}
-              {selectedItems.length > 0 && (
-                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-popover border border-border shadow-2xl rounded-full px-6 py-3 flex items-center gap-4 z-50 animate-in slide-in-from-bottom-5">
-                  <span className="text-sm font-bold bg-primary/10 text-primary px-3 py-1.5 rounded-full whitespace-nowrap">
-                    {selectedItems.length} selecionados
-                  </span>
-                  <div className="h-6 w-px bg-border mx-1" />
-                  <Dialog open={isBulkEditOpen} onOpenChange={setIsBulkEditOpen}>
-                    <DialogTrigger asChild>
-                      <Button
-                        variant="default"
-                        className="rounded-full shadow-sm gap-2 h-10 whitespace-nowrap px-6"
-                      >
-                        <Edit className="w-4 h-4" /> Editar Lote
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent className="sm:max-w-[425px]">
-                      <DialogHeader>
-                        <DialogTitle>Editar {selectedItems.length} registros</DialogTitle>
-                      </DialogHeader>
-                      <div className="grid gap-5 py-4">
-                        <div className="space-y-2">
-                          <Label>Nova Categoria</Label>
-                          <Select value={bulkCategory} onValueChange={setBulkCategory}>
-                            <SelectTrigger className="h-11">
-                              <SelectValue placeholder="Manter atual" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="none">Manter atual</SelectItem>
-                              {CATEGORIAS.map((cat) => (
-                                <SelectItem key={cat} value={cat}>
-                                  {cat}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </div>
-                        <div className="space-y-2">
-                          <Label>Nova Data de Vencimento</Label>
-                          <Input
-                            type="date"
-                            className="h-11"
-                            value={bulkDate}
-                            onChange={(e) => setBulkDate(e.target.value)}
-                          />
-                          <p className="text-xs text-muted-foreground">
-                            Deixe em branco para manter a data atual.
-                          </p>
-                        </div>
-                      </div>
-                      <DialogFooter>
-                        <Button
-                          variant="outline"
-                          onClick={() => setIsBulkEditOpen(false)}
-                          className="rounded-full h-11 px-6"
-                        >
-                          Cancelar
-                        </Button>
-                        <Button onClick={handleBulkSave} className="rounded-full h-11 px-6">
-                          Salvar Alterações
-                        </Button>
-                      </DialogFooter>
-                    </DialogContent>
-                  </Dialog>
-                  <Button
-                    variant="destructive"
-                    className="rounded-full shadow-sm gap-2 h-10 whitespace-nowrap px-6"
-                    onClick={handleBulkDelete}
-                  >
-                    <Trash2 className="w-4 h-4" /> Excluir Lote
-                  </Button>
-                </div>
-              )}
-            </div>
-          </TabsContent>
-
-          <TabsContent value="calendario" className="mt-0 outline-none w-full">
-            <ContasAPagarTab
-              contas={displayedDespesas}
-              onOpenNew={handleOpenNew}
-              onEdit={(d: any) => handleOpenEdit(d, d._table as any)}
-              faturamentoMedio={faturamentoMedio}
-            />
-          </TabsContent>
-
-          <TabsContent value="projecao" className="mt-0 outline-none w-full animate-fade-in-up">
-            <UpcomingCommitments contas={displayedDespesas} />
-          </TabsContent>
+              <div className="flex justify-between items-center">
+                <span className="text-sm text-muted-foreground">Parcelas Futuras</span>
+                <span className="font-semibold">
+                  {projectedItems.filter((i) => i.isProjected && !i.isFixa).length}
+                </span>
+              </div>
+            </CardContent>
+          </Card>
         </div>
-      </Tabs>
+
+        {/* Calendário */}
+        <Card className="lg:col-span-3 border-border/60 shadow-sm rounded-2xl bg-card overflow-hidden flex flex-col min-h-[600px]">
+          <CardHeader className="border-b bg-secondary/20 flex flex-row items-center justify-between py-4">
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handlePrevMonth}
+              className="h-8 w-8 rounded-full"
+            >
+              <ChevronLeft className="w-4 h-4" />
+            </Button>
+            <h2 className="text-lg font-bold capitalize">
+              {format(currentDate, 'MMMM yyyy', { locale: ptBR })}
+            </h2>
+            <Button
+              variant="outline"
+              size="icon"
+              onClick={handleNextMonth}
+              className="h-8 w-8 rounded-full"
+            >
+              <ChevronRight className="w-4 h-4" />
+            </Button>
+          </CardHeader>
+          <CardContent className="p-0 flex-1 flex flex-col">
+            <div className="grid grid-cols-7 border-b bg-muted/30">
+              {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((d) => (
+                <div
+                  key={d}
+                  className="p-2 text-center text-xs font-bold text-muted-foreground uppercase"
+                >
+                  {d}
+                </div>
+              ))}
+            </div>
+
+            {loading ? (
+              <div className="flex-1 flex items-center justify-center min-h-[400px]">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+              </div>
+            ) : (
+              <div className="flex-1 grid grid-cols-7 auto-rows-[minmax(120px,1fr)]">
+                {blanks.map((_, i) => (
+                  <div
+                    key={`blank-${i}`}
+                    className="border-b border-r bg-muted/10 p-2 min-h-[120px]"
+                  />
+                ))}
+                {days.map((day, i) => {
+                  const isCurrent = isToday(day)
+                  const hasItems = projectedItems.some((item) =>
+                    isSameDay(parseISO(item.data_vencimento), day),
+                  )
+
+                  return (
+                    <div
+                      key={`day-${i}`}
+                      className={cn(
+                        'border-b border-r p-2 transition-colors min-h-[120px] flex flex-col',
+                        isCurrent && 'bg-primary/5',
+                        !isCurrent && 'hover:bg-secondary/20',
+                      )}
+                    >
+                      <div className="flex justify-between items-center mb-2">
+                        <span
+                          className={cn(
+                            'text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full',
+                            isCurrent ? 'bg-primary text-primary-foreground' : 'text-foreground',
+                          )}
+                        >
+                          {format(day, 'd')}
+                        </span>
+                      </div>
+                      <div className="flex-1 overflow-y-auto pr-1 space-y-1 scrollbar-thin">
+                        {renderDayItems(day)}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   )
 }
