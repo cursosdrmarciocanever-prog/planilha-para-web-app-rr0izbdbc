@@ -61,7 +61,7 @@ const TEMPLATES: Record<EntityType, string> = {
   pacientes:
     'nome,cpf,telefone,email,data_nascimento\nJoão Silva,12345678900,11999999999,joao@email.com,1990-01-01',
   despesas:
-    'descricao,categoria,valor,data_vencimento,status,conta_pagamento\nConta de Luz Energisa,,150.50,2023-10-10,Pendente,Conta Jurídica / Sicoob\nAbastecimento Posto Ipiranga,,200.00,2023-10-12,Pago,Carnê Leão / Unicred',
+    'descricao,departamento,fornecedor,plano_contas,conta_contabil,conta_bancaria,categoria,valor,referencia_competencia,forma_pagamento,parcelamento,mes_competencia,data_vencimento,data_pagamento\nMaterial de Escritório,Administrativo,Kalunga,Despesas Administrativas,1.1.01,Itaú,Materiais,150.50,Ref 01/2024,Boleto,1/1,01/2024,2024-02-10,2024-02-10',
   produtos_servicos: 'nome,descricao,preco\nConsulta Geral,Consulta de rotina,250.00',
   salas: 'nome,status,taxa_hora,taxa_dia\nSala 01,Ativa,50.00,300.00',
   lancamentos_pacientes:
@@ -144,6 +144,23 @@ export default function Importar() {
       if (norm.includes('nota_fiscal') || norm === 'nf') return 'nota_fiscal'
       if (norm.includes('observacao') || norm === 'obs') return 'observacoes'
     }
+    if (entityType === 'despesas') {
+      if (norm === 'descricao' || norm.includes('descri')) return 'descricao'
+      if (norm.includes('departamento')) return 'departamento'
+      if (norm.includes('fornecedor')) return 'fornecedor'
+      if (norm.includes('plano') && norm.includes('conta')) return 'plano_contas'
+      if (norm.includes('conta') && norm.includes('contabil')) return 'conta_contabil'
+      if (norm.includes('conta') && norm.includes('bancaria')) return 'conta_bancaria'
+      if (norm === 'categoria') return 'categoria'
+      if (norm === 'valor') return 'valor'
+      if (norm.includes('forma') && norm.includes('pagamento')) return 'forma_pagamento'
+      if (norm.includes('mes') && norm.includes('competencia')) return 'mes_competencia'
+      if (norm.includes('referencia') || norm.includes('competencia'))
+        return 'referencia_competencia'
+      if (norm.includes('parcelamento') || norm.includes('parcela')) return 'parcelamento'
+      if (norm.includes('data') && norm.includes('pagamento')) return 'data_pagamento'
+      if (norm.includes('vencimento')) return 'data_vencimento'
+    }
     return norm
   }
 
@@ -168,6 +185,16 @@ export default function Importar() {
       'documento_maquina',
       'nota_fiscal',
       'observacoes',
+      'departamento',
+      'fornecedor',
+      'plano_contas',
+      'conta_contabil',
+      'conta_bancaria',
+      'referencia_competencia',
+      'parcelamento',
+      'mes_competencia',
+      'data_vencimento',
+      'data_pagamento',
     ]
 
     if (stringHeaders.includes(header)) {
@@ -393,9 +420,19 @@ export default function Importar() {
       pacientes: ['nome', 'cpf', 'telefone', 'email', 'data_nascimento'],
       despesas: [
         'descricao',
+        'departamento',
+        'fornecedor',
+        'plano_contas',
+        'conta_contabil',
+        'conta_bancaria',
         'categoria',
         'valor',
+        'referencia_competencia',
+        'forma_pagamento',
+        'parcelamento',
+        'mes_competencia',
         'data_vencimento',
+        'data_pagamento',
         'status',
         'conta_pagamento',
         'user_id',
@@ -478,6 +515,20 @@ export default function Importar() {
             }
           }
           processedRow.data_vencimento = finalDate
+        }
+
+        let paymentDate = processedRow.data_pagamento
+        if (paymentDate && typeof paymentDate === 'string') {
+          if (paymentDate.includes('/')) {
+            const parts = paymentDate.split('/')
+            if (parts.length >= 3) {
+              const parsedDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}T12:00:00Z`)
+              if (!isNaN(parsedDate.getTime())) {
+                paymentDate = parsedDate.toISOString().split('T')[0]
+              }
+            }
+          }
+          processedRow.data_pagamento = paymentDate
         }
       }
 
