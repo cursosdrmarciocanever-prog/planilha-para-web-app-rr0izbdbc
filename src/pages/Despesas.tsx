@@ -51,6 +51,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
+import { useLocalStorage } from '@/hooks/use-local-storage'
 
 import { CostDistributionChart } from '@/components/despesas/CostDistributionChart'
 import { MonthlyComparisonChart } from '@/components/despesas/MonthlyComparisonChart'
@@ -73,35 +74,47 @@ const CATEGORIAS = ['Fixas', 'Variáveis', 'Pessoal', 'Impostos', 'Marketing']
 
 export default function Despesas() {
   const { user } = useAuth()
-  const [activeTab, setActiveTab] = useState('lancamentos')
+  const [activeTab, setActiveTab] = useLocalStorage('despesas_activeTab', 'lancamentos')
   const [todasDespesas, setTodasDespesas] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [open, setOpen] = useState(false)
+  const [open, setOpen] = useLocalStorage('despesas_form_open', false)
 
   // Filtro de Contas
-  const [activeContaFilter, setActiveContaFilter] = useState<
+  const [activeContaFilter, setActiveContaFilter] = useLocalStorage<
     'all' | 'Unicred' | 'Sicoob' | 'ESPÉCIE'
-  >('all')
+  >('despesas_activeContaFilter', 'all')
 
   // Subcategorias
   const [subcategorias, setSubcategorias] = useState<{ id: string; nome: string }[]>([])
-  const [subcategoria, setSubcategoria] = useState('none')
-  const [novaSubcategoria, setNovaSubcategoria] = useState('')
-  const [isCreatingSubcategoria, setIsCreatingSubcategoria] = useState(false)
+  const [subcategoria, setSubcategoria] = useLocalStorage('despesas_form_subcategoria', 'none')
+  const [novaSubcategoria, setNovaSubcategoria] = useLocalStorage(
+    'despesas_form_novaSubcategoria',
+    '',
+  )
+  const [isCreatingSubcategoria, setIsCreatingSubcategoria] = useLocalStorage(
+    'despesas_form_isCreatingSubcategoria',
+    false,
+  )
 
   // Form State
-  const [editId, setEditId] = useState<string | null>(null)
-  const [editType, setEditType] = useState<'despesa' | 'conta_fixa'>('despesa')
-  const [dataVencimento, setDataVencimento] = useState('')
-  const [descricao, setDescricao] = useState('')
-  const [categoria, setCategoria] = useState('')
-  const [valor, setValor] = useState('')
-  const [status, setStatus] = useState('Pendente')
-  const [contaPagamento, setContaPagamento] = useState('Unicred')
+  const [editId, setEditId] = useLocalStorage<string | null>('despesas_form_editId', null)
+  const [editType, setEditType] = useLocalStorage<'despesa' | 'conta_fixa'>(
+    'despesas_form_editType',
+    'despesa',
+  )
+  const [dataVencimento, setDataVencimento] = useLocalStorage('despesas_form_dataVencimento', '')
+  const [descricao, setDescricao] = useLocalStorage('despesas_form_descricao', '')
+  const [categoria, setCategoria] = useLocalStorage('despesas_form_categoria', '')
+  const [valor, setValor] = useLocalStorage('despesas_form_valor', '')
+  const [status, setStatus] = useLocalStorage('despesas_form_status', 'Pendente')
+  const [contaPagamento, setContaPagamento] = useLocalStorage(
+    'despesas_form_contaPagamento',
+    'Unicred',
+  )
 
   // Novos estados para recorrência
-  const [recorrencia, setRecorrencia] = useState('Única')
-  const [parcelas, setParcelas] = useState('2')
+  const [recorrencia, setRecorrencia] = useLocalStorage('despesas_form_recorrencia', 'Única')
+  const [parcelas, setParcelas] = useLocalStorage('despesas_form_parcelas', '2')
 
   // Bulk Edit State
   const [selectedItems, setSelectedItems] = useState<string[]>([])
