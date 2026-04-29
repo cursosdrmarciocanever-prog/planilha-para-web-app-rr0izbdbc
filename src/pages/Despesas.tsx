@@ -6,6 +6,7 @@ import {
   Trash2,
   Edit,
   TrendingDown,
+  TrendingUp,
   CalendarDays,
   CreditCard,
   Upload,
@@ -59,6 +60,7 @@ import { MonthlyComparisonChart } from '@/components/despesas/MonthlyComparisonC
 import { BreakEvenProjection } from '@/components/despesas/BreakEvenProjection'
 import { ContasAPagarTab } from '@/components/despesas/ContasAPagarTab'
 import { CreditCardsDashboard } from '@/components/despesas/CreditCardsDashboard'
+import { UpcomingCommitments } from '@/components/despesas/UpcomingCommitments'
 
 interface Despesa {
   id: string
@@ -291,6 +293,13 @@ export default function Despesas() {
           >
             <CalendarDays className="w-4 h-4" />{' '}
             <span className="font-medium">Contas a Pagar (Calendário)</span>
+          </TabsTrigger>
+          <TabsTrigger
+            value="projecao"
+            className="px-5 py-2.5 rounded-xl flex gap-2 items-center data-[state=active]:shadow-sm data-[state=active]:bg-background transition-all"
+          >
+            <TrendingUp className="w-4 h-4" />{' '}
+            <span className="font-medium">Projeção & Parcelas</span>
           </TabsTrigger>
         </TabsList>
 
@@ -635,6 +644,10 @@ export default function Despesas() {
               onOpenNew={handleOpenNew}
               onEdit={(d: any) => handleOpenEdit(d, d._table as any)}
             />
+          </TabsContent>
+
+          <TabsContent value="projecao" className="mt-0 outline-none w-full animate-fade-in-up">
+            <UpcomingCommitments contas={displayedDespesas} />
           </TabsContent>
         </div>
       </Tabs>
