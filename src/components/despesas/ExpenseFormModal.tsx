@@ -223,23 +223,21 @@ export function ExpenseFormModal() {
         })
       const inserts = Array.from({ length: numParcelas }).map((_, i) => ({
         ...payloadBase,
-        valor: parseFloat(valor) / numParcelas,
+        valor: parseFloat(valor),
         descricao: `${descricao} (${i + 1}/${numParcelas})`,
         data_vencimento: format(addMonths(parseISO(dataVencimento), i), 'yyyy-MM-dd'),
         user_id: user?.id,
       }))
       await supabase.from('despesas').insert(inserts)
     } else if (!editId && recorrencia === 'Recorrente') {
-      await supabase
-        .from('contas_fixas')
-        .insert([
-          {
-            ...payloadBase,
-            data_vencimento: dataVencimento,
-            frequencia: 'Mensal',
-            usuario_id: user?.id,
-          },
-        ])
+      await supabase.from('contas_fixas').insert([
+        {
+          ...payloadBase,
+          data_vencimento: dataVencimento,
+          frequencia: 'Mensal',
+          usuario_id: user?.id,
+        },
+      ])
     } else {
       const table = editId ? (editType === 'conta_fixa' ? 'contas_fixas' : 'despesas') : 'despesas'
       const finalPayload = { ...payloadBase, data_vencimento: dataVencimento }
@@ -285,7 +283,9 @@ export function ExpenseFormModal() {
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div className="space-y-2">
-              <Label className="font-semibold text-foreground">Valor Total (R$)</Label>
+              <Label className="font-semibold text-foreground">
+                {recorrencia === 'Parcelada' ? 'Valor da Parcela (R$)' : 'Valor (R$)'}
+              </Label>
               <Input
                 type="number"
                 step="0.01"
