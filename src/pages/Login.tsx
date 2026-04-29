@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { useNavigate, Navigate } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
-import { Infinity as InfinityIcon, Loader2 } from 'lucide-react'
+import { HeartPulse, Loader2 } from 'lucide-react'
 import { Input } from '@/components/ui/input'
 import { Button } from '@/components/ui/button'
 import { Label } from '@/components/ui/label'
@@ -13,8 +13,16 @@ export default function Login() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
-  const { signIn, session } = useAuth()
+  const { signIn, session, loading: authLoading } = useAuth()
   const navigate = useNavigate()
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <Loader2 className="w-8 h-8 animate-spin text-primary" />
+      </div>
+    )
+  }
 
   if (session) {
     return <Navigate to="/" replace />
@@ -46,7 +54,7 @@ export default function Login() {
       <div className="w-full max-w-md animate-fade-in-up">
         <div className="flex flex-col items-center justify-center mb-8 text-center">
           <div className="bg-primary/10 p-4 rounded-full mb-4">
-            <InfinityIcon className="w-10 h-10 text-primary stroke-[1.5]" />
+            <HeartPulse className="w-10 h-10 text-primary stroke-[1.5]" />
           </div>
           <h1 className="text-2xl font-bold tracking-tight text-foreground">Clínica Canever</h1>
           <p className="text-muted-foreground text-sm uppercase tracking-widest mt-1">Financeiro</p>
