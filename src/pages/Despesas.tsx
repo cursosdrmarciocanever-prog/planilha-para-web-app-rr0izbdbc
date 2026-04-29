@@ -52,6 +52,7 @@ import { Badge } from '@/components/ui/badge'
 import { Checkbox } from '@/components/ui/checkbox'
 import { cn } from '@/lib/utils'
 import { useLocalStorage } from '@/hooks/use-local-storage'
+import { useExpenseModalStore } from '@/stores/use-expense-modal'
 
 import { CostDistributionChart } from '@/components/despesas/CostDistributionChart'
 import { MonthlyComparisonChart } from '@/components/despesas/MonthlyComparisonChart'
@@ -77,8 +78,6 @@ export default function Despesas() {
   const [activeTab, setActiveTab] = useLocalStorage('despesas_activeTab', 'lancamentos')
   const [todasDespesas, setTodasDespesas] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-  const [open, setOpen] = useLocalStorage('despesas_form_open', false)
-
   // Filtro de Contas
   const [activeContaFilter, setActiveContaFilter] = useLocalStorage<
     'all' | 'Unicred' | 'Sicoob' | 'ESPÉCIE'
@@ -86,35 +85,6 @@ export default function Despesas() {
 
   // Subcategorias
   const [subcategorias, setSubcategorias] = useState<{ id: string; nome: string }[]>([])
-  const [subcategoria, setSubcategoria] = useLocalStorage('despesas_form_subcategoria', 'none')
-  const [novaSubcategoria, setNovaSubcategoria] = useLocalStorage(
-    'despesas_form_novaSubcategoria',
-    '',
-  )
-  const [isCreatingSubcategoria, setIsCreatingSubcategoria] = useLocalStorage(
-    'despesas_form_isCreatingSubcategoria',
-    false,
-  )
-
-  // Form State
-  const [editId, setEditId] = useLocalStorage<string | null>('despesas_form_editId', null)
-  const [editType, setEditType] = useLocalStorage<'despesa' | 'conta_fixa'>(
-    'despesas_form_editType',
-    'despesa',
-  )
-  const [dataVencimento, setDataVencimento] = useLocalStorage('despesas_form_dataVencimento', '')
-  const [descricao, setDescricao] = useLocalStorage('despesas_form_descricao', '')
-  const [categoria, setCategoria] = useLocalStorage('despesas_form_categoria', '')
-  const [valor, setValor] = useLocalStorage('despesas_form_valor', '')
-  const [status, setStatus] = useLocalStorage('despesas_form_status', 'Pendente')
-  const [contaPagamento, setContaPagamento] = useLocalStorage(
-    'despesas_form_contaPagamento',
-    'Unicred',
-  )
-
-  // Novos estados para recorrência
-  const [recorrencia, setRecorrencia] = useLocalStorage('despesas_form_recorrencia', 'Única')
-  const [parcelas, setParcelas] = useLocalStorage('despesas_form_parcelas', '2')
 
   // Bulk Edit State
   const [selectedItems, setSelectedItems] = useState<string[]>([])
@@ -123,6 +93,8 @@ export default function Despesas() {
   const [bulkDate, setBulkDate] = useState('')
 
   const { toast } = useToast()
+
+  const { openModal, refreshTrigger } = useExpenseModalStore()
 
   const fetchDados = async () => {
     setLoading(true)
@@ -154,165 +126,14 @@ export default function Despesas() {
 
   useEffect(() => {
     fetchDados()
-  }, [])
-
-  // Regra automática de data de vencimento com base na conta/cartão selecionada
-  useEffect(() => {
-    if (!open) return
-    if (contaPagamento === 'Cartão de Crédito Unicred') {
-      if (dataVencimento) {
-        const d = parseISO(dataVencimento)
-        setDataVencimento(format(setDate(d, 10), 'yyyy-MM-dd'))
-      } else {
-        setDataVencimento(format(setDate(new Date(), 10), 'yyyy-MM-dd'))
-      }
-    } else if (contaPagamento === 'Cartão de Crédito Sicoob') {
-      if (dataVencimento) {
-        const d = parseISO(dataVencimento)
-        setDataVencimento(format(setDate(d, 19), 'yyyy-MM-dd'))
-      } else {
-        setDataVencimento(format(setDate(new Date(), 19), 'yyyy-MM-dd'))
-      }
-    }
-  }, [contaPagamento, open])
+  }, [refreshTrigger])
 
   const handleOpenNew = () => {
-    const isContaFixa = activeTab === 'calendario'
-    setEditId(null)
-    setEditType(isContaFixa ? 'conta_fixa' : 'despesa')
-    setDataVencimento(format(new Date(), 'yyyy-MM-dd'))
-    setDescricao('')
-    setCategoria('')
-    setSubcategoria('none')
-    setIsCreatingSubcategoria(false)
-    setNovaSubcategoria('')
-    setValor('')
-    setStatus('Pendente')
-    setContaPagamento('Unicred')
-    setRecorrencia(isContaFixa ? 'Recorrente' : 'Única')
-    setParcelas('2')
-    setOpen(true)
+    openModal(null, activeTab === 'calendario' ? 'conta_fixa' : 'despesa')
   }
 
   const handleOpenEdit = (item: any, type: 'despesa' | 'conta_fixa') => {
-    setEditId(item.id)
-    setEditType(type)
-    setDataVencimento(item.data_vencimento || '')
-    setDescricao(item.descricao || '')
-    setCategoria(item.categoria || '')
-    setSubcategoria(item.subcategoria || 'none')
-    setIsCreatingSubcategoria(false)
-    setNovaSubcategoria('')
-    setValor(item.valor.toString())
-    setStatus(item.status || 'Pendente')
-    setContaPagamento(item.conta_pagamento || 'Unicred')
-    setRecorrencia(type === 'conta_fixa' ? 'Recorrente' : 'Única')
-    setOpen(true)
-  }
-
-  const handleSave = async () => {
-    if (!dataVencimento || !descricao || !categoria || !valor) {
-      toast({ title: 'Atenção', description: 'Preencha todos os campos.', variant: 'destructive' })
-      return
-    }
-
-    let finalSubcategoria = subcategoria
-    if (isCreatingSubcategoria && novaSubcategoria.trim()) {
-      const { data, error } = await supabase
-        .from('subcategorias_despesas' as any)
-        .insert({ nome: novaSubcategoria.trim(), user_id: user?.id })
-        .select()
-        .single()
-      if (!error && data) {
-        finalSubcategoria = data.nome
-        setSubcategorias((prev) => [...prev, data])
-      }
-    } else if (isCreatingSubcategoria && !novaSubcategoria.trim()) {
-      finalSubcategoria = 'none'
-    }
-
-    const payloadBase: any = {
-      descricao,
-      categoria,
-      subcategoria: finalSubcategoria === 'none' ? null : finalSubcategoria,
-      conta_pagamento: contaPagamento,
-      status,
-      valor: parseFloat(valor),
-    }
-
-    if (!editId && recorrencia === 'Parcelada') {
-      const numParcelas = parseInt(parcelas)
-      if (isNaN(numParcelas) || numParcelas < 2) {
-        toast({
-          title: 'Atenção',
-          description: 'Número de parcelas inválido.',
-          variant: 'destructive',
-        })
-        return
-      }
-
-      const valorParcela = parseFloat(valor) / numParcelas
-      const inserts = []
-
-      for (let i = 0; i < numParcelas; i++) {
-        const dataParcela = addMonths(parseISO(dataVencimento), i)
-        inserts.push({
-          ...payloadBase,
-          valor: valorParcela,
-          descricao: `${descricao} (${i + 1}/${numParcelas})`,
-          data_vencimento: format(dataParcela, 'yyyy-MM-dd'),
-          user_id: user?.id,
-        })
-      }
-
-      const { error } = await supabase.from('despesas').insert(inserts)
-      if (error) {
-        toast({ title: 'Erro', description: 'Falha ao salvar parcelas.', variant: 'destructive' })
-        return
-      }
-    } else if (!editId && recorrencia === 'Recorrente') {
-      const { error } = await supabase.from('contas_fixas').insert([
-        {
-          ...payloadBase,
-          data_vencimento: dataVencimento,
-          frequencia: 'Mensal',
-          usuario_id: user?.id,
-        },
-      ])
-      if (error) {
-        toast({
-          title: 'Erro',
-          description: 'Falha ao salvar conta recorrente.',
-          variant: 'destructive',
-        })
-        return
-      }
-    } else {
-      // Única ou Edição
-      const table = editId ? (editType === 'conta_fixa' ? 'contas_fixas' : 'despesas') : 'despesas'
-
-      const finalPayload = { ...payloadBase, data_vencimento: dataVencimento }
-      if (table === 'contas_fixas') {
-        finalPayload.usuario_id = user?.id
-        if (!editId) finalPayload.frequencia = 'Mensal'
-      } else {
-        finalPayload.user_id = user?.id
-      }
-
-      const query = editId
-        ? supabase.from(table).update(finalPayload).eq('id', editId)
-        : supabase.from(table).insert([finalPayload])
-
-      const { error } = await query
-      if (error) {
-        toast({ title: 'Erro', description: 'Falha ao salvar o registro.', variant: 'destructive' })
-        return
-      }
-    }
-
-    toast({ title: 'Sucesso', description: 'Registro salvo com sucesso.' })
-    fetchDados()
-    setOpen(false)
+    openModal(item.id, type)
   }
 
   const handleDelete = async (id: string, type: 'despesa' | 'conta_fixa' = 'despesa') => {
@@ -325,7 +146,6 @@ export default function Despesas() {
     } else {
       toast({ title: 'Sucesso', description: 'Registro excluído com sucesso.' })
       fetchDados()
-      if (open) setOpen(false)
     }
   }
 
@@ -818,226 +638,6 @@ export default function Despesas() {
           </TabsContent>
         </div>
       </Tabs>
-
-      {/* Modal Nova Transação */}
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle className="text-xl">Nova Transação</DialogTitle>
-            <DialogDescription>
-              Registre uma nova entrada ou saída na conta {contaPagamento}.
-            </DialogDescription>
-          </DialogHeader>
-          <div className="space-y-5 pt-2">
-            <div className="space-y-2">
-              <Label className="font-semibold text-foreground">Descrição</Label>
-              <Input
-                placeholder="Ex: Aluguel, Fornecedor..."
-                value={descricao}
-                onChange={(e) => setDescricao(e.target.value)}
-                className="bg-secondary/20 h-11"
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="font-semibold text-foreground">Valor Total (R$)</Label>
-                <Input
-                  type="number"
-                  step="0.01"
-                  placeholder="0.00"
-                  value={valor}
-                  onChange={(e) => setValor(e.target.value)}
-                  className="bg-secondary/20 font-medium h-11"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label className="font-semibold text-foreground">Data Inicial</Label>
-                <Input
-                  type="date"
-                  value={dataVencimento}
-                  onChange={(e) => setDataVencimento(e.target.value)}
-                  className="bg-secondary/20 h-11"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="font-semibold text-foreground">Tipo</Label>
-                <Select value="Saída" disabled>
-                  <SelectTrigger className="bg-secondary/20 h-11 opacity-70">
-                    <SelectValue placeholder="Tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Saída">Saída</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label className="font-semibold text-foreground">Recorrência</Label>
-                <Select value={recorrencia} onValueChange={setRecorrencia} disabled={!!editId}>
-                  <SelectTrigger className="border-primary text-primary font-medium h-11">
-                    <SelectValue placeholder="Selecione..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Única">Única</SelectItem>
-                    <SelectItem value="Recorrente">Recorrente</SelectItem>
-                    <SelectItem value="Parcelada">Parcelada</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label className="font-semibold text-foreground flex justify-between">
-                  Categoria
-                </Label>
-                <Select value={categoria} onValueChange={setCategoria}>
-                  <SelectTrigger className="bg-secondary/20 h-11">
-                    <SelectValue placeholder="Selecione" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {CATEGORIAS.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label className="font-semibold text-foreground flex justify-between">
-                  Subcategoria
-                </Label>
-                {!isCreatingSubcategoria ? (
-                  <Select
-                    value={subcategoria}
-                    onValueChange={(val) => {
-                      if (val === 'new') {
-                        setIsCreatingSubcategoria(true)
-                        setSubcategoria('none')
-                      } else {
-                        setSubcategoria(val)
-                      }
-                    }}
-                  >
-                    <SelectTrigger className="bg-secondary/20 h-11">
-                      <SelectValue placeholder="Selecione ou crie..." />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">Nenhuma</SelectItem>
-                      {subcategorias.map((sub) => (
-                        <SelectItem key={sub.id} value={sub.nome}>
-                          {sub.nome}
-                        </SelectItem>
-                      ))}
-                      <SelectItem value="new" className="font-semibold text-primary">
-                        <Plus className="w-4 h-4 inline mr-2" />
-                        Nova Subcategoria...
-                      </SelectItem>
-                    </SelectContent>
-                  </Select>
-                ) : (
-                  <div className="flex gap-2">
-                    <Input
-                      placeholder="Nome da subcategoria"
-                      value={novaSubcategoria}
-                      onChange={(e) => setNovaSubcategoria(e.target.value)}
-                      className="bg-secondary/20 h-11"
-                      autoFocus
-                    />
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      className="h-11 w-11 shrink-0"
-                      onClick={() => {
-                        setIsCreatingSubcategoria(false)
-                        setNovaSubcategoria('')
-                        setSubcategoria('none')
-                      }}
-                    >
-                      <Trash2 className="w-4 h-4 text-muted-foreground" />
-                    </Button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              {recorrencia === 'Parcelada' && !editId && (
-                <div className="space-y-2 animate-in fade-in slide-in-from-top-1">
-                  <Label className="font-semibold text-foreground">Quantidade de Parcelas</Label>
-                  <Input
-                    type="number"
-                    min="2"
-                    max="120"
-                    placeholder="2"
-                    value={parcelas}
-                    onChange={(e) => setParcelas(e.target.value)}
-                    className="bg-secondary/20 h-11 border-primary"
-                  />
-                </div>
-              )}
-
-              {recorrencia !== 'Parcelada' && (
-                <div className="space-y-2">
-                  <Label className="font-semibold text-foreground">Status</Label>
-                  <Select value={status} onValueChange={setStatus}>
-                    <SelectTrigger className="bg-secondary/20 h-11">
-                      <SelectValue placeholder="Status" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="Pendente">Pendente</SelectItem>
-                      <SelectItem value="Pago">Pago</SelectItem>
-                      <SelectItem value="Vencido">Vencido</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
-
-              <div className="space-y-2">
-                <Label className="font-semibold text-foreground">Conta / Cartão</Label>
-                <Select value={contaPagamento} onValueChange={setContaPagamento}>
-                  <SelectTrigger className="bg-secondary/20 h-11">
-                    <SelectValue placeholder="Selecione a conta..." />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="Unicred">Conta Unicred</SelectItem>
-                    <SelectItem value="Sicoob">Conta Sicoob</SelectItem>
-                    <SelectItem value="ESPÉCIE">Conta ESPÉCIE</SelectItem>
-                    <SelectItem value="Cartão de Crédito Unicred">
-                      Cartão de Créd. Unicred
-                    </SelectItem>
-                    <SelectItem value="Cartão de Crédito Sicoob">Cartão de Créd. Sicoob</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-
-            <div className="flex gap-3 pt-4 mt-2 border-t border-border/40">
-              {editId && (
-                <Button
-                  variant="outline"
-                  className="text-destructive hover:bg-destructive/10 hover:text-destructive h-11"
-                  onClick={() => handleDelete(editId, editType)}
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Excluir
-                </Button>
-              )}
-              <Button
-                onClick={handleSave}
-                className="flex-1 rounded-xl h-11 bg-blue-600 hover:bg-blue-700 text-white font-semibold"
-              >
-                Salvar Transação
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
     </div>
   )
 }

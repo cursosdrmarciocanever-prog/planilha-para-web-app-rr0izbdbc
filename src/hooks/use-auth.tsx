@@ -50,7 +50,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       setLoadingSession(false)
     })
 
-    return () => subscription.unsubscribe()
+    // Auto refresh session every 30 minutes to prevent unexpected logouts
+    const refreshInterval = setInterval(
+      () => {
+        supabase.auth.refreshSession()
+      },
+      30 * 60 * 1000,
+    )
+
+    return () => {
+      subscription.unsubscribe()
+      clearInterval(refreshInterval)
+    }
   }, [])
 
   useEffect(() => {

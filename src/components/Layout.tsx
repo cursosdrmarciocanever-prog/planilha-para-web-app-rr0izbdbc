@@ -12,9 +12,13 @@ import {
 } from '@/components/ui/dialog'
 import { Button } from '@/components/ui/button'
 import { format, parseISO } from 'date-fns'
+import { Plus } from 'lucide-react'
+import { useExpenseModalStore } from '@/stores/use-expense-modal'
+import { ExpenseFormModal } from './despesas/ExpenseFormModal'
 
 export default function Layout() {
   const { selectedConta, setSelectedConta } = useLembretes()
+  const { openModal } = useExpenseModalStore()
 
   const formatCurrency = (val: number | undefined | null) =>
     new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(val ?? 0)
@@ -35,6 +39,19 @@ export default function Layout() {
           </main>
         </SidebarInset>
       </SidebarProvider>
+
+      <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-3">
+        <Button
+          size="icon"
+          className="h-14 w-14 rounded-full shadow-2xl hover:scale-105 transition-transform bg-primary text-primary-foreground"
+          onClick={() => openModal()}
+          title="Nova Despesa Rápida"
+        >
+          <Plus className="h-6 w-6" />
+        </Button>
+      </div>
+
+      <ExpenseFormModal />
 
       <Dialog open={!!selectedConta} onOpenChange={(open) => !open && setSelectedConta(null)}>
         <DialogContent className="sm:max-w-[425px]">
