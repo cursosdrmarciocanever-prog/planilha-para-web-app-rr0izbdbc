@@ -23,6 +23,7 @@ import {
   Loader2,
   Mail,
   CreditCard,
+  List,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -62,7 +63,7 @@ export function ContasAPagarTab({
 }: ContasAPagarTabProps) {
   const [currentMonth, setCurrentMonth] = useState(startOfMonth(new Date()))
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date())
-  const [viewMode, setViewMode] = useState<'consolidada' | 'detalhada'>('consolidada')
+  const [viewMode, setViewMode] = useState<'consolidada' | 'detalhada' | 'lista'>('consolidada')
   const [isGenerating, setIsGenerating] = useState(false)
   const [isSendingEmail, setIsSendingEmail] = useState(false)
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
@@ -84,23 +85,27 @@ export function ContasAPagarTab({
       let finalDate = parseISO(d.data_vencimento)
 
       const fp = (d.forma_pagamento || d.conta_pagamento || '').toLowerCase()
-      const isUnicred = fp.includes('unicred') && fp.includes('cart')
-      const isSicoob = fp.includes('sicoob') && fp.includes('cart')
+      const desc = (d.descricao || '').toLowerCase()
+      const isUnicredCard =
+        (fp.includes('unicred') || desc.includes('unicred')) &&
+        (fp.includes('cartão') || fp.includes('cartao') || fp.includes('cart'))
+      const isSicoobCard =
+        (fp.includes('sicoob') || desc.includes('sicoob')) &&
+        (fp.includes('cartão') || fp.includes('cartao') || fp.includes('cart'))
 
-      if (isUnicred) {
+      const isUnicredConta = (fp.includes('unicred') || desc.includes('unicred')) && !isUnicredCard
+      const isSicoobConta = (fp.includes('sicoob') || desc.includes('sicoob')) && !isSicoobCard
+
+      if (isUnicredCard) {
         finalDate = new Date(finalDate.getFullYear(), finalDate.getMonth(), 10)
-      } else if (isSicoob) {
+      } else if (isSicoobCard) {
         finalDate = new Date(finalDate.getFullYear(), finalDate.getMonth(), 19)
       }
 
       const dateStr = format(finalDate, 'yyyy-MM-dd')
       if (!map.has(dateStr)) map.set(dateStr, [])
 
-      if (isUnicred || isSicoob) {
-        map.get(dateStr)!.push({ ...d, isSpecialGroup: isUnicred ? 'unicred' : 'sicoob' })
-      } else {
-        map.get(dateStr)!.push(d)
-      }
+      map.get(dateStr)!.push({ ...d, isUnicredCard, isSicoobCard, isUnicredConta, isSicoobConta })
     })
     return map
   }, [contas])
@@ -129,57 +134,118 @@ export function ContasAPagarTab({
       let dDate = parseISO(d.data_vencimento)
 
       const fp = (d.forma_pagamento || d.conta_pagamento || '').toLowerCase()
-      const isUnicred = fp.includes('unicred') && fp.includes('cart')
-      const isSicoob = fp.includes('sicoob') && fp.includes('cart')
+      const desc = (d.descricao || '').toLowerCase()
+      const isUnicredCard =
+        (fp.includes('unicred') || desc.includes('unicred')) &&
+        (fp.includes('cartão') || fp.includes('cartao') || fp.includes('cart'))
+      const isSicoobCard =
+        (fp.includes('sicoob') || desc.includes('sicoob')) &&
+        (fp.includes('cartão') || fp.includes('cartao') || fp.includes('cart'))
 
-      if (isUnicred) {
+      if (isUnicredCard) {
         dDate = new Date(dDate.getFullYear(), dDate.getMonth(), 10)
-      } else if (isSicoob) {
+      } else if (isSicoobCard) {
         dDate = new Date(dDate.getFullYear(), dDate.getMonth(), 19)
       }
 
       if (!isSameMonth(dDate, currentMonth)) return
 
-      if (isUnicred) {
-        if (!unicredGroup) {
-          unicredGroup = {
-            id: `cc-unicred-${currentMonth.toISOString()}`,
-            descricao: 'Cartão de crédito Unicred',
-            valor: 0,
-            status: 'Pago',
-            data_vencimento: dDate.toISOString(),
-            _table: 'despesa',
-            conta_pagamento: 'Cartão de Crédito Unicred',
+      if (viewMode === 'consolidada') {
+        if (isUnicredCard) {
+          if (!unicredGroup) {
+            unicredGroup = {
+              id: `cc-unicred-${currentMonth.toISOString()}`,
+              descricao: 'Cartão de crédito Unicred',
+              valor: 0,
+              status: 'Pago',
+              data_vencimento: dDate.toISOString(),
+              _table: 'despesa',
+              conta_pagamento: 'Cartão de Crédito Unicred',
+            }
           }
-        }
-        unicredGroup.valor += Number(d.valor)
-        if (d.status !== 'Pago' && d.status !== 'Confirmado') unicredGroup.status = 'Pendente'
-      } else if (isSicoob) {
-        if (!sicoobGroup) {
-          sicoobGroup = {
-            id: `cc-sicoob-${currentMonth.toISOString()}`,
-            descricao: 'Cartão de crédito Sicoob',
-            valor: 0,
-            status: 'Pago',
-            data_vencimento: dDate.toISOString(),
-            _table: 'despesa',
-            conta_pagamento: 'Cartão de Crédito Sicoob',
+          unicredGroup.valor += Number(d.valor)
+          if (d.status !== 'Pago' && d.status !== 'Confirmado') unicredGroup.status = 'Pendente'
+        } else if (isSicoobCard) {
+          if (!sicoobGroup) {
+            sicoobGroup = {
+              id: `cc-sicoob-${currentMonth.toISOString()}`,
+              descricao: 'Cartão de crédito Sicoob',
+              valor: 0,
+              status: 'Pago',
+              data_vencimento: dDate.toISOString(),
+              _table: 'despesa',
+              conta_pagamento: 'Cartão de Crédito Sicoob',
+            }
           }
+          sicoobGroup.valor += Number(d.valor)
+          if (d.status !== 'Pago' && d.status !== 'Confirmado') sicoobGroup.status = 'Pendente'
+        } else {
+          items.push(d)
         }
-        sicoobGroup.valor += Number(d.valor)
-        if (d.status !== 'Pago' && d.status !== 'Confirmado') sicoobGroup.status = 'Pendente'
       } else {
         items.push(d)
       }
     })
 
-    if (unicredGroup) items.push(unicredGroup)
-    if (sicoobGroup) items.push(sicoobGroup)
+    if (viewMode === 'consolidada') {
+      if (unicredGroup) items.push(unicredGroup)
+      if (sicoobGroup) items.push(sicoobGroup)
+    }
 
     return items.sort(
       (a: any, b: any) =>
         parseISO(a.data_vencimento).getTime() - parseISO(b.data_vencimento).getTime(),
     )
+  }, [contas, currentMonth, viewMode])
+
+  const listaComprometimento = useMemo(() => {
+    const grupos: Record<string, number> = {
+      'Conta Unicred': 0,
+      'Conta Sicoob': 0,
+      'Cartão de Crédito Unicred': 0,
+      'Cartão de Crédito Sicoob': 0,
+      'Outros Cartões': 0,
+      'Outras Despesas': 0,
+    }
+
+    contas.forEach((d: any) => {
+      if (!d.data_vencimento) return
+      let dDate = parseISO(d.data_vencimento)
+      if (!isSameMonth(dDate, currentMonth)) return
+
+      const valor = Number(d.valor || 0)
+      const fp = (d.forma_pagamento || d.conta_pagamento || '').toLowerCase()
+      const desc = (d.descricao || '').toLowerCase()
+
+      const isUnicredCard =
+        (fp.includes('unicred') || desc.includes('unicred')) &&
+        (fp.includes('cartão') || fp.includes('cartao') || fp.includes('cart'))
+      const isSicoobCard =
+        (fp.includes('sicoob') || desc.includes('sicoob')) &&
+        (fp.includes('cartão') || fp.includes('cartao') || fp.includes('cart'))
+
+      const isUnicredConta = (fp.includes('unicred') || desc.includes('unicred')) && !isUnicredCard
+      const isSicoobConta = (fp.includes('sicoob') || desc.includes('sicoob')) && !isSicoobCard
+
+      if (isUnicredCard) {
+        grupos['Cartão de Crédito Unicred'] += valor
+      } else if (isSicoobCard) {
+        grupos['Cartão de Crédito Sicoob'] += valor
+      } else if (isUnicredConta) {
+        grupos['Conta Unicred'] += valor
+      } else if (isSicoobConta) {
+        grupos['Conta Sicoob'] += valor
+      } else if (fp.includes('cartão') || fp.includes('cartao')) {
+        grupos['Outros Cartões'] += valor
+      } else {
+        grupos['Outras Despesas'] += valor
+      }
+    })
+
+    return Object.entries(grupos)
+      .map(([nome, valor]) => ({ nome, valor }))
+      .filter((g) => g.valor > 0)
+      .sort((a, b) => b.valor - a.valor)
   }, [contas, currentMonth])
 
   const getStatusInfo = (d: any) => {
@@ -317,14 +383,17 @@ export function ContasAPagarTab({
             <Tabs
               value={viewMode}
               onValueChange={(v) => setViewMode(v as any)}
-              className="w-[220px]"
+              className="w-[300px]"
             >
-              <TabsList className="grid w-full grid-cols-2 h-9">
-                <TabsTrigger value="consolidada" className="text-xs">
+              <TabsList className="grid w-full grid-cols-3 h-9">
+                <TabsTrigger value="consolidada" className="text-xs px-2">
                   Consolidada
                 </TabsTrigger>
-                <TabsTrigger value="detalhada" className="text-xs">
+                <TabsTrigger value="detalhada" className="text-xs px-2">
                   Detalhada
+                </TabsTrigger>
+                <TabsTrigger value="lista" className="text-xs px-2">
+                  Lista
                 </TabsTrigger>
               </TabsList>
             </Tabs>
@@ -357,199 +426,234 @@ export function ContasAPagarTab({
           </div>
         </div>
 
-        <div className="grid grid-cols-7 border-b border-border/40 bg-secondary/5">
-          {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((day) => (
-            <div
-              key={day}
-              className="py-3 text-center text-[11px] font-bold text-muted-foreground uppercase tracking-wider"
-            >
-              {day}
-            </div>
-          ))}
-        </div>
-
-        <div className="grid grid-cols-7 auto-rows-fr">
-          {days.map((day) => {
-            const dateStr = format(day, 'yyyy-MM-dd')
-            const dayExpensesRaw = expensesByDate.get(dateStr) || []
-            const isSelected = selectedDate && isSameDay(day, selectedDate)
-            const isCurrentMonth = isSameMonth(day, monthStart)
-
-            const cumulative = cumulativeByDate.get(dateStr) || 0
-            const perc = faturamentoMedio > 0 ? (cumulative / faturamentoMedio) * 100 : 0
-            let indicatorColor = 'bg-emerald-500/50'
-            if (perc > 90) indicatorColor = 'bg-rose-500/60'
-            else if (perc > 60) indicatorColor = 'bg-amber-500/60'
-
-            const dayExpenses: any[] = []
-            const groupedCards = new Map<string, any>()
-
-            dayExpensesRaw.forEach((d: any) => {
-              const isCartao =
-                d.conta_pagamento?.toLowerCase().includes('cartão') ||
-                d.categoria?.toLowerCase().includes('cartão') ||
-                d.isSpecialGroup
-              const isContaFixa = d._table === 'conta_fixa'
-
-              if (d.isSpecialGroup) {
-                const groupName =
-                  d.isSpecialGroup === 'unicred'
-                    ? 'Cartão de crédito Unicred'
-                    : 'Cartão de crédito Sicoob'
-                if (!groupedCards.has(groupName)) {
-                  groupedCards.set(groupName, {
-                    id: `group-${groupName}-${dateStr}`,
-                    descricao: groupName,
-                    valor: 0,
-                    status: 'Pago',
-                    data_vencimento: d.data_vencimento,
-                    _table: 'despesa',
-                    isGroup: true,
-                    originalItems: [],
-                  })
-                }
-                const group = groupedCards.get(groupName)!
-                group.valor += Number(d.valor)
-                group.originalItems.push(d)
-                if (d.status !== 'Pago' && d.status !== 'Confirmado') {
-                  group.status = 'Pendente'
-                }
-                return
-              }
-
-              if (viewMode === 'consolidada') {
-                if (!isCartao && !isContaFixa) return // ignora despesas avulsas na view consolidada
-                if (isCartao) {
-                  const groupName = d.conta_pagamento || 'Cartão de Crédito'
-                  if (!groupedCards.has(groupName)) {
-                    groupedCards.set(groupName, {
-                      id: `group-${groupName}-${dateStr}`,
-                      descricao: `Fatura: ${groupName}`,
-                      valor: 0,
-                      status: 'Pago',
-                      data_vencimento: d.data_vencimento,
-                      _table: 'despesa',
-                      isGroup: true,
-                      originalItems: [],
-                    })
-                  }
-                  const group = groupedCards.get(groupName)!
-                  group.valor += Number(d.valor)
-                  group.originalItems.push(d)
-                  if (d.status !== 'Pago' && d.status !== 'Confirmado') {
-                    group.status = 'Pendente'
-                  }
-                } else {
-                  dayExpenses.push(d)
-                }
-              } else {
-                // View detalhada
-                dayExpenses.push(d)
-              }
-            })
-
-            if (viewMode === 'consolidada') {
-              groupedCards.forEach((group) => dayExpenses.push(group))
-            } else {
-              groupedCards.forEach((group) => {
-                if (
-                  group.descricao === 'Cartão de crédito Unicred' ||
-                  group.descricao === 'Cartão de crédito Sicoob'
-                ) {
-                  dayExpenses.push(group)
-                }
-              })
-            }
-
-            return (
-              <div
-                key={day.toString()}
-                onClick={() => setSelectedDate(day)}
-                className={cn(
-                  'min-h-[120px] p-1.5 border-r border-b border-border/40 cursor-pointer transition-colors relative hover:bg-secondary/20 group flex flex-col overflow-hidden',
-                  !isCurrentMonth && 'bg-secondary/10 opacity-40',
-                  isSelected && 'ring-2 ring-primary ring-inset bg-primary/5',
-                )}
-              >
-                {isCurrentMonth && (
-                  <div
-                    className={cn(
-                      'absolute top-0 left-0 right-0 h-1 transition-colors',
-                      indicatorColor,
+        {viewMode === 'lista' ? (
+          <div className="flex-1 p-6 bg-muted/10 overflow-y-auto">
+            <div className="max-w-2xl mx-auto space-y-4">
+              {listaComprometimento.map((item, idx) => (
+                <div
+                  key={idx}
+                  className="flex items-center justify-between p-5 rounded-2xl border bg-card shadow-sm hover:shadow transition-shadow"
+                >
+                  <div className="font-semibold text-base flex items-center gap-3">
+                    {item.nome.includes('Cartão') ? (
+                      <CreditCard className="w-6 h-6 text-primary" />
+                    ) : (
+                      <CalendarRange className="w-6 h-6 text-primary" />
                     )}
-                  />
-                )}
-                <div className="flex justify-between items-start mb-1 mt-1">
-                  <div
-                    className={cn(
-                      'text-[13px] font-semibold w-7 h-7 flex items-center justify-center rounded-full transition-colors',
-                      isToday(day) && 'bg-primary text-primary-foreground',
-                      !isToday(day) && !isCurrentMonth && 'text-muted-foreground',
-                      !isToday(day) &&
-                        isCurrentMonth &&
-                        'text-foreground group-hover:bg-secondary/50',
-                    )}
-                  >
-                    {format(day, 'd')}
+                    {item.nome}
                   </div>
-                  {dayExpenses.length > 0 && (
-                    <span className="text-[10px] text-muted-foreground font-medium pr-1 mt-1">
-                      {dayExpenses.length}
-                    </span>
+                  <div className="font-bold text-xl tracking-tight">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+                      item.valor,
+                    )}
+                  </div>
+                </div>
+              ))}
+              {listaComprometimento.length === 0 && (
+                <div className="text-center py-20 text-muted-foreground flex flex-col items-center gap-4">
+                  <FileText className="w-12 h-12 opacity-20" />
+                  <p className="text-lg">Nenhum comprometimento projetado para este mês.</p>
+                </div>
+              )}
+              <div className="flex items-center justify-between p-6 rounded-2xl bg-primary text-primary-foreground shadow-md mt-6">
+                <div className="font-bold text-xl">Total Comprometido</div>
+                <div className="font-bold text-2xl tracking-tight">
+                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+                    listaComprometimento.reduce((a, b) => a + b.valor, 0),
                   )}
                 </div>
-
-                <div className="space-y-1.5 overflow-y-auto flex-1 pr-1 pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
-                  {dayExpenses.map((d) => {
-                    const { isPaid, isOverdue, isSoon } = getStatusInfo(d)
-
-                    return (
-                      <div
-                        key={d.id}
-                        className={cn(
-                          'text-[11px] px-1.5 py-1 rounded-md truncate font-medium transition-all hover:brightness-95 flex items-center gap-1.5 shadow-sm border',
-                          isPaid
-                            ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-800'
-                            : isOverdue
-                              ? 'bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-900/40 dark:text-rose-300 dark:border-rose-800'
-                              : isSoon
-                                ? 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800'
-                                : 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
-                        )}
-                        title={`${d.descricao} - ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(d.valor)}`}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          if (d.isGroup) {
-                            toast({
-                              title: d.descricao,
-                              description: `Valor consolidado de ${d.originalItems.length} despesas. Alternar para a visualização Detalhada para gerenciar.`,
-                            })
-                          } else {
-                            onEdit(d)
-                          }
-                        }}
-                      >
-                        <div
-                          className={cn(
-                            'w-1.5 h-1.5 rounded-full shrink-0',
-                            isPaid
-                              ? 'bg-emerald-500'
-                              : isOverdue
-                                ? 'bg-rose-500'
-                                : isSoon
-                                  ? 'bg-amber-500'
-                                  : 'bg-slate-400',
-                          )}
-                        />
-                        {d.descricao}
-                      </div>
-                    )
-                  })}
-                </div>
               </div>
-            )
-          })}
-        </div>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="grid grid-cols-7 border-b border-border/40 bg-secondary/5">
+              {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((day) => (
+                <div
+                  key={day}
+                  className="py-3 text-center text-[11px] font-bold text-muted-foreground uppercase tracking-wider"
+                >
+                  {day}
+                </div>
+              ))}
+            </div>
+
+            <div className="grid grid-cols-7 auto-rows-fr">
+              {days.map((day) => {
+                const dateStr = format(day, 'yyyy-MM-dd')
+                const dayExpensesRaw = expensesByDate.get(dateStr) || []
+                const isSelected = selectedDate && isSameDay(day, selectedDate)
+                const isCurrentMonth = isSameMonth(day, monthStart)
+
+                const cumulative = cumulativeByDate.get(dateStr) || 0
+                const perc = faturamentoMedio > 0 ? (cumulative / faturamentoMedio) * 100 : 0
+                let indicatorColor = 'bg-emerald-500/50'
+                if (perc > 90) indicatorColor = 'bg-rose-500/60'
+                else if (perc > 60) indicatorColor = 'bg-amber-500/60'
+
+                const dayExpenses: any[] = []
+                const groupedCards = new Map<string, any>()
+
+                dayExpensesRaw.forEach((d: any) => {
+                  const isCartao =
+                    d.conta_pagamento?.toLowerCase().includes('cartão') ||
+                    d.categoria?.toLowerCase().includes('cartão') ||
+                    d.isUnicredCard ||
+                    d.isSicoobCard
+                  const isContaFixa = d._table === 'conta_fixa'
+
+                  if (viewMode === 'consolidada') {
+                    if (!isCartao && !isContaFixa) return // ignora despesas avulsas na view consolidada
+
+                    if (d.isUnicredCard || d.isSicoobCard) {
+                      const groupName = d.isUnicredCard
+                        ? 'Cartão de crédito Unicred'
+                        : 'Cartão de crédito Sicoob'
+                      if (!groupedCards.has(groupName)) {
+                        groupedCards.set(groupName, {
+                          id: `group-${groupName}-${dateStr}`,
+                          descricao: groupName,
+                          valor: 0,
+                          status: 'Pago',
+                          data_vencimento: d.data_vencimento,
+                          _table: 'despesa',
+                          isGroup: true,
+                          originalItems: [],
+                        })
+                      }
+                      const group = groupedCards.get(groupName)!
+                      group.valor += Number(d.valor)
+                      group.originalItems.push(d)
+                      if (d.status !== 'Pago' && d.status !== 'Confirmado') {
+                        group.status = 'Pendente'
+                      }
+                      return
+                    }
+
+                    if (isCartao) {
+                      const groupName = d.conta_pagamento || 'Cartão de Crédito'
+                      if (!groupedCards.has(groupName)) {
+                        groupedCards.set(groupName, {
+                          id: `group-${groupName}-${dateStr}`,
+                          descricao: `Fatura: ${groupName}`,
+                          valor: 0,
+                          status: 'Pago',
+                          data_vencimento: d.data_vencimento,
+                          _table: 'despesa',
+                          isGroup: true,
+                          originalItems: [],
+                        })
+                      }
+                      const group = groupedCards.get(groupName)!
+                      group.valor += Number(d.valor)
+                      group.originalItems.push(d)
+                      if (d.status !== 'Pago' && d.status !== 'Confirmado') {
+                        group.status = 'Pendente'
+                      }
+                    } else {
+                      dayExpenses.push(d)
+                    }
+                  } else {
+                    // View detalhada
+                    dayExpenses.push(d)
+                  }
+                })
+
+                if (viewMode === 'consolidada') {
+                  groupedCards.forEach((group) => dayExpenses.push(group))
+                }
+
+                return (
+                  <div
+                    key={day.toString()}
+                    onClick={() => setSelectedDate(day)}
+                    className={cn(
+                      'min-h-[120px] p-1.5 border-r border-b border-border/40 cursor-pointer transition-colors relative hover:bg-secondary/20 group flex flex-col overflow-hidden',
+                      !isCurrentMonth && 'bg-secondary/10 opacity-40',
+                      isSelected && 'ring-2 ring-primary ring-inset bg-primary/5',
+                    )}
+                  >
+                    {isCurrentMonth && (
+                      <div
+                        className={cn(
+                          'absolute top-0 left-0 right-0 h-1 transition-colors',
+                          indicatorColor,
+                        )}
+                      />
+                    )}
+                    <div className="flex justify-between items-start mb-1 mt-1">
+                      <div
+                        className={cn(
+                          'text-[13px] font-semibold w-7 h-7 flex items-center justify-center rounded-full transition-colors',
+                          isToday(day) && 'bg-primary text-primary-foreground',
+                          !isToday(day) && !isCurrentMonth && 'text-muted-foreground',
+                          !isToday(day) &&
+                            isCurrentMonth &&
+                            'text-foreground group-hover:bg-secondary/50',
+                        )}
+                      >
+                        {format(day, 'd')}
+                      </div>
+                      {dayExpenses.length > 0 && (
+                        <span className="text-[10px] text-muted-foreground font-medium pr-1 mt-1">
+                          {dayExpenses.length}
+                        </span>
+                      )}
+                    </div>
+
+                    <div className="space-y-1.5 overflow-y-auto flex-1 pr-1 pb-1 [&::-webkit-scrollbar]:hidden [-ms-overflow-style:none] [scrollbar-width:none]">
+                      {dayExpenses.map((d) => {
+                        const { isPaid, isOverdue, isSoon } = getStatusInfo(d)
+
+                        return (
+                          <div
+                            key={d.id}
+                            className={cn(
+                              'text-[11px] px-1.5 py-1 rounded-md truncate font-medium transition-all hover:brightness-95 flex items-center gap-1.5 shadow-sm border',
+                              isPaid
+                                ? 'bg-emerald-100 text-emerald-800 border-emerald-200 dark:bg-emerald-900/40 dark:text-emerald-300 dark:border-emerald-800'
+                                : isOverdue
+                                  ? 'bg-rose-100 text-rose-800 border-rose-200 dark:bg-rose-900/40 dark:text-rose-300 dark:border-rose-800'
+                                  : isSoon
+                                    ? 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/40 dark:text-amber-300 dark:border-amber-800'
+                                    : 'bg-slate-100 text-slate-700 border-slate-200 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700',
+                            )}
+                            title={`${d.descricao} - ${new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(d.valor)}`}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              if (d.isGroup) {
+                                toast({
+                                  title: d.descricao,
+                                  description: `Valor consolidado de ${d.originalItems.length} despesas. Alternar para a visualização Detalhada para gerenciar.`,
+                                })
+                              } else {
+                                onEdit(d)
+                              }
+                            }}
+                          >
+                            <div
+                              className={cn(
+                                'w-1.5 h-1.5 rounded-full shrink-0',
+                                isPaid
+                                  ? 'bg-emerald-500'
+                                  : isOverdue
+                                    ? 'bg-rose-500'
+                                    : isSoon
+                                      ? 'bg-amber-500'
+                                      : 'bg-slate-400',
+                              )}
+                            />
+                            {d.descricao}
+                          </div>
+                        )
+                      })}
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          </>
+        )}
       </Card>
 
       {/* Painel Lateral */}

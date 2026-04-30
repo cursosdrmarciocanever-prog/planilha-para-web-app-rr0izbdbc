@@ -26,6 +26,7 @@ import {
   Wallet,
   TrendingUp,
   AlertTriangle,
+  List,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
@@ -135,50 +136,69 @@ export default function Despesas() {
 
     rawItems.forEach((item) => {
       const fp = (item.forma_pagamento || item.conta_pagamento || '').toLowerCase()
-      const isUnicred = fp.includes('unicred') && fp.includes('cart')
-      const isSicoob = fp.includes('sicoob') && fp.includes('cart')
+      const desc = (item.descricao || '').toLowerCase()
 
-      if (isUnicred) {
-        unicredTotal += Number(item.valor || 0)
-      } else if (isSicoob) {
-        sicoobTotal += Number(item.valor || 0)
-      } else {
-        finalItems.push(item)
+      const isUnicredCard =
+        (fp.includes('unicred') || desc.includes('unicred')) &&
+        (fp.includes('cartão') || fp.includes('cartao') || fp.includes('cart'))
+      const isSicoobCard =
+        (fp.includes('sicoob') || desc.includes('sicoob')) &&
+        (fp.includes('cartão') || fp.includes('cartao') || fp.includes('cart'))
+
+      const isUnicredConta = (fp.includes('unicred') || desc.includes('unicred')) && !isUnicredCard
+      const isSicoobConta = (fp.includes('sicoob') || desc.includes('sicoob')) && !isSicoobCard
+
+      let finalItem = { ...item, isUnicredCard, isSicoobCard, isUnicredConta, isSicoobConta }
+
+      if (isUnicredCard) {
+        finalItem.data_vencimento = unicredDate
+      } else if (isSicoobCard) {
+        finalItem.data_vencimento = sicoobDate
       }
+
+      finalItems.push(finalItem)
     })
-
-    if (unicredTotal > 0) {
-      finalItems.push({
-        id: `cc-unicred-${baseDate.toISOString()}`,
-        descricao: 'Cartão de crédito Unicred',
-        valor: unicredTotal,
-        data_vencimento: unicredDate,
-        forma_pagamento: 'Cartão de Crédito Unicred',
-        status: 'Pendente',
-        isProjected: true,
-        isFixa: false,
-        isConsolidated: true,
-      })
-    }
-
-    if (sicoobTotal > 0) {
-      finalItems.push({
-        id: `cc-sicoob-${baseDate.toISOString()}`,
-        descricao: 'Cartão de crédito Sicoob',
-        valor: sicoobTotal,
-        data_vencimento: sicoobDate,
-        forma_pagamento: 'Cartão de Crédito Sicoob',
-        status: 'Pendente',
-        isProjected: true,
-        isFixa: false,
-        isConsolidated: true,
-      })
-    }
 
     return finalItems.sort(
       (a, b) => new Date(a.data_vencimento).getTime() - new Date(b.data_vencimento).getTime(),
     )
   }, [rawDespesas, rawFixas, currentDate])
+
+  const listaComprometimento = useMemo(() => {
+    const grupos: Record<string, number> = {
+      'Conta Unicred': 0,
+      'Conta Sicoob': 0,
+      'Cartão de Crédito Unicred': 0,
+      'Cartão de Crédito Sicoob': 0,
+      'Outros Cartões': 0,
+      'Outras Despesas': 0,
+    }
+
+    projectedItems.forEach((item) => {
+      const val = Number(item.valor || 0)
+      if (item.isUnicredCard) {
+        grupos['Cartão de Crédito Unicred'] += val
+      } else if (item.isSicoobCard) {
+        grupos['Cartão de Crédito Sicoob'] += val
+      } else if (item.isUnicredConta) {
+        grupos['Conta Unicred'] += val
+      } else if (item.isSicoobConta) {
+        grupos['Conta Sicoob'] += val
+      } else {
+        const fp = (item.forma_pagamento || item.conta_pagamento || '').toLowerCase()
+        if (fp.includes('cartão') || fp.includes('cartao')) {
+          grupos['Outros Cartões'] += val
+        } else {
+          grupos['Outras Despesas'] += val
+        }
+      }
+    })
+
+    return Object.entries(grupos)
+      .map(([nome, valor]) => ({ nome, valor }))
+      .filter((g) => g.valor > 0)
+      .sort((a, b) => b.valor - a.valor)
+  }, [projectedItems])
 
   // Lógica de Cores baseada no risco de comprometimento do faturamento
   const monthlyTotal = projectedItems.reduce((acc, curr) => acc + Number(curr.valor), 0)
@@ -201,29 +221,50 @@ export default function Despesas() {
     let dayItems = projectedItems.filter((item) => isSameDay(parseISO(item.data_vencimento), day))
 
     if (viewMode === 'consolidada') {
+      const unicredItems = dayItems.filter((i) => i.isUnicredCard)
+      const sicoobItems = dayItems.filter((i) => i.isSicoobCard)
       const ccItems = dayItems.filter(
         (i) =>
+          !i.isUnicredCard &&
+          !i.isSicoobCard &&
           (i.forma_pagamento?.toLowerCase().includes('cartão') ||
-            i.forma_pagamento?.toLowerCase().includes('cartao')) &&
-          !i.descricao.includes('Unicred') &&
-          !i.descricao.includes('Sicoob'),
+            i.forma_pagamento?.toLowerCase().includes('cartao')),
       )
       const otherItems = dayItems.filter(
         (i) =>
+          !i.isUnicredCard &&
+          !i.isSicoobCard &&
           !(
             i.forma_pagamento?.toLowerCase().includes('cartão') ||
             i.forma_pagamento?.toLowerCase().includes('cartao')
-          ) ||
-          i.descricao.includes('Unicred') ||
-          i.descricao.includes('Sicoob'),
+          ),
       )
 
+      if (unicredItems.length > 0) {
+        otherItems.push({
+          id: `cc-unicred-${day.toISOString()}`,
+          descricao: 'Cartão de crédito Unicred',
+          valor: unicredItems.reduce((acc, curr) => acc + Number(curr.valor), 0),
+          forma_pagamento: 'Cartão de Crédito Unicred',
+          isConsolidated: true,
+        })
+      }
+
+      if (sicoobItems.length > 0) {
+        otherItems.push({
+          id: `cc-sicoob-${day.toISOString()}`,
+          descricao: 'Cartão de crédito Sicoob',
+          valor: sicoobItems.reduce((acc, curr) => acc + Number(curr.valor), 0),
+          forma_pagamento: 'Cartão de Crédito Sicoob',
+          isConsolidated: true,
+        })
+      }
+
       if (ccItems.length > 0) {
-        const total = ccItems.reduce((acc, curr) => acc + Number(curr.valor), 0)
         otherItems.push({
           id: `cc-cons-${day.toISOString()}`,
           descricao: 'Fatura Cartão de Crédito',
-          valor: total,
+          valor: ccItems.reduce((acc, curr) => acc + Number(curr.valor), 0),
           forma_pagamento: 'Cartão de Crédito',
           isConsolidated: true,
         })
@@ -291,6 +332,12 @@ export default function Despesas() {
               className="rounded-lg text-xs px-3 h-8 gap-2 data-[state=on]:bg-background data-[state=on]:shadow-sm"
             >
               <LayoutList className="w-3.5 h-3.5" /> Detalhada
+            </ToggleGroupItem>
+            <ToggleGroupItem
+              value="lista"
+              className="rounded-lg text-xs px-3 h-8 gap-2 data-[state=on]:bg-background data-[state=on]:shadow-sm"
+            >
+              <List className="w-3.5 h-3.5" /> Lista
             </ToggleGroupItem>
           </ToggleGroup>
         </div>
@@ -398,70 +445,115 @@ export default function Despesas() {
             </Button>
           </CardHeader>
           <CardContent className="p-0 flex-1 flex flex-col">
-            <div className="grid grid-cols-7 border-b bg-muted/30">
-              {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((d) => (
-                <div
-                  key={d}
-                  className="p-2 text-center text-xs font-bold text-muted-foreground uppercase"
-                >
-                  {d}
-                </div>
-              ))}
-            </div>
-
-            {loading ? (
-              <div className="flex-1 grid grid-cols-7 auto-rows-[minmax(120px,1fr)]">
-                {Array.from({ length: 35 }).map((_, i) => (
-                  <div
-                    key={`skeleton-${i}`}
-                    className="border-b border-r p-2 min-h-[120px] flex flex-col gap-2"
-                  >
-                    <Skeleton className="w-7 h-7 rounded-full" />
-                    <Skeleton className="w-full h-8 rounded-md" />
-                    {i % 3 === 0 && <Skeleton className="w-full h-8 rounded-md" />}
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <div className="flex-1 grid grid-cols-7 auto-rows-[minmax(120px,1fr)]">
-                {blanks.map((_, i) => (
-                  <div
-                    key={`blank-${i}`}
-                    className="border-b border-r bg-muted/10 p-2 min-h-[120px]"
-                  />
-                ))}
-                {days.map((day, i) => {
-                  const isCurrent = isToday(day)
-                  const hasItems = projectedItems.some((item) =>
-                    isSameDay(parseISO(item.data_vencimento), day),
-                  )
-
-                  return (
+            {viewMode === 'lista' ? (
+              <div className="p-6 bg-muted/10 flex-1 overflow-y-auto">
+                <div className="max-w-3xl mx-auto space-y-4">
+                  {listaComprometimento.map((item, idx) => (
                     <div
-                      key={`day-${i}`}
-                      className={cn(
-                        'border-b border-r p-2 transition-colors min-h-[120px] flex flex-col',
-                        isCurrent && 'bg-primary/5',
-                        !isCurrent && 'hover:bg-secondary/20',
-                      )}
+                      key={idx}
+                      className="flex items-center justify-between p-5 rounded-2xl border bg-card shadow-sm transition-all hover:scale-[1.01]"
                     >
-                      <div className="flex justify-between items-center mb-2">
-                        <span
-                          className={cn(
-                            'text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full',
-                            isCurrent ? 'bg-primary text-primary-foreground' : 'text-foreground',
-                          )}
-                        >
-                          {format(day, 'd')}
-                        </span>
+                      <div className="font-semibold text-base flex items-center gap-3">
+                        {item.nome.includes('Cartão') ? (
+                          <CreditCard className="w-6 h-6 text-primary" />
+                        ) : (
+                          <Wallet className="w-6 h-6 text-primary" />
+                        )}
+                        {item.nome}
                       </div>
-                      <div className="flex-1 overflow-y-auto pr-1 space-y-1 scrollbar-thin">
-                        {renderDayItems(day)}
+                      <div className="font-bold text-xl tracking-tight">
+                        R$ {item.valor.toFixed(2).replace('.', ',')}
                       </div>
                     </div>
-                  )
-                })}
+                  ))}
+                  {listaComprometimento.length === 0 && !loading && (
+                    <div className="text-center py-20 text-muted-foreground flex flex-col items-center gap-4">
+                      <List className="w-12 h-12 opacity-20" />
+                      <p className="text-lg">Nenhum comprometimento projetado para este mês.</p>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between p-6 rounded-2xl bg-primary text-primary-foreground shadow-md mt-6">
+                    <div className="font-bold text-xl">Total Comprometido</div>
+                    <div className="font-bold text-2xl tracking-tight">
+                      R${' '}
+                      {listaComprometimento
+                        .reduce((a, b) => a + b.valor, 0)
+                        .toFixed(2)
+                        .replace('.', ',')}
+                    </div>
+                  </div>
+                </div>
               </div>
+            ) : (
+              <>
+                <div className="grid grid-cols-7 border-b bg-muted/30">
+                  {['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'].map((d) => (
+                    <div
+                      key={d}
+                      className="p-2 text-center text-xs font-bold text-muted-foreground uppercase"
+                    >
+                      {d}
+                    </div>
+                  ))}
+                </div>
+
+                {loading ? (
+                  <div className="flex-1 grid grid-cols-7 auto-rows-[minmax(120px,1fr)]">
+                    {Array.from({ length: 35 }).map((_, i) => (
+                      <div
+                        key={`skeleton-${i}`}
+                        className="border-b border-r p-2 min-h-[120px] flex flex-col gap-2"
+                      >
+                        <Skeleton className="w-7 h-7 rounded-full" />
+                        <Skeleton className="w-full h-8 rounded-md" />
+                        {i % 3 === 0 && <Skeleton className="w-full h-8 rounded-md" />}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex-1 grid grid-cols-7 auto-rows-[minmax(120px,1fr)]">
+                    {blanks.map((_, i) => (
+                      <div
+                        key={`blank-${i}`}
+                        className="border-b border-r bg-muted/10 p-2 min-h-[120px]"
+                      />
+                    ))}
+                    {days.map((day, i) => {
+                      const isCurrent = isToday(day)
+                      const hasItems = projectedItems.some((item) =>
+                        isSameDay(parseISO(item.data_vencimento), day),
+                      )
+
+                      return (
+                        <div
+                          key={`day-${i}`}
+                          className={cn(
+                            'border-b border-r p-2 transition-colors min-h-[120px] flex flex-col',
+                            isCurrent && 'bg-primary/5',
+                            !isCurrent && 'hover:bg-secondary/20',
+                          )}
+                        >
+                          <div className="flex justify-between items-center mb-2">
+                            <span
+                              className={cn(
+                                'text-sm font-semibold w-7 h-7 flex items-center justify-center rounded-full',
+                                isCurrent
+                                  ? 'bg-primary text-primary-foreground'
+                                  : 'text-foreground',
+                              )}
+                            >
+                              {format(day, 'd')}
+                            </span>
+                          </div>
+                          <div className="flex-1 overflow-y-auto pr-1 space-y-1 scrollbar-thin">
+                            {renderDayItems(day)}
+                          </div>
+                        </div>
+                      )
+                    })}
+                  </div>
+                )}
+              </>
             )}
           </CardContent>
         </Card>
