@@ -1,8 +1,14 @@
 import { useState, useEffect, useCallback } from 'react'
-import { Download, Trash2 } from 'lucide-react'
+import { Download, Trash2, CheckCircle, Clock } from 'lucide-react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   Table,
   TableBody,
@@ -88,6 +94,15 @@ export function FaturamentoSaidas() {
     else {
       toast({ title: `${selectedIds.length} despesas excluídas com sucesso` })
       setSelectedIds([])
+      loadData()
+    }
+  }
+
+  const handleUpdateStatus = async (id: string, novoStatus: string) => {
+    const { error } = await supabase.from('despesas').update({ status: novoStatus }).eq('id', id)
+    if (error) toast({ title: 'Erro ao atualizar status', variant: 'destructive' })
+    else {
+      toast({ title: 'Status atualizado com sucesso' })
       loadData()
     }
   }
@@ -201,16 +216,36 @@ export function FaturamentoSaidas() {
                       </span>
                     </TableCell>
                     <TableCell>
-                      <Badge
-                        variant={d.status === 'Pago' ? 'default' : 'outline'}
-                        className={
-                          d.status === 'Pago'
-                            ? 'bg-green-100 text-green-700 hover:bg-green-200 border-none'
-                            : 'border-border/60 bg-secondary/50'
-                        }
-                      >
-                        {d.status || 'Pendente'}
-                      </Badge>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger className="focus:outline-none outline-none">
+                          <Badge
+                            variant={d.status === 'Pago' ? 'default' : 'outline'}
+                            className={
+                              d.status === 'Pago'
+                                ? 'bg-green-100 text-green-700 hover:bg-green-200 border-none cursor-pointer transition-colors'
+                                : 'border-border/60 bg-secondary/50 hover:bg-secondary cursor-pointer transition-colors'
+                            }
+                          >
+                            {d.status || 'Pendente'}
+                          </Badge>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="start" className="w-48">
+                          <DropdownMenuItem
+                            onClick={() => handleUpdateStatus(d.id, 'Pago')}
+                            className="cursor-pointer"
+                          >
+                            <CheckCircle className="w-4 h-4 mr-2 text-green-600" />
+                            Marcar como Pago
+                          </DropdownMenuItem>
+                          <DropdownMenuItem
+                            onClick={() => handleUpdateStatus(d.id, 'Pendente')}
+                            className="cursor-pointer"
+                          >
+                            <Clock className="w-4 h-4 mr-2 text-yellow-600" />
+                            Marcar como Pendente
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
                     <TableCell className="text-right font-bold text-destructive">
                       {formatCurrency(d.valor)}
