@@ -74,7 +74,7 @@ export default function Despesas() {
 
   // Gera as projeções dinâmicas de parcelamentos e contas fixas para o mês visualizado
   const projectedItems = useMemo(() => {
-    const items: any[] = []
+    const rawItems: any[] = []
 
     rawDespesas.forEach((d) => {
       if (d.parcelamento) {
@@ -87,7 +87,7 @@ export default function Despesas() {
           for (let i = 0; i <= total - current; i++) {
             const pDate = addMonths(start, i)
             if (isSameMonth(pDate, currentDate)) {
-              items.push({
+              rawItems.push({
                 ...d,
                 id: `${d.id}-p${i}`,
                 parcelamento: `${current + i}/${total}`,
@@ -98,10 +98,10 @@ export default function Despesas() {
             }
           }
         } else if (d.data_vencimento && isSameMonth(parseISO(d.data_vencimento), currentDate)) {
-          items.push({ ...d, isProjected: false, isFixa: false })
+          rawItems.push({ ...d, isProjected: false, isFixa: false })
         }
       } else if (d.data_vencimento && isSameMonth(parseISO(d.data_vencimento), currentDate)) {
-        items.push({ ...d, isProjected: false, isFixa: false })
+        rawItems.push({ ...d, isProjected: false, isFixa: false })
       }
     })
 
@@ -111,7 +111,7 @@ export default function Despesas() {
         const orig = f.data_vencimento ? parseISO(f.data_vencimento) : new Date()
         fDate.setDate(orig.getDate())
 
-        items.push({
+        rawItems.push({
           id: `fixa-${f.id}`,
           descricao: f.descricao,
           valor: f.valor,
@@ -125,7 +125,57 @@ export default function Despesas() {
       }
     })
 
-    return items.sort(
+    const finalItems: any[] = []
+    let unicredTotal = 0
+    let sicoobTotal = 0
+
+    const baseDate = new Date(currentDate)
+    const unicredDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), 10).toISOString()
+    const sicoobDate = new Date(baseDate.getFullYear(), baseDate.getMonth(), 19).toISOString()
+
+    rawItems.forEach((item) => {
+      const fp = (item.forma_pagamento || item.conta_pagamento || '').toLowerCase()
+      const isUnicred = fp.includes('unicred') && fp.includes('cart')
+      const isSicoob = fp.includes('sicoob') && fp.includes('cart')
+
+      if (isUnicred) {
+        unicredTotal += Number(item.valor || 0)
+      } else if (isSicoob) {
+        sicoobTotal += Number(item.valor || 0)
+      } else {
+        finalItems.push(item)
+      }
+    })
+
+    if (unicredTotal > 0) {
+      finalItems.push({
+        id: `cc-unicred-${baseDate.toISOString()}`,
+        descricao: 'Cartão de crédito Unicred',
+        valor: unicredTotal,
+        data_vencimento: unicredDate,
+        forma_pagamento: 'Cartão de Crédito Unicred',
+        status: 'Pendente',
+        isProjected: true,
+        isFixa: false,
+        isConsolidated: true,
+      })
+    }
+
+    if (sicoobTotal > 0) {
+      finalItems.push({
+        id: `cc-sicoob-${baseDate.toISOString()}`,
+        descricao: 'Cartão de crédito Sicoob',
+        valor: sicoobTotal,
+        data_vencimento: sicoobDate,
+        forma_pagamento: 'Cartão de Crédito Sicoob',
+        status: 'Pendente',
+        isProjected: true,
+        isFixa: false,
+        isConsolidated: true,
+      })
+    }
+
+    return finalItems.sort(
       (a, b) => new Date(a.data_vencimento).getTime() - new Date(b.data_vencimento).getTime(),
     )
   }, [rawDespesas, rawFixas, currentDate])
@@ -153,15 +203,19 @@ export default function Despesas() {
     if (viewMode === 'consolidada') {
       const ccItems = dayItems.filter(
         (i) =>
-          i.forma_pagamento?.toLowerCase().includes('cartão') ||
-          i.forma_pagamento?.toLowerCase().includes('cartao'),
+          (i.forma_pagamento?.toLowerCase().includes('cartão') ||
+            i.forma_pagamento?.toLowerCase().includes('cartao')) &&
+          !i.descricao.includes('Unicred') &&
+          !i.descricao.includes('Sicoob'),
       )
       const otherItems = dayItems.filter(
         (i) =>
           !(
             i.forma_pagamento?.toLowerCase().includes('cartão') ||
             i.forma_pagamento?.toLowerCase().includes('cartao')
-          ),
+          ) ||
+          i.descricao.includes('Unicred') ||
+          i.descricao.includes('Sicoob'),
       )
 
       if (ccItems.length > 0) {

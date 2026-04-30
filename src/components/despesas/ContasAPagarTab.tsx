@@ -81,9 +81,26 @@ export function ContasAPagarTab({
     const map = new Map<string, any[]>()
     contas.forEach((d: any) => {
       if (!d.data_vencimento) return
-      const dateStr = format(parseISO(d.data_vencimento), 'yyyy-MM-dd')
+      let finalDate = parseISO(d.data_vencimento)
+
+      const fp = (d.forma_pagamento || d.conta_pagamento || '').toLowerCase()
+      const isUnicred = fp.includes('unicred') && fp.includes('cart')
+      const isSicoob = fp.includes('sicoob') && fp.includes('cart')
+
+      if (isUnicred) {
+        finalDate = new Date(finalDate.getFullYear(), finalDate.getMonth(), 10)
+      } else if (isSicoob) {
+        finalDate = new Date(finalDate.getFullYear(), finalDate.getMonth(), 19)
+      }
+
+      const dateStr = format(finalDate, 'yyyy-MM-dd')
       if (!map.has(dateStr)) map.set(dateStr, [])
-      map.get(dateStr)!.push(d)
+
+      if (isUnicred || isSicoob) {
+        map.get(dateStr)!.push({ ...d, isSpecialGroup: isUnicred ? 'unicred' : 'sicoob' })
+      } else {
+        map.get(dateStr)!.push(d)
+      }
     })
     return map
   }, [contas])
@@ -103,16 +120,66 @@ export function ContasAPagarTab({
   }, [monthStart, monthEnd, expensesByDate])
 
   const selectedMonthExpenses = useMemo(() => {
-    return contas
-      .filter((d: any) => {
-        if (!d.data_vencimento) return false
-        const dDate = parseISO(d.data_vencimento)
-        return isSameMonth(dDate, currentMonth)
-      })
-      .sort(
-        (a: any, b: any) =>
-          parseISO(a.data_vencimento).getTime() - parseISO(b.data_vencimento).getTime(),
-      )
+    const items: any[] = []
+    let unicredGroup: any = null
+    let sicoobGroup: any = null
+
+    contas.forEach((d: any) => {
+      if (!d.data_vencimento) return
+      let dDate = parseISO(d.data_vencimento)
+
+      const fp = (d.forma_pagamento || d.conta_pagamento || '').toLowerCase()
+      const isUnicred = fp.includes('unicred') && fp.includes('cart')
+      const isSicoob = fp.includes('sicoob') && fp.includes('cart')
+
+      if (isUnicred) {
+        dDate = new Date(dDate.getFullYear(), dDate.getMonth(), 10)
+      } else if (isSicoob) {
+        dDate = new Date(dDate.getFullYear(), dDate.getMonth(), 19)
+      }
+
+      if (!isSameMonth(dDate, currentMonth)) return
+
+      if (isUnicred) {
+        if (!unicredGroup) {
+          unicredGroup = {
+            id: `cc-unicred-${currentMonth.toISOString()}`,
+            descricao: 'Cartão de crédito Unicred',
+            valor: 0,
+            status: 'Pago',
+            data_vencimento: dDate.toISOString(),
+            _table: 'despesa',
+            conta_pagamento: 'Cartão de Crédito Unicred',
+          }
+        }
+        unicredGroup.valor += Number(d.valor)
+        if (d.status !== 'Pago' && d.status !== 'Confirmado') unicredGroup.status = 'Pendente'
+      } else if (isSicoob) {
+        if (!sicoobGroup) {
+          sicoobGroup = {
+            id: `cc-sicoob-${currentMonth.toISOString()}`,
+            descricao: 'Cartão de crédito Sicoob',
+            valor: 0,
+            status: 'Pago',
+            data_vencimento: dDate.toISOString(),
+            _table: 'despesa',
+            conta_pagamento: 'Cartão de Crédito Sicoob',
+          }
+        }
+        sicoobGroup.valor += Number(d.valor)
+        if (d.status !== 'Pago' && d.status !== 'Confirmado') sicoobGroup.status = 'Pendente'
+      } else {
+        items.push(d)
+      }
+    })
+
+    if (unicredGroup) items.push(unicredGroup)
+    if (sicoobGroup) items.push(sicoobGroup)
+
+    return items.sort(
+      (a: any, b: any) =>
+        parseISO(a.data_vencimento).getTime() - parseISO(b.data_vencimento).getTime(),
+    )
   }, [contas, currentMonth])
 
   const getStatusInfo = (d: any) => {
@@ -320,8 +387,35 @@ export function ContasAPagarTab({
             dayExpensesRaw.forEach((d: any) => {
               const isCartao =
                 d.conta_pagamento?.toLowerCase().includes('cartão') ||
-                d.categoria?.toLowerCase().includes('cartão')
+                d.categoria?.toLowerCase().includes('cartão') ||
+                d.isSpecialGroup
               const isContaFixa = d._table === 'conta_fixa'
+
+              if (d.isSpecialGroup) {
+                const groupName =
+                  d.isSpecialGroup === 'unicred'
+                    ? 'Cartão de crédito Unicred'
+                    : 'Cartão de crédito Sicoob'
+                if (!groupedCards.has(groupName)) {
+                  groupedCards.set(groupName, {
+                    id: `group-${groupName}-${dateStr}`,
+                    descricao: groupName,
+                    valor: 0,
+                    status: 'Pago',
+                    data_vencimento: d.data_vencimento,
+                    _table: 'despesa',
+                    isGroup: true,
+                    originalItems: [],
+                  })
+                }
+                const group = groupedCards.get(groupName)!
+                group.valor += Number(d.valor)
+                group.originalItems.push(d)
+                if (d.status !== 'Pago' && d.status !== 'Confirmado') {
+                  group.status = 'Pendente'
+                }
+                return
+              }
 
               if (viewMode === 'consolidada') {
                 if (!isCartao && !isContaFixa) return // ignora despesas avulsas na view consolidada
@@ -356,6 +450,15 @@ export function ContasAPagarTab({
 
             if (viewMode === 'consolidada') {
               groupedCards.forEach((group) => dayExpenses.push(group))
+            } else {
+              groupedCards.forEach((group) => {
+                if (
+                  group.descricao === 'Cartão de crédito Unicred' ||
+                  group.descricao === 'Cartão de crédito Sicoob'
+                ) {
+                  dayExpenses.push(group)
+                }
+              })
             }
 
             return (
