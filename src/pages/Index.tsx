@@ -1,5 +1,5 @@
-import { useState, useEffect, useMemo } from 'react'
-import { format, addMonths, startOfMonth, parseISO, isSameMonth } from 'date-fns'
+import { useState, useEffect } from 'react'
+import { format, addMonths, startOfMonth, isSameMonth, subMonths, endOfMonth } from 'date-fns'
 import { ptBR } from 'date-fns/locale'
 import {
   AlertTriangle,
@@ -13,19 +13,11 @@ import {
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart'
-import {
-  AreaChart,
-  Area,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  ResponsiveContainer,
-  BarChart,
-  Bar,
-  Legend,
-} from 'recharts'
+import { Skeleton } from '@/components/ui/skeleton'
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, ResponsiveContainer, Legend } from 'recharts'
 import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
+import { Link } from 'react-router-dom'
 
 export default function Index() {
   const { user } = useAuth()
@@ -44,70 +36,124 @@ export default function Index() {
     setLoading(true)
     try {
       const today = new Date()
-      const startCurrentMonth = startOfMonth(today).toISOString()
+      const startCurrentMonth = startOfMonth(today)
+      const past12MonthsStr = format(startOfMonth(subMonths(today, 12)), 'yyyy-MM-dd')
 
-      // Fetch core data
       const [recRes, despRes, fixasRes, agendRes] = await Promise.all([
         supabase
           .from('transacoes')
           .select('valor, data')
           .eq('tipo', 'receita')
-          .gte('data', startOfMonth(subMonths(today, 5)).toISOString()),
+          .gte('data', past12MonthsStr),
         supabase
           .from('despesas')
-          .select('valor, data_vencimento, parcelamento')
-          .gte('data_vencimento', startOfMonth(today).toISOString()),
-        supabase.from('contas_fixas').select('valor, status, data_vencimento'),
-        supabase.from('agendamentos').select('id').gte('data_hora', startCurrentMonth),
+          .select('valor, data_vencimento, parcelamento, status')
+          .gte('data_vencimento', past12MonthsStr),
+        supabase.from('contas_fixas').select('valor, status, data_vencimento, frequencia'),
+        supabase
+          .from('agendamentos')
+          .select('id')
+          .gte('data_hora', startCurrentMonth.toISOString()),
       ])
 
-      // 1. Calculate Average Revenue from last 6 months
-      let avgRev = 25000 // Fallback
+      let avgRev = 10000
       let currentRevenue = 0
+
       if (recRes.data && recRes.data.length > 0) {
-        const total = recRes.data.reduce((acc, c) => acc + Number(c.valor), 0)
-        avgRev = Math.max(total / 6, 10000)
+        const past6MonthsData = recRes.data.filter(
+          (r) =>
+            new Date(`${r.data}T12:00:00`) < startCurrentMonth &&
+            new Date(`${r.data}T12:00:00`) >= startOfMonth(subMonths(today, 6)),
+        )
+        if (past6MonthsData.length > 0) {
+          const total = past6MonthsData.reduce((acc, c) => acc + Number(c.valor), 0)
+          avgRev = Math.max(total / 6, 5000)
+        } else {
+          const totalAll = recRes.data.reduce((acc, c) => acc + Number(c.valor), 0)
+          avgRev = Math.max(totalAll / 6, 5000)
+        }
 
         currentRevenue = recRes.data
-          .filter((r) => isSameMonth(parseISO(r.data), today))
+          .filter((r) => isSameMonth(new Date(`${r.data}T12:00:00`), today))
           .reduce((acc, c) => acc + Number(c.valor), 0)
       }
 
-      // 2. Project next 3 months to generate Alerts
       const newAlerts = []
       const cData = []
 
       let currentExpenses = 0
 
       for (let i = 0; i < 4; i++) {
-        const targetMonth = addMonths(today, i)
+        const targetMonth = addMonths(startCurrentMonth, i)
         let monthTotal = 0
 
         despRes.data?.forEach((d) => {
+          const st = d.data_vencimento ? new Date(`${d.data_vencimento}T12:00:00`) : new Date()
           if (d.parcelamento) {
             const parts = d.parcelamento.split('/')
             if (parts.length === 2) {
               const cur = parseInt(parts[0])
               const tot = parseInt(parts[1])
-              const st = d.data_vencimento ? parseISO(d.data_vencimento) : new Date()
               for (let j = 0; j <= tot - cur; j++) {
-                if (isSameMonth(addMonths(st, j), targetMonth)) monthTotal += Number(d.valor)
+                const parcelDate = addMonths(st, j)
+                if (isSameMonth(parcelDate, targetMonth)) {
+                  monthTotal += Number(d.valor)
+                }
               }
-            } else if (d.data_vencimento && isSameMonth(parseISO(d.data_vencimento), targetMonth)) {
+            } else if (isSameMonth(st, targetMonth)) {
               monthTotal += Number(d.valor)
             }
-          } else if (d.data_vencimento && isSameMonth(parseISO(d.data_vencimento), targetMonth)) {
+          } else if (isSameMonth(st, targetMonth)) {
             monthTotal += Number(d.valor)
           }
         })
 
         fixasRes.data?.forEach((f) => {
-          if (f.status !== 'Inativo') monthTotal += Number(f.valor)
+          if (f.status === 'Inativo' || f.status === 'Cancelado') return
+
+          const st = f.data_vencimento ? new Date(`${f.data_vencimento}T12:00:00`) : new Date()
+
+          if (f.frequencia === 'Única') {
+            if (isSameMonth(st, targetMonth)) {
+              monthTotal += Number(f.valor)
+            }
+          } else if (f.frequencia === 'Anual') {
+            if (st.getMonth() === targetMonth.getMonth() && st <= endOfMonth(targetMonth)) {
+              monthTotal += Number(f.valor)
+            }
+          } else if (f.frequencia === 'Semestral') {
+            const diffMonths =
+              (targetMonth.getFullYear() - st.getFullYear()) * 12 +
+              targetMonth.getMonth() -
+              st.getMonth()
+            if (diffMonths >= 0 && diffMonths % 6 === 0) {
+              monthTotal += Number(f.valor)
+            }
+          } else if (f.frequencia === 'Trimestral') {
+            const diffMonths =
+              (targetMonth.getFullYear() - st.getFullYear()) * 12 +
+              targetMonth.getMonth() -
+              st.getMonth()
+            if (diffMonths >= 0 && diffMonths % 3 === 0) {
+              monthTotal += Number(f.valor)
+            }
+          } else if (f.frequencia === 'Bimestral') {
+            const diffMonths =
+              (targetMonth.getFullYear() - st.getFullYear()) * 12 +
+              targetMonth.getMonth() -
+              st.getMonth()
+            if (diffMonths >= 0 && diffMonths % 2 === 0) {
+              monthTotal += Number(f.valor)
+            }
+          } else {
+            if (st <= endOfMonth(targetMonth)) {
+              monthTotal += Number(f.valor)
+            }
+          }
         })
 
         if (i === 0) currentExpenses = monthTotal
 
-        // Gerar alertas para meses onde o projetado ultrapassa a média (ignorando o mês atual se já foi)
         if (monthTotal > avgRev && i > 0) {
           newAlerts.push({
             month: targetMonth,
@@ -146,7 +192,7 @@ export default function Index() {
       bg: 'bg-green-100 dark:bg-green-900/30',
     },
     {
-      title: 'Despesas Projetadas',
+      title: 'Despesas Projetadas (Mês)',
       value: `R$ ${kpis.expenses.toFixed(2).replace('.', ',')}`,
       icon: CreditCard,
       color: 'text-red-600',
@@ -171,6 +217,26 @@ export default function Index() {
     },
   ]
 
+  if (loading) {
+    return (
+      <div className="p-6 md:p-10 animate-fade-in max-w-7xl mx-auto space-y-8">
+        <div className="space-y-2">
+          <Skeleton className="h-8 w-64" />
+          <Skeleton className="h-4 w-96" />
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <Skeleton key={i} className="h-32 w-full rounded-2xl" />
+          ))}
+        </div>
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <Skeleton className="h-[400px] w-full rounded-2xl" />
+          <Skeleton className="h-[400px] w-full rounded-2xl" />
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="p-6 md:p-10 animate-fade-in max-w-7xl mx-auto space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -182,7 +248,6 @@ export default function Index() {
         </div>
       </div>
 
-      {/* Alertas de Vencimento / Comprometimento */}
       {alerts.length > 0 && (
         <div className="space-y-4 animate-in fade-in slide-in-from-top-4">
           {alerts.map((al, idx) => (
@@ -206,7 +271,6 @@ export default function Index() {
         </div>
       )}
 
-      {/* KPIs */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {kpiCards.map((kpi, index) => (
           <Card
@@ -220,13 +284,12 @@ export default function Index() {
                   <kpi.icon className={`w-5 h-5 ${kpi.color}`} />
                 </div>
               </div>
-              <h3 className="text-2xl font-bold tracking-tight">{loading ? '...' : kpi.value}</h3>
+              <h3 className="text-2xl font-bold tracking-tight">{kpi.value}</h3>
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card className="border-border/60 shadow-sm rounded-2xl bg-card">
           <CardHeader>
@@ -236,7 +299,7 @@ export default function Index() {
             </CardDescription>
           </CardHeader>
           <CardContent className="h-[300px] w-full">
-            {!loading && chartData.length > 0 && (
+            {chartData.length > 0 ? (
               <ChartContainer
                 config={{
                   Projetado: { color: 'hsl(var(--destructive))' },
@@ -262,7 +325,7 @@ export default function Index() {
                       fontSize={12}
                       tickLine={false}
                       axisLine={false}
-                      tickFormatter={(value) => `R${value / 1000}k`}
+                      tickFormatter={(value) => `R$${(value / 1000).toFixed(1)}k`}
                     />
                     <ChartTooltip content={<ChartTooltipContent />} />
                     <Legend wrapperStyle={{ fontSize: '12px', paddingTop: '10px' }} />
@@ -281,6 +344,10 @@ export default function Index() {
                   </BarChart>
                 </ResponsiveContainer>
               </ChartContainer>
+            ) : (
+              <div className="flex h-full items-center justify-center text-muted-foreground">
+                Nenhum dado projetado
+              </div>
             )}
           </CardContent>
         </Card>
@@ -291,42 +358,42 @@ export default function Index() {
             <CardDescription>Atalhos para as principais áreas de gestão do sistema</CardDescription>
           </CardHeader>
           <CardContent className="grid grid-cols-2 gap-4">
-            <a
-              href="/despesas"
+            <Link
+              to="/despesas"
               className="group p-4 rounded-xl border border-border/60 bg-secondary/20 hover:bg-secondary/50 transition-colors flex flex-col items-center justify-center text-center gap-3"
             >
               <div className="p-3 bg-primary/10 rounded-full group-hover:scale-110 transition-transform">
                 <CreditCard className="w-6 h-6 text-primary" />
               </div>
               <span className="font-semibold text-sm">Calendário de Contas</span>
-            </a>
-            <a
-              href="/faturamento"
+            </Link>
+            <Link
+              to="/faturamento"
               className="group p-4 rounded-xl border border-border/60 bg-secondary/20 hover:bg-secondary/50 transition-colors flex flex-col items-center justify-center text-center gap-3"
             >
               <div className="p-3 bg-green-500/10 rounded-full group-hover:scale-110 transition-transform">
                 <TrendingUp className="w-6 h-6 text-green-600" />
               </div>
               <span className="font-semibold text-sm">Lançar Faturamento</span>
-            </a>
-            <a
-              href="/importar"
+            </Link>
+            <Link
+              to="/importar"
               className="group p-4 rounded-xl border border-border/60 bg-secondary/20 hover:bg-secondary/50 transition-colors flex flex-col items-center justify-center text-center gap-3"
             >
               <div className="p-3 bg-blue-500/10 rounded-full group-hover:scale-110 transition-transform">
                 <Activity className="w-6 h-6 text-blue-600" />
               </div>
               <span className="font-semibold text-sm">Importar Planilhas</span>
-            </a>
-            <a
-              href="/diario"
+            </Link>
+            <Link
+              to="/diario"
               className="group p-4 rounded-xl border border-border/60 bg-secondary/20 hover:bg-secondary/50 transition-colors flex flex-col items-center justify-center text-center gap-3"
             >
               <div className="p-3 bg-amber-500/10 rounded-full group-hover:scale-110 transition-transform">
                 <Users className="w-6 h-6 text-amber-600" />
               </div>
               <span className="font-semibold text-sm">Diário de Atendimentos</span>
-            </a>
+            </Link>
           </CardContent>
         </Card>
       </div>
