@@ -28,6 +28,7 @@ import {
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { ScrollArea } from '@/components/ui/scroll-area'
+import { useNavigate } from 'react-router-dom'
 import {
   Dialog,
   DialogContent,
@@ -71,6 +72,7 @@ export function ContasAPagarTab({
   const [reportYear, setReportYear] = useState(new Date().getFullYear().toString())
 
   const { toast } = useToast()
+  const navigate = useNavigate()
 
   const monthStart = startOfMonth(currentMonth)
   const monthEnd = endOfMonth(monthStart)
@@ -316,6 +318,10 @@ export function ContasAPagarTab({
     }
   }
 
+  const handleVerDetalhes = (nome: string) => {
+    navigate(`/faturamento?conta=${encodeURIComponent(nome)}`)
+  }
+
   const handleTestEmail = async () => {
     setIsSendingEmail(true)
     try {
@@ -428,41 +434,136 @@ export function ContasAPagarTab({
 
         {viewMode === 'lista' ? (
           <div className="flex-1 p-6 bg-muted/10 overflow-y-auto">
-            <div className="max-w-2xl mx-auto space-y-4">
-              {listaComprometimento.map((item, idx) => (
-                <div
-                  key={idx}
-                  className="flex items-center justify-between p-5 rounded-2xl border bg-card shadow-sm hover:shadow transition-shadow"
-                >
-                  <div className="font-semibold text-base flex items-center gap-3">
-                    {item.nome.includes('Cartão') ? (
-                      <CreditCard className="w-6 h-6 text-primary" />
-                    ) : (
-                      <CalendarRange className="w-6 h-6 text-primary" />
-                    )}
-                    {item.nome}
-                  </div>
-                  <div className="font-bold text-xl tracking-tight">
-                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
-                      item.valor,
-                    )}
-                  </div>
+            <div className="max-w-3xl mx-auto space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6 bg-card p-4 rounded-2xl border shadow-sm">
+                <h3 className="text-lg font-semibold flex items-center gap-2">
+                  <CalendarRange className="w-5 h-5 text-primary" />
+                  Filtro de Período
+                </h3>
+                <div className="flex items-center gap-2">
+                  <Select
+                    value={currentMonth.getMonth().toString()}
+                    onValueChange={(v) => {
+                      const newDate = new Date(currentMonth)
+                      newDate.setMonth(parseInt(v))
+                      setCurrentMonth(newDate)
+                    }}
+                  >
+                    <SelectTrigger className="w-[140px] bg-background">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 12 }).map((_, i) => (
+                        <SelectItem key={i} value={i.toString()}>
+                          {format(new Date(2000, i, 1), 'MMMM', { locale: ptBR })}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <Select
+                    value={currentMonth.getFullYear().toString()}
+                    onValueChange={(v) => {
+                      const newDate = new Date(currentMonth)
+                      newDate.setFullYear(parseInt(v))
+                      setCurrentMonth(newDate)
+                    }}
+                  >
+                    <SelectTrigger className="w-[100px] bg-background">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 5 + i).map(
+                        (y) => (
+                          <SelectItem key={y} value={y.toString()}>
+                            {y}
+                          </SelectItem>
+                        ),
+                      )}
+                    </SelectContent>
+                  </Select>
                 </div>
-              ))}
+              </div>
+
+              {listaComprometimento.map((item, idx) => {
+                const isItemNegative = faturamentoMedio > 0 && item.valor > faturamentoMedio * 0.8
+
+                return (
+                  <div
+                    key={idx}
+                    className={cn(
+                      'flex flex-col sm:flex-row sm:items-center justify-between p-5 rounded-2xl border bg-card shadow-sm transition-all hover:scale-[1.01] gap-4',
+                      isItemNegative
+                        ? 'border-red-200 bg-red-50/30 dark:border-red-900/50 dark:bg-red-950/20'
+                        : '',
+                    )}
+                  >
+                    <div className="font-semibold text-base flex items-center gap-3">
+                      {item.nome.includes('Cartão') ? (
+                        <CreditCard
+                          className={cn(
+                            'w-6 h-6',
+                            isItemNegative ? 'text-red-500' : 'text-primary',
+                          )}
+                        />
+                      ) : (
+                        <CalendarRange
+                          className={cn(
+                            'w-6 h-6',
+                            isItemNegative ? 'text-red-500' : 'text-primary',
+                          )}
+                        />
+                      )}
+                      <span className={isItemNegative ? 'text-red-700 dark:text-red-400' : ''}>
+                        {item.nome}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-4 justify-between sm:justify-end w-full sm:w-auto">
+                      <div
+                        className={cn(
+                          'font-bold text-xl tracking-tight',
+                          isItemNegative ? 'text-red-600 dark:text-red-400' : '',
+                        )}
+                      >
+                        {new Intl.NumberFormat('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                        }).format(item.valor)}
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="shrink-0 rounded-full"
+                        onClick={() => handleVerDetalhes(item.nome)}
+                      >
+                        Ver Detalhes
+                      </Button>
+                    </div>
+                  </div>
+                )
+              })}
               {listaComprometimento.length === 0 && (
                 <div className="text-center py-20 text-muted-foreground flex flex-col items-center gap-4">
                   <FileText className="w-12 h-12 opacity-20" />
                   <p className="text-lg">Nenhum comprometimento projetado para este mês.</p>
                 </div>
               )}
-              <div className="flex items-center justify-between p-6 rounded-2xl bg-primary text-primary-foreground shadow-md mt-6">
-                <div className="font-bold text-xl">Total Comprometido</div>
-                <div className="font-bold text-2xl tracking-tight">
-                  {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
-                    listaComprometimento.reduce((a, b) => a + b.valor, 0),
+              {listaComprometimento.length > 0 && (
+                <div
+                  className={cn(
+                    'flex items-center justify-between p-6 rounded-2xl shadow-md mt-6 transition-colors',
+                    listaComprometimento.reduce((a, b) => a + b.valor, 0) > faturamentoMedio
+                      ? 'bg-red-600 text-white'
+                      : 'bg-primary text-primary-foreground',
                   )}
+                >
+                  <div className="font-bold text-xl">Total Comprometido</div>
+                  <div className="font-bold text-2xl tracking-tight">
+                    {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+                      listaComprometimento.reduce((a, b) => a + b.valor, 0),
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
           </div>
         ) : (
