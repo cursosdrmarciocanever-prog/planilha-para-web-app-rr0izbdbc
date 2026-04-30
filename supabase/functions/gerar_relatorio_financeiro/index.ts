@@ -5,8 +5,7 @@ import { PDFDocument, StandardFonts } from 'npm:pdf-lib@1.17.1'
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Methods': 'GET, POST, PUT, DELETE, OPTIONS',
-  'Access-Control-Allow-Headers':
-    'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, x-supabase-client-platform, apikey, content-type',
 }
 
 Deno.serve(async (req) => {
@@ -27,9 +26,7 @@ Deno.serve(async (req) => {
 
     const { start_date, end_date } = await req.json()
 
-    let agendamentosQuery = supabaseClient
-      .from('agendamentos')
-      .select('status, tipo_consulta, data_hora')
+    let agendamentosQuery = supabaseClient.from('agendamentos').select('status, tipo_consulta, data_hora')
     if (start_date && end_date) {
       agendamentosQuery = agendamentosQuery.gte('data_hora', start_date).lte('data_hora', end_date)
     }
@@ -38,19 +35,14 @@ Deno.serve(async (req) => {
 
     let transacoesQuery = supabaseClient.from('transacoes').select('status, valor, data, tipo')
     if (start_date && end_date) {
-      transacoesQuery = transacoesQuery
-        .gte('data', start_date.split('T')[0])
-        .lte('data', end_date.split('T')[0])
+      transacoesQuery = transacoesQuery.gte('data', start_date.split('T')[0]).lte('data', end_date.split('T')[0])
     }
     const { data: transacoes, error: errT } = await transacoesQuery
     if (errT) throw errT
 
-    const receitaTotal =
-      transacoes
-        ?.filter((t) => t.status === 'confirmado' || t.status === 'pago' || t.status === 'Pago')
-        .reduce((acc, t) => acc + Number(t.valor), 0) || 0
-    const confirmados = agendamentos?.filter((a) => a.status === 'confirmado').length || 0
-    const pendentes = agendamentos?.filter((a) => a.status === 'pendente').length || 0
+    const receitaTotal = transacoes?.filter(t => t.status === 'confirmado' || t.status === 'pago' || t.status === 'Pago').reduce((acc, t) => acc + Number(t.valor), 0) || 0
+    const confirmados = agendamentos?.filter(a => a.status === 'confirmado').length || 0
+    const pendentes = agendamentos?.filter(a => a.status === 'pendente').length || 0
     const totalAgendamentos = agendamentos?.length || 0
     const taxaConversao = totalAgendamentos > 0 ? (confirmados / totalAgendamentos) * 100 : 0
 
@@ -69,10 +61,7 @@ Deno.serve(async (req) => {
 
     page.drawText(`Resumo:`, { x: 50, y, size: 14, font: fontBold })
     y -= 25
-    page.drawText(
-      `Receita Total (Confirmada/Paga): R$ ${receitaTotal.toFixed(2).replace('.', ',')}`,
-      { x: 50, y, size: 12, font },
-    )
+    page.drawText(`Receita Total (Confirmada/Paga): R$ ${receitaTotal.toFixed(2).replace('.', ',')}`, { x: 50, y, size: 12, font })
     y -= 20
     page.drawText(`Agendamentos Confirmados: ${confirmados}`, { x: 50, y, size: 12, font })
     y -= 20
