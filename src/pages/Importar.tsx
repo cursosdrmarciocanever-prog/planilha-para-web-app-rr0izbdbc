@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import { useLocation } from 'react-router-dom'
 import { useAuth } from '@/hooks/use-auth'
 import { supabase } from '@/lib/supabase/client'
 import { Button } from '@/components/ui/button'
@@ -6,6 +7,8 @@ import { Input } from '@/components/ui/input'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group'
+import { Label } from '@/components/ui/label'
 import {
   Download,
   Upload,
@@ -18,7 +21,7 @@ import {
 import { useToast } from '@/hooks/use-toast'
 import { Skeleton } from '@/components/ui/skeleton'
 
-const EXPECTED_COLUMNS = [
+const EXPECTED_COLUMNS_SAIDAS = [
   'Descrição',
   'Departamento',
   'Fornecedor',
@@ -33,6 +36,21 @@ const EXPECTED_COLUMNS = [
   'Mês de competência',
   'Data de vencimento',
   'Data de pagamento',
+]
+
+const EXPECTED_COLUMNS_ENTRADAS = [
+  'Data de atendimento',
+  'Paciente',
+  'Tipo',
+  'Descrição',
+  'Valor',
+  'Forma de pagamento',
+  'Conta de recebimento',
+  'Status de pagamento',
+  'Parcelas',
+  'Nº Orçamento',
+  'Profissional',
+  'Nota Fiscal',
 ]
 
 function parseExcelDate(val: any): Date | null {
@@ -57,13 +75,23 @@ function parseExcelDate(val: any): Date | null {
 export default function Importar() {
   const { user } = useAuth()
   const { toast } = useToast()
+  const location = useLocation()
 
+  const [tipoImportacao, setTipoImportacao] = useState<'entradas' | 'saidas'>('entradas')
   const [file, setFile] = useState<File | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
   const [isSaving, setIsSaving] = useState(false)
   const [parsedRows, setParsedRows] = useState<any[]>([])
   const [jobs, setJobs] = useState<any[]>([])
   const [loadingJobs, setLoadingJobs] = useState(true)
+
+  useEffect(() => {
+    const searchParams = new URLSearchParams(location.search)
+    const tipo = searchParams.get('tipo')
+    if (tipo === 'entradas' || tipo === 'saidas') {
+      setTipoImportacao(tipo)
+    }
+  }, [location])
 
   useEffect(() => {
     if (user) fetchJobs()
@@ -75,7 +103,7 @@ export default function Importar() {
       .from('import_jobs')
       .select('*')
       .eq('user_id', user?.id)
-      .eq('type', 'despesas')
+      .in('type', ['despesas', 'entradas'])
       .order('created_at', { ascending: false })
       .limit(20)
 
@@ -84,12 +112,13 @@ export default function Importar() {
   }
 
   const downloadTemplate = () => {
-    const csvContent = EXPECTED_COLUMNS.join(',') + '\n'
+    const cols = tipoImportacao === 'saidas' ? EXPECTED_COLUMNS_SAIDAS : EXPECTED_COLUMNS_ENTRADAS
+    const csvContent = cols.join(',') + '\n'
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
     link.href = url
-    link.setAttribute('download', 'modelo_importacao_despesas.csv')
+    link.setAttribute('download', `modelo_importacao_${tipoImportacao}.csv`)
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
@@ -122,62 +151,124 @@ export default function Importar() {
         throw new Error('A planilha está vazia.')
       }
 
-      const { data: existing } = await supabase
-        .from('despesas')
-        .select('descricao, valor, data_vencimento')
-        .eq('user_id', user?.id)
-
-      const existingDespesas = existing || []
+      let existingData: any[] = []
+      if (tipoImportacao === 'saidas') {
+        const { data: existing } = await supabase
+          .from('despesas')
+          .select('descricao, valor, data_vencimento')
+          .eq('user_id', user?.id)
+        existingData = existing || []
+      } else {
+        const { data: existing } = await supabase
+          .from('lancamentos_pacientes')
+          .select('nome_paciente, valor, data_atendimento')
+          .eq('user_id', user?.id)
+        existingData = existing || []
+      }
 
       const processed = rows.map((row: any, index: number) => {
         const rowNumber = index + 2
         const errors: string[] = []
         let isDuplicate = false
 
-        const desc = row['Descrição']
-        const val = row['Valor']
-        const venc = row['Data de vencimento']
+        if (tipoImportacao === 'saidas') {
+          const desc = row['Descrição']
+          const val = row['Valor']
+          const venc = row['Data de vencimento']
 
-        if (!desc) errors.push('Coluna Descrição está vazia.')
+          if (!desc) errors.push('Coluna Descrição está vazia.')
 
-        let valorNum = 0
-        if (val === undefined || val === null || val === '') {
-          errors.push('Coluna Valor está vazia.')
-        } else {
-          valorNum = typeof val === 'string' ? Number(val.replace(',', '.')) : Number(val)
-          if (isNaN(valorNum)) {
-            errors.push('Coluna Valor contém um formato numérico inválido.')
+          let valorNum = 0
+          if (val === undefined || val === null || val === '') {
+            errors.push('Coluna Valor está vazia.')
+          } else {
+            valorNum = typeof val === 'string' ? Number(val.replace(',', '.')) : Number(val)
+            if (isNaN(valorNum)) {
+              errors.push('Coluna Valor contém um formato numérico inválido.')
+            }
           }
-        }
 
-        const vencDate = parseExcelDate(venc)
-        if (!vencDate) {
-          errors.push('Coluna Data de vencimento está vazia ou em formato inválido.')
-        }
+          const vencDate = parseExcelDate(venc)
+          if (!vencDate) {
+            errors.push('Coluna Data de vencimento está vazia ou em formato inválido.')
+          }
 
-        if (errors.length === 0) {
-          const rowMonth = vencDate!.getMonth()
-          const rowYear = vencDate!.getFullYear()
+          if (errors.length === 0) {
+            const rowMonth = vencDate!.getMonth()
+            const rowYear = vencDate!.getFullYear()
 
-          const dup = existingDespesas.find((e) => {
-            if (e.descricao !== desc) return false
-            if (Number(e.valor) !== valorNum) return false
-            if (!e.data_vencimento) return false
-            const eDate = new Date(e.data_vencimento)
-            return eDate.getMonth() === rowMonth && eDate.getFullYear() === rowYear
-          })
+            const dup = existingData.find((e: any) => {
+              if (e.descricao !== desc) return false
+              if (Number(e.valor) !== valorNum) return false
+              if (!e.data_vencimento) return false
+              const eDate = new Date(e.data_vencimento)
+              return eDate.getMonth() === rowMonth && eDate.getFullYear() === rowYear
+            })
 
-          if (dup) isDuplicate = true
-        }
+            if (dup) isDuplicate = true
+          }
 
-        return {
-          rowNumber,
-          data: row,
-          valorNum,
-          vencDate,
-          pagDate: parseExcelDate(row['Data de pagamento']),
-          errors,
-          isDuplicate,
+          return {
+            rowNumber,
+            data: row,
+            valorNum,
+            vencDate,
+            pagDate: parseExcelDate(row['Data de pagamento']),
+            errors,
+            isDuplicate,
+            titulo: desc,
+          }
+        } else {
+          const paciente = row['Paciente']
+          const val = row['Valor']
+          const dataAtend = row['Data de atendimento']
+
+          if (!paciente) errors.push('Coluna Paciente está vazia.')
+
+          let valorNum = 0
+          if (val === undefined || val === null || val === '') {
+            errors.push('Coluna Valor está vazia.')
+          } else {
+            valorNum = typeof val === 'string' ? Number(val.replace(',', '.')) : Number(val)
+            if (isNaN(valorNum)) {
+              errors.push('Coluna Valor contém um formato numérico inválido.')
+            }
+          }
+
+          const atendDate = parseExcelDate(dataAtend)
+          if (!atendDate) {
+            errors.push('Coluna Data de atendimento está vazia ou em formato inválido.')
+          }
+
+          if (errors.length === 0) {
+            const rowMonth = atendDate!.getMonth()
+            const rowYear = atendDate!.getFullYear()
+            const rowDay = atendDate!.getDate()
+
+            const dup = existingData.find((e: any) => {
+              if (e.nome_paciente !== paciente) return false
+              if (Number(e.valor) !== valorNum) return false
+              if (!e.data_atendimento) return false
+              const eDate = new Date(e.data_atendimento)
+              return (
+                eDate.getDate() === rowDay &&
+                eDate.getMonth() === rowMonth &&
+                eDate.getFullYear() === rowYear
+              )
+            })
+
+            if (dup) isDuplicate = true
+          }
+
+          return {
+            rowNumber,
+            data: row,
+            valorNum,
+            atendDate,
+            errors,
+            isDuplicate,
+            titulo: paciente,
+          }
         }
       })
 
@@ -195,42 +286,75 @@ export default function Importar() {
 
     setIsSaving(true)
     try {
-      const toInsert = validRows.map((r) => {
-        const d = r.data
-        return {
+      if (tipoImportacao === 'saidas') {
+        const toInsert = validRows.map((r) => {
+          const d = r.data
+          return {
+            user_id: user?.id,
+            descricao: d['Descrição'] || null,
+            departamento: d['Departamento'] || null,
+            fornecedor: d['Fornecedor'] || null,
+            plano_contas: d['Plano de contas'] || null,
+            conta_contabil: d['Conta contábil'] || null,
+            conta_bancaria: d['Conta bancária'] || null,
+            categoria: d['Categoria'] || null,
+            valor: r.valorNum,
+            referencia_competencia: d['Referência/Competência'] || null,
+            forma_pagamento: d['Forma de pagamento'] || null,
+            parcelamento: d['Parcelamento'] || null,
+            mes_competencia: d['Mês de competência'] || null,
+            data_vencimento: r.vencDate ? r.vencDate.toISOString().split('T')[0] : null,
+            data_pagamento: r.pagDate ? r.pagDate.toISOString().split('T')[0] : null,
+            status: r.pagDate ? 'Pago' : 'Pendente',
+          }
+        })
+
+        const { error } = await supabase.from('despesas').insert(toInsert)
+        if (error) throw error
+
+        await supabase.from('import_jobs').insert({
           user_id: user?.id,
-          descricao: d['Descrição'] || null,
-          departamento: d['Departamento'] || null,
-          fornecedor: d['Fornecedor'] || null,
-          plano_contas: d['Plano de contas'] || null,
-          conta_contabil: d['Conta contábil'] || null,
-          conta_bancaria: d['Conta bancária'] || null,
-          categoria: d['Categoria'] || null,
-          valor: r.valorNum,
-          referencia_competencia: d['Referência/Competência'] || null,
-          forma_pagamento: d['Forma de pagamento'] || null,
-          parcelamento: d['Parcelamento'] || null,
-          mes_competencia: d['Mês de competência'] || null,
-          data_vencimento: r.vencDate ? r.vencDate.toISOString().split('T')[0] : null,
-          data_pagamento: r.pagDate ? r.pagDate.toISOString().split('T')[0] : null,
-          status: r.pagDate ? 'Pago' : 'Pendente',
-        }
-      })
+          type: 'despesas',
+          status: 'completed',
+          total_items: parsedRows.length,
+          processed_items: validRows.length,
+        })
+      } else {
+        const toInsert = validRows.map((r) => {
+          const d = r.data
+          return {
+            user_id: user?.id,
+            nome_paciente: d['Paciente'] || null,
+            tipo: d['Tipo'] || null,
+            categoria: d['Tipo'] || null,
+            descricao: d['Descrição'] || null,
+            valor: r.valorNum,
+            forma_pagamento: d['Forma de pagamento'] || null,
+            conta_recebimento: d['Conta de recebimento'] || null,
+            status_pagamento: d['Status de pagamento'] || 'Confirmado',
+            parcelas: d['Parcelas'] ? parseInt(d['Parcelas'], 10) : null,
+            numero_orcamento: d['Nº Orçamento'] || null,
+            profissional_orcamento: d['Profissional'] || null,
+            nota_fiscal: d['Nota Fiscal'] || null,
+            data_atendimento: r.atendDate ? r.atendDate.toISOString().split('T')[0] : null,
+          }
+        })
 
-      const { error } = await supabase.from('despesas').insert(toInsert)
-      if (error) throw error
+        const { error } = await supabase.from('lancamentos_pacientes').insert(toInsert)
+        if (error) throw error
 
-      await supabase.from('import_jobs').insert({
-        user_id: user?.id,
-        type: 'despesas',
-        status: 'completed',
-        total_items: parsedRows.length,
-        processed_items: validRows.length,
-      })
+        await supabase.from('import_jobs').insert({
+          user_id: user?.id,
+          type: 'entradas',
+          status: 'completed',
+          total_items: parsedRows.length,
+          processed_items: validRows.length,
+        })
+      }
 
       toast({
         title: 'Sucesso',
-        description: `${validRows.length} despesas importadas com sucesso.`,
+        description: `${validRows.length} registros importados com sucesso.`,
       })
       setParsedRows([])
       setFile(null)
@@ -250,16 +374,43 @@ export default function Importar() {
     <div className="container mx-auto p-6 space-y-6 animate-fade-in">
       <div className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Importação de Despesas</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Importação de Lançamentos</h1>
           <p className="text-muted-foreground mt-1">
-            Importe suas planilhas em lote para o sistema
+            Importe suas planilhas de Entradas ou Saídas em lote
           </p>
         </div>
         <Button onClick={downloadTemplate} variant="outline" className="gap-2">
           <Download className="w-4 h-4" />
-          Baixar Modelo
+          Baixar Modelo de {tipoImportacao === 'entradas' ? 'Entradas' : 'Saídas'}
         </Button>
       </div>
+
+      <Card className="bg-secondary/20 border-border/50">
+        <CardContent className="pt-6">
+          <RadioGroup
+            value={tipoImportacao}
+            onValueChange={(val) => {
+              setTipoImportacao(val as 'entradas' | 'saidas')
+              setParsedRows([])
+              setFile(null)
+            }}
+            className="flex flex-col sm:flex-row gap-6"
+          >
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="entradas" id="entradas" />
+              <Label htmlFor="entradas" className="cursor-pointer font-medium text-base">
+                Entradas (Faturamento / Pacientes)
+              </Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <RadioGroupItem value="saidas" id="saidas" />
+              <Label htmlFor="saidas" className="cursor-pointer font-medium text-base">
+                Saídas (Despesas / Custos)
+              </Label>
+            </div>
+          </RadioGroup>
+        </CardContent>
+      </Card>
 
       <Tabs defaultValue="import" className="w-full">
         <TabsList className="mb-4">
@@ -283,6 +434,7 @@ export default function Importar() {
                     type="file"
                     accept=".xlsx, .xls, .csv"
                     onChange={handleFileChange}
+                    key={tipoImportacao}
                   />
                 </div>
                 <Button
@@ -378,8 +530,7 @@ export default function Importar() {
                       <FileWarning className="w-5 h-5" /> Duplicidades Identificadas
                     </CardTitle>
                     <CardDescription className="text-amber-600/80">
-                      Lançamentos com a mesma descrição, valor e mês de vencimento já existem no
-                      sistema. Eles serão ignorados.
+                      Lançamentos idênticos já existem no sistema e serão ignorados.
                     </CardDescription>
                   </CardHeader>
                   <CardContent className="p-0">
@@ -391,7 +542,7 @@ export default function Importar() {
                             key={i}
                             className="text-sm p-2 bg-background border border-border rounded-md"
                           >
-                            Linha {r.rowNumber}: {r.data['Descrição']} - R$ {r.valorNum}
+                            Linha {r.rowNumber}: {r.titulo} - R$ {r.valorNum}
                           </div>
                         ))}
                     </div>
@@ -452,7 +603,9 @@ export default function Importar() {
                       className="flex justify-between items-center p-4 border rounded-lg bg-card"
                     >
                       <div>
-                        <div className="font-medium text-foreground">Importação de Despesas</div>
+                        <div className="font-medium text-foreground">
+                          Importação de {job.type === 'entradas' ? 'Entradas' : 'Saídas'}
+                        </div>
                         <div className="text-sm text-muted-foreground">
                           {new Date(job.created_at).toLocaleString('pt-BR')}
                         </div>

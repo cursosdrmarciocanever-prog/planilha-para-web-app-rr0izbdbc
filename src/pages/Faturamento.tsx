@@ -22,7 +22,7 @@ export default function Faturamento() {
           </p>
         </div>
         <Button asChild variant="outline" className="gap-2 rounded-full shadow-sm">
-          <Link to="/importar">
+          <Link to="/importar?tipo=entradas">
             <Upload className="w-4 h-4" /> Importar Planilha
           </Link>
         </Button>
