@@ -24,6 +24,14 @@ import {
   SelectValue,
 } from '@/components/ui/select'
 import { useNavigate } from 'react-router-dom'
+import { ScrollArea } from '@/components/ui/scroll-area'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
 import {
   Calendar as CalendarIcon,
   ChevronLeft,
@@ -46,6 +54,7 @@ export default function Despesas() {
   const navigate = useNavigate()
   const [currentDate, setCurrentDate] = useState(new Date())
   const [viewMode, setViewMode] = useState('consolidada')
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null)
   const [faturamentoMedio, setFaturamentoMedio] = useState(0)
   const [rawDespesas, setRawDespesas] = useState<any[]>([])
   const [rawFixas, setRawFixas] = useState<any[]>([])
@@ -227,8 +236,43 @@ export default function Despesas() {
   const handleNextMonth = () => setCurrentDate(addMonths(currentDate, 1))
 
   const handleVerDetalhes = (nome: string) => {
-    navigate(`/faturamento?conta=${encodeURIComponent(nome)}`)
+    setSelectedGroup(nome)
   }
+
+  const groupDetails = useMemo(() => {
+    if (!selectedGroup) return []
+    return projectedItems.filter((item) => {
+      const fp = (item.forma_pagamento || item.conta_pagamento || '').toLowerCase()
+
+      const isUnicredCard = item.isUnicredCard
+      const isSicoobCard = item.isSicoobCard
+      const isUnicredConta = item.isUnicredConta
+      const isSicoobConta = item.isSicoobConta
+
+      if (selectedGroup === 'Cartão de Crédito Unicred' && isUnicredCard) return true
+      if (selectedGroup === 'Cartão de Crédito Sicoob' && isSicoobCard) return true
+      if (selectedGroup === 'Conta Unicred' && isUnicredConta) return true
+      if (selectedGroup === 'Conta Sicoob' && isSicoobConta) return true
+      if (
+        selectedGroup === 'Outros Cartões' &&
+        !isUnicredCard &&
+        !isSicoobCard &&
+        (fp.includes('cartão') || fp.includes('cartao'))
+      )
+        return true
+      if (
+        selectedGroup === 'Outras Despesas' &&
+        !isUnicredCard &&
+        !isSicoobCard &&
+        !isUnicredConta &&
+        !isSicoobConta &&
+        !(fp.includes('cartão') || fp.includes('cartao'))
+      )
+        return true
+
+      return false
+    })
+  }, [projectedItems, selectedGroup])
 
   const meses = [
     'Janeiro',
@@ -679,6 +723,54 @@ export default function Despesas() {
           </CardContent>
         </Card>
       </div>
+
+      <Dialog open={!!selectedGroup} onOpenChange={(open) => !open && setSelectedGroup(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Detalhes: {selectedGroup}</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="flex-1 -mx-6 px-6">
+            <div className="space-y-4 py-4">
+              {groupDetails.length > 0 ? (
+                groupDetails.map((item: any, i: number) => (
+                  <div
+                    key={i}
+                    className="flex justify-between items-center border-b pb-3 last:border-0 last:pb-0"
+                  >
+                    <div>
+                      <div className="font-semibold text-sm">{item.descricao}</div>
+                      <div className="text-xs text-muted-foreground mt-1 flex gap-2">
+                        <span>Venc: {format(parseISO(item.data_vencimento), 'dd/MM/yyyy')}</span>
+                        {item.parcelamento && <span>(Parc: {item.parcelamento})</span>}
+                        {item.isFixa && <span>(Conta Fixa)</span>}
+                      </div>
+                    </div>
+                    <div className="font-bold">
+                      R$ {Number(item.valor).toFixed(2).replace('.', ',')}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center text-muted-foreground py-8">
+                  Nenhum detalhe encontrado.
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+          <DialogFooter className="border-t pt-4 mt-auto">
+            <div className="flex w-full justify-between items-center">
+              <span className="font-semibold">Total do Grupo:</span>
+              <span className="text-xl font-bold tracking-tight text-primary">
+                R${' '}
+                {groupDetails
+                  .reduce((acc, curr) => acc + Number(curr.valor), 0)
+                  .toFixed(2)
+                  .replace('.', ',')}
+              </span>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }

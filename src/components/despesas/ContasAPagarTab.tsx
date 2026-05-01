@@ -70,6 +70,7 @@ export function ContasAPagarTab({
   const [isReportModalOpen, setIsReportModalOpen] = useState(false)
   const [reportMonth, setReportMonth] = useState((new Date().getMonth() + 1).toString())
   const [reportYear, setReportYear] = useState(new Date().getFullYear().toString())
+  const [selectedGroup, setSelectedGroup] = useState<string | null>(null)
 
   const { toast } = useToast()
   const navigate = useNavigate()
@@ -319,8 +320,62 @@ export function ContasAPagarTab({
   }
 
   const handleVerDetalhes = (nome: string) => {
-    navigate(`/faturamento?conta=${encodeURIComponent(nome)}`)
+    setSelectedGroup(nome)
   }
+
+  const groupDetails = useMemo(() => {
+    if (!selectedGroup) return []
+    const details: any[] = []
+    contas.forEach((d: any) => {
+      if (!d.data_vencimento) return
+      let dDate = parseISO(d.data_vencimento)
+
+      const fp = (d.forma_pagamento || d.conta_pagamento || '').toLowerCase()
+      const desc = (d.descricao || '').toLowerCase()
+
+      const isUnicredCard =
+        (fp.includes('unicred') || desc.includes('unicred')) &&
+        (fp.includes('cartão') || fp.includes('cartao') || fp.includes('cart'))
+      const isSicoobCard =
+        (fp.includes('sicoob') || desc.includes('sicoob')) &&
+        (fp.includes('cartão') || fp.includes('cartao') || fp.includes('cart'))
+
+      const isUnicredConta = (fp.includes('unicred') || desc.includes('unicred')) && !isUnicredCard
+      const isSicoobConta = (fp.includes('sicoob') || desc.includes('sicoob')) && !isSicoobCard
+
+      if (isUnicredCard) {
+        dDate = new Date(dDate.getFullYear(), dDate.getMonth(), 10)
+      } else if (isSicoobCard) {
+        dDate = new Date(dDate.getFullYear(), dDate.getMonth(), 19)
+      }
+
+      if (!isSameMonth(dDate, currentMonth)) return
+
+      if (selectedGroup === 'Cartão de Crédito Unicred' && isUnicredCard) details.push(d)
+      else if (selectedGroup === 'Cartão de Crédito Sicoob' && isSicoobCard) details.push(d)
+      else if (selectedGroup === 'Conta Unicred' && isUnicredConta) details.push(d)
+      else if (selectedGroup === 'Conta Sicoob' && isSicoobConta) details.push(d)
+      else if (
+        selectedGroup === 'Outros Cartões' &&
+        !isUnicredCard &&
+        !isSicoobCard &&
+        (fp.includes('cartão') || fp.includes('cartao'))
+      )
+        details.push(d)
+      else if (
+        selectedGroup === 'Outras Despesas' &&
+        !isUnicredCard &&
+        !isSicoobCard &&
+        !isUnicredConta &&
+        !isSicoobConta &&
+        !(fp.includes('cartão') || fp.includes('cartao'))
+      )
+        details.push(d)
+    })
+    return details.sort(
+      (a, b) => new Date(a.data_vencimento).getTime() - new Date(b.data_vencimento).getTime(),
+    )
+  }, [contas, currentMonth, selectedGroup])
 
   const handleTestEmail = async () => {
     setIsSendingEmail(true)
@@ -963,6 +1018,57 @@ export function ContasAPagarTab({
               )}
               Gerar PDF
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={!!selectedGroup} onOpenChange={(open) => !open && setSelectedGroup(null)}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle>Detalhes: {selectedGroup}</DialogTitle>
+          </DialogHeader>
+          <ScrollArea className="flex-1 -mx-6 px-6">
+            <div className="space-y-4 py-4">
+              {groupDetails.length > 0 ? (
+                groupDetails.map((item: any, i: number) => (
+                  <div
+                    key={i}
+                    className="flex justify-between items-center border-b pb-3 last:border-0 last:pb-0"
+                  >
+                    <div>
+                      <div className="font-semibold text-sm">{item.descricao}</div>
+                      <div className="text-xs text-muted-foreground mt-1 flex gap-2">
+                        <span>Venc: {format(parseISO(item.data_vencimento), 'dd/MM/yyyy')}</span>
+                        {item.parcelamento && <span>(Parc: {item.parcelamento})</span>}
+                        {item.frequencia && item.frequencia !== 'Única' && (
+                          <span>(Conta Fixa)</span>
+                        )}
+                      </div>
+                    </div>
+                    <div className="font-bold">
+                      {new Intl.NumberFormat('pt-BR', {
+                        style: 'currency',
+                        currency: 'BRL',
+                      }).format(Number(item.valor))}
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-center text-muted-foreground py-8">
+                  Nenhum detalhe encontrado.
+                </div>
+              )}
+            </div>
+          </ScrollArea>
+          <DialogFooter className="border-t pt-4 mt-auto">
+            <div className="flex w-full justify-between items-center">
+              <span className="font-semibold">Total do Grupo:</span>
+              <span className="text-xl font-bold tracking-tight text-primary">
+                {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
+                  groupDetails.reduce((acc, curr) => acc + Number(curr.valor), 0),
+                )}
+              </span>
+            </div>
           </DialogFooter>
         </DialogContent>
       </Dialog>
