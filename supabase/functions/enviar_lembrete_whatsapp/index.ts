@@ -9,9 +9,8 @@ Deno.serve(async (req: Request) => {
 
   try {
     const supabaseUrl = Deno.env.get('SUPABASE_URL') || ''
-    const supabaseKey =
-      Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY') || ''
-
+    const supabaseKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || Deno.env.get('SUPABASE_ANON_KEY') || ''
+    
     if (!supabaseUrl || !supabaseKey) {
       throw new Error('Configuração do Supabase ausente nas variáveis de ambiente.')
     }
@@ -32,14 +31,11 @@ Deno.serve(async (req: Request) => {
       .single()
 
     if (agendamentoError || !agendamento) {
-      throw new Error(
-        `Erro ao buscar agendamento: ${agendamentoError?.message || 'Agendamento não encontrado'}`,
-      )
+      throw new Error(`Erro ao buscar agendamento: ${agendamentoError?.message || 'Agendamento não encontrado'}`)
     }
 
     // Identifica telefone do paciente
-    let telefone =
-      agendamento.numero_whatsapp || agendamento.whatsapp || agendamento.pacientes?.telefone
+    let telefone = agendamento.numero_whatsapp || agendamento.whatsapp || agendamento.pacientes?.telefone
     if (!telefone) {
       throw new Error('Paciente não possui número de telefone/WhatsApp cadastrado.')
     }
@@ -54,11 +50,7 @@ Deno.serve(async (req: Request) => {
     // Formata Data e Hora para o fuso do Brasil
     const dataHora = new Date(agendamento.data_hora)
     const dataFormatada = dataHora.toLocaleDateString('pt-BR', { timeZone: 'America/Sao_Paulo' })
-    const horaFormatada = dataHora.toLocaleTimeString('pt-BR', {
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZone: 'America/Sao_Paulo',
-    })
+    const horaFormatada = dataHora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', timeZone: 'America/Sao_Paulo' })
 
     const nomePaciente = agendamento.paciente_nome || agendamento.pacientes?.nome || 'Paciente'
     const tipoConsulta = agendamento.tipo_consulta || 'Consulta'
@@ -71,13 +63,11 @@ Deno.serve(async (req: Request) => {
     const twilioWhatsappNumber = Deno.env.get('TWILIO_WHATSAPP_NUMBER')
 
     if (!twilioAccountSid || !twilioAuthToken || !twilioWhatsappNumber) {
-      throw new Error(
-        'Configurações do Twilio (Secrets) não encontradas. Verifique TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN e TWILIO_WHATSAPP_NUMBER.',
-      )
+      throw new Error('Configurações do Twilio (Secrets) não encontradas. Verifique TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN e TWILIO_WHATSAPP_NUMBER.')
     }
 
     const twilioUrl = `https://api.twilio.com/2010-04-01/Accounts/${twilioAccountSid}/Messages.json`
-
+    
     const bodyParams = new URLSearchParams()
     bodyParams.append('To', toWhatsApp)
     bodyParams.append('From', `whatsapp:${twilioWhatsappNumber}`)
@@ -88,9 +78,9 @@ Deno.serve(async (req: Request) => {
       method: 'POST',
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
-        Authorization: `Basic ${btoa(`${twilioAccountSid}:${twilioAuthToken}`)}`,
+        'Authorization': `Basic ${btoa(`${twilioAccountSid}:${twilioAuthToken}`)}`
       },
-      body: bodyParams.toString(),
+      body: bodyParams.toString()
     })
 
     const twilioResult = await twilioResponse.json()
@@ -106,7 +96,7 @@ Deno.serve(async (req: Request) => {
       agendamento_id: agendamento.id,
       data_envio: new Date().toISOString(),
       status_envio: statusEnvio,
-      mensagem: mensagem,
+      mensagem: mensagem
     })
 
     if (logError) {
@@ -114,25 +104,27 @@ Deno.serve(async (req: Request) => {
     }
 
     if (statusEnvio === 'erro') {
-      throw new Error(
-        `Falha ao enviar mensagem via Twilio: ${twilioResult.message || 'Erro desconhecido'}`,
-      )
+      throw new Error(`Falha ao enviar mensagem via Twilio: ${twilioResult.message || 'Erro desconhecido'}`)
     }
 
     return new Response(
-      JSON.stringify({
-        success: true,
-        message: 'Lembrete enviado com sucesso.',
-        twilioMessageId: twilioResult.sid,
+      JSON.stringify({ 
+        success: true, 
+        message: 'Lembrete enviado com sucesso.', 
+        twilioMessageId: twilioResult.sid 
       }),
       {
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-      },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
     )
+
   } catch (error: any) {
-    return new Response(JSON.stringify({ error: error.message }), {
-      status: 400,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    })
+    return new Response(
+      JSON.stringify({ error: error.message }),
+      {
+        status: 400,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      }
+    )
   }
 })
