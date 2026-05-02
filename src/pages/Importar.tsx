@@ -78,14 +78,32 @@ function parseExcelDate(val: any): Date | null {
   if (str.includes('/')) {
     const parts = str.split('/')
     if (parts.length === 3) {
-      if (parts[0].length <= 2 && parts[2].length === 4) {
-        return new Date(Number(parts[2]), Number(parts[1]) - 1, Number(parts[0]))
-      }
+      let year = Number(parts[2])
+      if (parts[2].length === 2) year += 2000
+      return new Date(year, Number(parts[1]) - 1, Number(parts[0]))
     }
   }
   const d = new Date(str)
   if (!isNaN(d.getTime())) return d
   return null
+}
+
+function parseNumber(val: any): number {
+  if (val === undefined || val === null || val === '') return NaN
+  if (typeof val === 'number') return val
+  const str = String(val).trim()
+  const lastComma = str.lastIndexOf(',')
+  const lastDot = str.lastIndexOf('.')
+  let cleanStr = str
+  if (lastComma > lastDot) {
+    cleanStr = str.replace(/\./g, '').replace(',', '.')
+  } else if (lastDot > lastComma) {
+    cleanStr = str.replace(/,/g, '')
+  } else if (lastComma !== -1) {
+    cleanStr = str.replace(',', '.')
+  }
+  cleanStr = cleanStr.replace(/[^\d.-]/g, '')
+  return Number(cleanStr)
 }
 
 export default function Importar() {
@@ -219,19 +237,35 @@ export default function Importar() {
 
     setIsProcessing(true)
     try {
-      let existingData: any[] = []
+      let existingSet = new Set<string>()
       if (tipoImportacao === 'saidas') {
         const { data: existing } = await supabase
           .from('despesas')
           .select('descricao, valor, data_vencimento')
           .eq('user_id', user?.id)
-        existingData = existing || []
+
+        existing?.forEach((e: any) => {
+          if (e.data_vencimento && e.descricao) {
+            const d = new Date(e.data_vencimento)
+            existingSet.add(
+              `${String(e.descricao).trim().toLowerCase()}_${Number(e.valor)}_${d.getFullYear()}_${d.getMonth()}`,
+            )
+          }
+        })
       } else {
         const { data: existing } = await supabase
           .from('lancamentos_pacientes')
           .select('nome_paciente, valor, data_atendimento')
           .eq('user_id', user?.id)
-        existingData = existing || []
+
+        existing?.forEach((e: any) => {
+          if (e.data_atendimento && e.nome_paciente) {
+            const d = new Date(e.data_atendimento)
+            existingSet.add(
+              `${String(e.nome_paciente).trim().toLowerCase()}_${Number(e.valor)}_${d.getFullYear()}_${d.getMonth()}_${d.getDate()}`,
+            )
+          }
+        })
       }
 
       const processed = rawJson.map((row: any, index: number) => {
@@ -252,14 +286,9 @@ export default function Importar() {
 
           if (!desc) errors.push('Coluna Descrição está vazia.')
 
-          let valorNum = 0
-          if (val === undefined || val === null || val === '') {
-            errors.push('Coluna Valor está vazia.')
-          } else {
-            valorNum = typeof val === 'string' ? Number(val.replace(',', '.')) : Number(val)
-            if (isNaN(valorNum)) {
-              errors.push('Coluna Valor contém um formato numérico inválido.')
-            }
+          const valorNum = parseNumber(val)
+          if (isNaN(valorNum)) {
+            errors.push('Coluna Valor está vazia ou contém um formato numérico inválido.')
           }
 
           const vencDate = parseExcelDate(venc)
@@ -270,16 +299,8 @@ export default function Importar() {
           if (errors.length === 0) {
             const rowMonth = vencDate!.getMonth()
             const rowYear = vencDate!.getFullYear()
-
-            const dup = existingData.find((e: any) => {
-              if (e.descricao !== desc) return false
-              if (Number(e.valor) !== valorNum) return false
-              if (!e.data_vencimento) return false
-              const eDate = new Date(e.data_vencimento)
-              return eDate.getMonth() === rowMonth && eDate.getFullYear() === rowYear
-            })
-
-            if (dup) isDuplicate = true
+            const dupKey = `${String(desc).trim().toLowerCase()}_${valorNum}_${rowYear}_${rowMonth}`
+            if (existingSet.has(dupKey)) isDuplicate = true
           }
 
           return {
@@ -299,14 +320,9 @@ export default function Importar() {
 
           if (!paciente) errors.push('Coluna Paciente está vazia.')
 
-          let valorNum = 0
-          if (val === undefined || val === null || val === '') {
-            errors.push('Coluna Valor está vazia.')
-          } else {
-            valorNum = typeof val === 'string' ? Number(val.replace(',', '.')) : Number(val)
-            if (isNaN(valorNum)) {
-              errors.push('Coluna Valor contém um formato numérico inválido.')
-            }
+          const valorNum = parseNumber(val)
+          if (isNaN(valorNum)) {
+            errors.push('Coluna Valor está vazia ou contém um formato numérico inválido.')
           }
 
           const atendDate = parseExcelDate(dataAtend)
@@ -318,20 +334,8 @@ export default function Importar() {
             const rowMonth = atendDate!.getMonth()
             const rowYear = atendDate!.getFullYear()
             const rowDay = atendDate!.getDate()
-
-            const dup = existingData.find((e: any) => {
-              if (e.nome_paciente !== paciente) return false
-              if (Number(e.valor) !== valorNum) return false
-              if (!e.data_atendimento) return false
-              const eDate = new Date(e.data_atendimento)
-              return (
-                eDate.getDate() === rowDay &&
-                eDate.getMonth() === rowMonth &&
-                eDate.getFullYear() === rowYear
-              )
-            })
-
-            if (dup) isDuplicate = true
+            const dupKey = `${String(paciente).trim().toLowerCase()}_${valorNum}_${rowYear}_${rowMonth}_${rowDay}`
+            if (existingSet.has(dupKey)) isDuplicate = true
           }
 
           return {
@@ -361,6 +365,8 @@ export default function Importar() {
 
     setIsSaving(true)
     try {
+      const chunkSize = 500
+
       if (tipoImportacao === 'saidas') {
         const toInsert = validRows.map((r) => {
           const d = r.data
@@ -384,8 +390,11 @@ export default function Importar() {
           }
         })
 
-        const { error } = await supabase.from('despesas').insert(toInsert)
-        if (error) throw error
+        for (let i = 0; i < toInsert.length; i += chunkSize) {
+          const chunk = toInsert.slice(i, i + chunkSize)
+          const { error } = await supabase.from('despesas').insert(chunk)
+          if (error) throw error
+        }
 
         await supabase.from('import_jobs').insert({
           user_id: user?.id,
@@ -397,17 +406,27 @@ export default function Importar() {
       } else {
         const toInsert = validRows.map((r) => {
           const d = r.data
+          const tipoRaw = String(d['tipo'] || '').trim()
+          const tipoValid =
+            tipoRaw.toLowerCase() === 'consulta' || tipoRaw.toLowerCase() === 'procedimento'
+              ? tipoRaw.toLowerCase() === 'consulta'
+                ? 'Consulta'
+                : 'Procedimento'
+              : null
+
           return {
             user_id: user?.id,
             nome_paciente: d['paciente'] || null,
-            tipo: d['tipo'] || null,
+            tipo: tipoValid,
             categoria: d['tipo'] || null,
             descricao: d['descricao'] || null,
             valor: r.valorNum,
             forma_pagamento: d['forma_pagamento'] || null,
             conta_recebimento: d['conta_recebimento'] || null,
             status_pagamento: d['status_pagamento'] || 'Confirmado',
-            parcelas: d['parcelas'] ? parseInt(d['parcelas'], 10) : null,
+            parcelas: d['parcelas']
+              ? parseInt(String(d['parcelas']).replace(/\D/g, ''), 10) || null
+              : null,
             numero_orcamento: d['numero_orcamento'] || null,
             profissional_orcamento: d['profissional'] || null,
             nota_fiscal: d['nota_fiscal'] || null,
@@ -415,8 +434,11 @@ export default function Importar() {
           }
         })
 
-        const { error } = await supabase.from('lancamentos_pacientes').insert(toInsert)
-        if (error) throw error
+        for (let i = 0; i < toInsert.length; i += chunkSize) {
+          const chunk = toInsert.slice(i, i + chunkSize)
+          const { error } = await supabase.from('lancamentos_pacientes').insert(chunk)
+          if (error) throw error
+        }
 
         await supabase.from('import_jobs').insert({
           user_id: user?.id,
