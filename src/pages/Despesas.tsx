@@ -43,13 +43,18 @@ import {
   TrendingUp,
   AlertTriangle,
   List,
+  Edit,
+  Plus,
 } from 'lucide-react'
 import { supabase } from '@/lib/supabase/client'
 import { useAuth } from '@/hooks/use-auth'
 import { cn } from '@/lib/utils'
 import { Skeleton } from '@/components/ui/skeleton'
+import { useExpenseModalStore } from '@/stores/use-expense-modal'
+import { ExpenseFormModal } from '@/components/despesas/ExpenseFormModal'
 
 export default function Despesas() {
+  const { openModal, refreshTrigger } = useExpenseModalStore()
   const { user } = useAuth()
   const navigate = useNavigate()
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -62,7 +67,7 @@ export default function Despesas() {
 
   useEffect(() => {
     if (user) fetchData()
-  }, [user])
+  }, [user, refreshTrigger])
 
   const fetchData = async () => {
     setLoading(true)
@@ -108,6 +113,7 @@ export default function Despesas() {
             if (isSameMonth(pDate, currentDate)) {
               rawItems.push({
                 ...d,
+                original_id: d.id,
                 id: `${d.id}-p${i}`,
                 parcelamento: `${current + i}/${total}`,
                 data_vencimento: pDate.toISOString(),
@@ -117,10 +123,10 @@ export default function Despesas() {
             }
           }
         } else if (d.data_vencimento && isSameMonth(parseISO(d.data_vencimento), currentDate)) {
-          rawItems.push({ ...d, isProjected: false, isFixa: false })
+          rawItems.push({ ...d, original_id: d.id, isProjected: false, isFixa: false })
         }
       } else if (d.data_vencimento && isSameMonth(parseISO(d.data_vencimento), currentDate)) {
-        rawItems.push({ ...d, isProjected: false, isFixa: false })
+        rawItems.push({ ...d, original_id: d.id, isProjected: false, isFixa: false })
       }
     })
 
@@ -132,11 +138,12 @@ export default function Despesas() {
 
         rawItems.push({
           id: `fixa-${f.id}`,
+          original_id: f.id,
           descricao: f.descricao,
           valor: f.valor,
           data_vencimento: fDate.toISOString(),
           forma_pagamento: f.conta_pagamento || 'Débito Automático',
-          status: 'Pendente',
+          status: f.status || 'Pendente',
           categoria: f.categoria,
           isProjected: true,
           isFixa: true,
@@ -351,8 +358,16 @@ export default function Despesas() {
     return dayItems.map((item) => (
       <div
         key={item.id}
+        onClick={() => {
+          if (!item.isConsolidated && item.original_id) {
+            openModal(item.original_id, item.isFixa ? 'conta_fixa' : 'despesa')
+          } else if (item.isConsolidated) {
+            handleVerDetalhes(item.forma_pagamento)
+          }
+        }}
         className={cn(
           'text-[11px] p-2 rounded-md border-l-4 shadow-sm mb-1.5 leading-tight transition-all hover:scale-[1.02]',
+          item.isConsolidated || item.original_id ? 'cursor-pointer hover:opacity-80' : '',
           riskColor === 'red'
             ? 'border-l-red-500 bg-red-50 dark:bg-red-950/40 text-red-900 dark:text-red-100'
             : riskColor === 'yellow'
@@ -391,31 +406,40 @@ export default function Despesas() {
           </p>
         </div>
 
-        <div className="flex items-center gap-2 bg-secondary/50 p-1.5 rounded-xl border">
-          <ToggleGroup
-            type="single"
-            value={viewMode}
-            onValueChange={(val) => val && setViewMode(val)}
+        <div className="flex items-center gap-2">
+          <Button
+            onClick={() => openModal(null, 'despesa')}
+            className="rounded-full shadow-sm"
+            size="sm"
           >
-            <ToggleGroupItem
-              value="consolidada"
-              className="rounded-lg text-xs px-3 h-8 gap-2 data-[state=on]:bg-background data-[state=on]:shadow-sm"
+            <Plus className="w-4 h-4 mr-1" /> Nova Conta
+          </Button>
+          <div className="flex items-center gap-2 bg-secondary/50 p-1.5 rounded-xl border ml-2">
+            <ToggleGroup
+              type="single"
+              value={viewMode}
+              onValueChange={(val) => val && setViewMode(val)}
             >
-              <CalendarIcon className="w-3.5 h-3.5" /> Consolidada
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="detalhada"
-              className="rounded-lg text-xs px-3 h-8 gap-2 data-[state=on]:bg-background data-[state=on]:shadow-sm"
-            >
-              <LayoutList className="w-3.5 h-3.5" /> Detalhada
-            </ToggleGroupItem>
-            <ToggleGroupItem
-              value="lista"
-              className="rounded-lg text-xs px-3 h-8 gap-2 data-[state=on]:bg-background data-[state=on]:shadow-sm"
-            >
-              <List className="w-3.5 h-3.5" /> Lista
-            </ToggleGroupItem>
-          </ToggleGroup>
+              <ToggleGroupItem
+                value="consolidada"
+                className="rounded-lg text-xs px-3 h-8 gap-2 data-[state=on]:bg-background data-[state=on]:shadow-sm"
+              >
+                <CalendarIcon className="w-3.5 h-3.5" /> Consolidada
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                value="detalhada"
+                className="rounded-lg text-xs px-3 h-8 gap-2 data-[state=on]:bg-background data-[state=on]:shadow-sm"
+              >
+                <LayoutList className="w-3.5 h-3.5" /> Detalhada
+              </ToggleGroupItem>
+              <ToggleGroupItem
+                value="lista"
+                className="rounded-lg text-xs px-3 h-8 gap-2 data-[state=on]:bg-background data-[state=on]:shadow-sm"
+              >
+                <List className="w-3.5 h-3.5" /> Lista
+              </ToggleGroupItem>
+            </ToggleGroup>
+          </div>
         </div>
       </div>
 
@@ -735,7 +759,7 @@ export default function Despesas() {
                 groupDetails.map((item: any, i: number) => (
                   <div
                     key={i}
-                    className="flex justify-between items-center border-b pb-3 last:border-0 last:pb-0"
+                    className="flex justify-between items-center border-b py-3 last:border-0 last:pb-0"
                   >
                     <div>
                       <div className="font-semibold text-sm">{item.descricao}</div>
@@ -745,8 +769,22 @@ export default function Despesas() {
                         {item.isFixa && <span>(Conta Fixa)</span>}
                       </div>
                     </div>
-                    <div className="font-bold">
-                      R$ {Number(item.valor).toFixed(2).replace('.', ',')}
+                    <div className="flex items-center gap-4">
+                      <div className="font-bold">
+                        R$ {Number(item.valor).toFixed(2).replace('.', ',')}
+                      </div>
+                      {!item.isConsolidated && item.original_id && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-full"
+                          onClick={() => {
+                            openModal(item.original_id, item.isFixa ? 'conta_fixa' : 'despesa')
+                          }}
+                        >
+                          <Edit className="w-4 h-4 text-muted-foreground" />
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))
@@ -771,6 +809,8 @@ export default function Despesas() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ExpenseFormModal />
     </div>
   )
 }
