@@ -39,6 +39,7 @@ export function ExpenseFormModal() {
   const [valor, setValor] = useState('')
   const [status, setStatus] = useState('Pendente')
   const [contaPagamento, setContaPagamento] = useState('Unicred')
+  const [formaPagamento, setFormaPagamento] = useState('')
   const [recorrencia, setRecorrencia] = useState('Única')
   const [parcelas, setParcelas] = useState('2')
   const [subcategorias, setSubcategorias] = useState<{ id: string; nome: string }[]>([])
@@ -66,6 +67,7 @@ export function ExpenseFormModal() {
       valor,
       status,
       contaPagamento,
+      formaPagamento,
       recorrencia,
       parcelas,
     }
@@ -87,6 +89,7 @@ export function ExpenseFormModal() {
     valor,
     status,
     contaPagamento,
+    formaPagamento,
     recorrencia,
     parcelas,
     isDraftLoading,
@@ -116,6 +119,7 @@ export function ExpenseFormModal() {
             setValor(data.valor?.toString() || '')
             setStatus(data.status || 'Pendente')
             setContaPagamento(data.conta_pagamento || 'Unicred')
+            setFormaPagamento(data.forma_pagamento || '')
             setRecorrencia(editType === 'conta_fixa' ? 'Recorrente' : 'Única')
           }
         })
@@ -139,6 +143,7 @@ export function ExpenseFormModal() {
             setValor(d.valor || '')
             setStatus(d.status || 'Pendente')
             setContaPagamento(d.contaPagamento || 'Unicred')
+            setFormaPagamento(d.formaPagamento || '')
             setRecorrencia(d.recorrencia || 'Única')
             setParcelas(d.parcelas || '2')
           } else {
@@ -151,6 +156,7 @@ export function ExpenseFormModal() {
             setValor('')
             setStatus('Pendente')
             setContaPagamento('Unicred')
+            setFormaPagamento('')
             setRecorrencia('Única')
             setParcelas('2')
           }
@@ -182,10 +188,10 @@ export function ExpenseFormModal() {
   }
 
   const handleSave = async () => {
-    if (!dataVencimento || !descricao || !categoria || !valor) {
+    if (!dataVencimento || !descricao || !categoria || !valor || !formaPagamento) {
       return toast({
         title: 'Atenção',
-        description: 'Preencha todos os campos.',
+        description: 'Preencha todos os campos obrigatórios (incluindo Forma de Pagamento).',
         variant: 'destructive',
       })
     }
@@ -209,6 +215,7 @@ export function ExpenseFormModal() {
       categoria,
       subcategoria: finalSubcategoria === 'none' ? null : finalSubcategoria,
       conta_pagamento: contaPagamento,
+      forma_pagamento: formaPagamento,
       status,
       valor: parseFloat(valor),
     }
@@ -433,6 +440,22 @@ export function ExpenseFormModal() {
                 </Select>
               </div>
             )}
+            <div className="space-y-2">
+              <Label className="font-semibold text-foreground">Forma de Pagamento *</Label>
+              <Select value={formaPagamento} onValueChange={setFormaPagamento}>
+                <SelectTrigger className="bg-secondary/20 h-11 border-primary">
+                  <SelectValue placeholder="Selecione..." />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="PIX">PIX</SelectItem>
+                  <SelectItem value="Cartão de Crédito">Cartão de Crédito</SelectItem>
+                  <SelectItem value="Cartão de Débito">Cartão de Débito</SelectItem>
+                  <SelectItem value="Boleto">Boleto</SelectItem>
+                  <SelectItem value="Dinheiro">Dinheiro</SelectItem>
+                  <SelectItem value="Transferência">Transferência Bancária</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
             <div className="space-y-2">
               <Label className="font-semibold text-foreground">Conta / Cartão</Label>
               <Select value={contaPagamento} onValueChange={setContaPagamento}>
