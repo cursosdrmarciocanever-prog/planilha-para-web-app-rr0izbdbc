@@ -1,11 +1,17 @@
 // AVOID UPDATING THIS FILE DIRECTLY. It is automatically generated.
-export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[]
+export type Json =
+  | string
+  | number
+  | boolean
+  | null
+  | { [key: string]: Json | undefined }
+  | Json[]
 
 export type Database = {
   // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
-    PostgrestVersion: '14.4'
+    PostgrestVersion: "14.4"
   }
   public: {
     Tables: {
@@ -33,11 +39,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'access_control_gestante_id_fkey'
-            columns: ['gestante_id']
+            foreignKeyName: "access_control_gestante_id_fkey"
+            columns: ["gestante_id"]
             isOneToOne: false
-            referencedRelation: 'gestantes'
-            referencedColumns: ['id']
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -65,11 +71,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'agendamento_historico_agendamento_id_fkey'
-            columns: ['agendamento_id']
+            foreignKeyName: "agendamento_historico_agendamento_id_fkey"
+            columns: ["agendamento_id"]
             isOneToOne: false
-            referencedRelation: 'agendamentos'
-            referencedColumns: ['id']
+            referencedRelation: "agendamentos"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -121,11 +127,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'agendamentos_paciente_id_fkey'
-            columns: ['paciente_id']
+            foreignKeyName: "agendamentos_paciente_id_fkey"
+            columns: ["paciente_id"]
             isOneToOne: false
-            referencedRelation: 'pacientes'
-            referencedColumns: ['id']
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -228,11 +234,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'consultas_gestante_id_fkey'
-            columns: ['gestante_id']
+            foreignKeyName: "consultas_gestante_id_fkey"
+            columns: ["gestante_id"]
             isOneToOne: false
-            referencedRelation: 'gestantes'
-            referencedColumns: ['id']
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -269,11 +275,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'contact_identity_instance_id_fkey'
-            columns: ['instance_id']
+            foreignKeyName: "contact_identity_instance_id_fkey"
+            columns: ["instance_id"]
             isOneToOne: false
-            referencedRelation: 'user_integrations'
-            referencedColumns: ['id']
+            referencedRelation: "user_integrations"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -352,11 +358,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'conversas_whatsapp_agendamento_id_fkey'
-            columns: ['agendamento_id']
+            foreignKeyName: "conversas_whatsapp_agendamento_id_fkey"
+            columns: ["agendamento_id"]
             isOneToOne: false
-            referencedRelation: 'agendamentos'
-            referencedColumns: ['id']
+            referencedRelation: "agendamentos"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -504,11 +510,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'exames_laboratoriais_gestante_id_fkey'
-            columns: ['gestante_id']
+            foreignKeyName: "exames_laboratoriais_gestante_id_fkey"
+            columns: ["gestante_id"]
             isOneToOne: false
-            referencedRelation: 'gestantes'
-            referencedColumns: ['id']
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -566,11 +572,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'fotos_timeline_gestante_id_fkey'
-            columns: ['gestante_id']
+            foreignKeyName: "fotos_timeline_gestante_id_fkey"
+            columns: ["gestante_id"]
             isOneToOne: false
-            referencedRelation: 'gestantes'
-            referencedColumns: ['id']
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -793,18 +799,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'lembretes_contas_conta_fixa_id_fkey'
-            columns: ['conta_fixa_id']
+            foreignKeyName: "lembretes_contas_conta_fixa_id_fkey"
+            columns: ["conta_fixa_id"]
             isOneToOne: false
-            referencedRelation: 'contas_fixas'
-            referencedColumns: ['id']
+            referencedRelation: "contas_fixas"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'lembretes_contas_conta_id_fkey'
-            columns: ['conta_id']
+            foreignKeyName: "lembretes_contas_conta_id_fkey"
+            columns: ["conta_id"]
             isOneToOne: false
-            referencedRelation: 'contas_fixas'
-            referencedColumns: ['id']
+            referencedRelation: "contas_fixas"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -835,11 +841,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'lembretes_whatsapp_agendamento_id_fkey'
-            columns: ['agendamento_id']
+            foreignKeyName: "lembretes_whatsapp_agendamento_id_fkey"
+            columns: ["agendamento_id"]
             isOneToOne: false
-            referencedRelation: 'agendamentos'
-            referencedColumns: ['id']
+            referencedRelation: "agendamentos"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -849,7 +855,7 @@ export type Database = {
           funcao: string
           id: string
           mensagem_erro: string | null
-          status: Database['public']['Enums']['log_status_enum']
+          status: Database["public"]["Enums"]["log_status_enum"]
           timestamp: string
           usuario_id: string | null
         }
@@ -858,7 +864,7 @@ export type Database = {
           funcao: string
           id?: string
           mensagem_erro?: string | null
-          status: Database['public']['Enums']['log_status_enum']
+          status: Database["public"]["Enums"]["log_status_enum"]
           timestamp?: string
           usuario_id?: string | null
         }
@@ -867,7 +873,7 @@ export type Database = {
           funcao?: string
           id?: string
           mensagem_erro?: string | null
-          status?: Database['public']['Enums']['log_status_enum']
+          status?: Database["public"]["Enums"]["log_status_enum"]
           timestamp?: string
           usuario_id?: string | null
         }
@@ -900,11 +906,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'medicamento_historico_medicamento_id_fkey'
-            columns: ['medicamento_id']
+            foreignKeyName: "medicamento_historico_medicamento_id_fkey"
+            columns: ["medicamento_id"]
             isOneToOne: false
-            referencedRelation: 'medicamentos_precificacao'
-            referencedColumns: ['id']
+            referencedRelation: "medicamentos_precificacao"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -935,11 +941,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'medicamentos_gestante_id_fkey'
-            columns: ['gestante_id']
+            foreignKeyName: "medicamentos_gestante_id_fkey"
+            columns: ["gestante_id"]
             isOneToOne: false
-            referencedRelation: 'gestantes'
-            referencedColumns: ['id']
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1021,18 +1027,18 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'ocupacao_salas_paciente_id_fkey'
-            columns: ['paciente_id']
+            foreignKeyName: "ocupacao_salas_paciente_id_fkey"
+            columns: ["paciente_id"]
             isOneToOne: false
-            referencedRelation: 'pacientes'
-            referencedColumns: ['id']
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
           },
           {
-            foreignKeyName: 'ocupacao_salas_sala_id_fkey'
-            columns: ['sala_id']
+            foreignKeyName: "ocupacao_salas_sala_id_fkey"
+            columns: ["sala_id"]
             isOneToOne: false
-            referencedRelation: 'salas'
-            referencedColumns: ['id']
+            referencedRelation: "salas"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1180,11 +1186,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'registros_diarios_autor_id_fkey'
-            columns: ['autor_id']
+            foreignKeyName: "registros_diarios_autor_id_fkey"
+            columns: ["autor_id"]
             isOneToOne: false
-            referencedRelation: 'profiles'
-            referencedColumns: ['id']
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1254,11 +1260,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'sintomas_observacoes_gestante_id_fkey'
-            columns: ['gestante_id']
+            foreignKeyName: "sintomas_observacoes_gestante_id_fkey"
+            columns: ["gestante_id"]
             isOneToOne: false
-            referencedRelation: 'gestantes'
-            referencedColumns: ['id']
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1313,11 +1319,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'suplementos_gestante_id_fkey'
-            columns: ['gestante_id']
+            foreignKeyName: "suplementos_gestante_id_fkey"
+            columns: ["gestante_id"]
             isOneToOne: false
-            referencedRelation: 'gestantes'
-            referencedColumns: ['id']
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1387,11 +1393,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'transacoes_paciente_id_fkey'
-            columns: ['paciente_id']
+            foreignKeyName: "transacoes_paciente_id_fkey"
+            columns: ["paciente_id"]
             isOneToOne: false
-            referencedRelation: 'pacientes'
-            referencedColumns: ['id']
+            referencedRelation: "pacientes"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1425,11 +1431,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'ultrassons_gestante_id_fkey'
-            columns: ['gestante_id']
+            foreignKeyName: "ultrassons_gestante_id_fkey"
+            columns: ["gestante_id"]
             isOneToOne: false
-            referencedRelation: 'gestantes'
-            referencedColumns: ['id']
+            referencedRelation: "gestantes"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1520,11 +1526,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'whatsapp_contacts_ai_agent_id_fkey'
-            columns: ['ai_agent_id']
+            foreignKeyName: "whatsapp_contacts_ai_agent_id_fkey"
+            columns: ["ai_agent_id"]
             isOneToOne: false
-            referencedRelation: 'ai_agents'
-            referencedColumns: ['id']
+            referencedRelation: "ai_agents"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1567,11 +1573,11 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: 'whatsapp_messages_contact_id_fkey'
-            columns: ['contact_id']
+            foreignKeyName: "whatsapp_messages_contact_id_fkey"
+            columns: ["contact_id"]
             isOneToOne: false
-            referencedRelation: 'whatsapp_contacts'
-            referencedColumns: ['id']
+            referencedRelation: "whatsapp_contacts"
+            referencedColumns: ["id"]
           },
         ]
       }
@@ -1592,7 +1598,7 @@ export type Database = {
       }
     }
     Enums: {
-      log_status_enum: 'sucesso' | 'erro' | 'pendente'
+      log_status_enum: "sucesso" | "erro" | "pendente"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -1600,31 +1606,33 @@ export type Database = {
   }
 }
 
-type DatabaseWithoutInternals = Omit<Database, '__InternalSupabase'>
+type DatabaseWithoutInternals = Omit<Database, "__InternalSupabase">
 
-type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, 'public'>]
+type DefaultSchema = DatabaseWithoutInternals[Extract<keyof Database, "public">]
 
 export type Tables<
   DefaultSchemaTableNameOrOptions extends
-    | keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
+    | keyof (DefaultSchema["Tables"] & DefaultSchema["Views"])
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])
+    ? keyof (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+        DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'] &
-      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Views'])[TableName] extends {
+  ? (DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"] &
+      DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Views"])[TableName] extends {
       Row: infer R
     }
     ? R
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema['Tables'] & DefaultSchema['Views'])
-    ? (DefaultSchema['Tables'] & DefaultSchema['Views'])[DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])
+    ? (DefaultSchema["Tables"] &
+        DefaultSchema["Views"])[DefaultSchemaTableNameOrOptions] extends {
         Row: infer R
       }
       ? R
@@ -1633,23 +1641,23 @@ export type Tables<
 
 export type TablesInsert<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Insert: infer I
     }
     ? I
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Insert: infer I
       }
       ? I
@@ -1658,23 +1666,23 @@ export type TablesInsert<
 
 export type TablesUpdate<
   DefaultSchemaTableNameOrOptions extends
-    | keyof DefaultSchema['Tables']
+    | keyof DefaultSchema["Tables"]
     | { schema: keyof DatabaseWithoutInternals },
   TableName extends DefaultSchemaTableNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"]
     : never = never,
 > = DefaultSchemaTableNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions['schema']]['Tables'][TableName] extends {
+  ? DatabaseWithoutInternals[DefaultSchemaTableNameOrOptions["schema"]]["Tables"][TableName] extends {
       Update: infer U
     }
     ? U
     : never
-  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema['Tables']
-    ? DefaultSchema['Tables'][DefaultSchemaTableNameOrOptions] extends {
+  : DefaultSchemaTableNameOrOptions extends keyof DefaultSchema["Tables"]
+    ? DefaultSchema["Tables"][DefaultSchemaTableNameOrOptions] extends {
         Update: infer U
       }
       ? U
@@ -1683,45 +1691,46 @@ export type TablesUpdate<
 
 export type Enums<
   DefaultSchemaEnumNameOrOptions extends
-    | keyof DefaultSchema['Enums']
+    | keyof DefaultSchema["Enums"]
     | { schema: keyof DatabaseWithoutInternals },
   EnumName extends DefaultSchemaEnumNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums']
+    ? keyof DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"]
     : never = never,
 > = DefaultSchemaEnumNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions['schema']]['Enums'][EnumName]
-  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema['Enums']
-    ? DefaultSchema['Enums'][DefaultSchemaEnumNameOrOptions]
+  ? DatabaseWithoutInternals[DefaultSchemaEnumNameOrOptions["schema"]]["Enums"][EnumName]
+  : DefaultSchemaEnumNameOrOptions extends keyof DefaultSchema["Enums"]
+    ? DefaultSchema["Enums"][DefaultSchemaEnumNameOrOptions]
     : never
 
 export type CompositeTypes<
   PublicCompositeTypeNameOrOptions extends
-    | keyof DefaultSchema['CompositeTypes']
+    | keyof DefaultSchema["CompositeTypes"]
     | { schema: keyof DatabaseWithoutInternals },
   CompositeTypeName extends PublicCompositeTypeNameOrOptions extends {
     schema: keyof DatabaseWithoutInternals
   }
-    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes']
+    ? keyof DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"]
     : never = never,
 > = PublicCompositeTypeNameOrOptions extends {
   schema: keyof DatabaseWithoutInternals
 }
-  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions['schema']]['CompositeTypes'][CompositeTypeName]
-  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema['CompositeTypes']
-    ? DefaultSchema['CompositeTypes'][PublicCompositeTypeNameOrOptions]
+  ? DatabaseWithoutInternals[PublicCompositeTypeNameOrOptions["schema"]]["CompositeTypes"][CompositeTypeName]
+  : PublicCompositeTypeNameOrOptions extends keyof DefaultSchema["CompositeTypes"]
+    ? DefaultSchema["CompositeTypes"][PublicCompositeTypeNameOrOptions]
     : never
 
 export const Constants = {
   public: {
     Enums: {
-      log_status_enum: ['sucesso', 'erro', 'pendente'],
+      log_status_enum: ["sucesso", "erro", "pendente"],
     },
   },
 } as const
+
 
 // ====== DATABASE EXTENDED CONTEXT (auto-generated) ======
 // This section contains actual PostgreSQL column types, constraints, RLS policies,
@@ -2484,7 +2493,7 @@ export const Constants = {
 //         WHEN 'Ozonioterapia' THEN v_valor := 250;
 //         ELSE v_valor := 0;
 //       END CASE;
-//
+//   
 //       IF v_valor > 0 THEN
 //         v_descricao := 'Pagamento referente a ' || NEW.tipo_consulta || ' de ' || NEW.paciente_nome;
 //         INSERT INTO public.transacoes (tipo, valor, data, data_vencimento, descricao, paciente_id, status)
@@ -2494,7 +2503,7 @@ export const Constants = {
 //     RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION handle_new_user()
 //   CREATE OR REPLACE FUNCTION public.handle_new_user()
 //    RETURNS trigger
@@ -2512,7 +2521,7 @@ export const Constants = {
 //     RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION is_admin()
 //   CREATE OR REPLACE FUNCTION public.is_admin()
 //    RETURNS boolean
@@ -2521,7 +2530,7 @@ export const Constants = {
 //   AS $function$
 //     SELECT role = 'admin' FROM public.profiles WHERE id = auth.uid();
 //   $function$
-//
+//   
 // FUNCTION is_financeiro()
 //   CREATE OR REPLACE FUNCTION public.is_financeiro()
 //    RETURNS boolean
@@ -2530,7 +2539,7 @@ export const Constants = {
 //   AS $function$
 //     SELECT role = 'financeiro' FROM public.profiles WHERE id = auth.uid();
 //   $function$
-//
+//   
 // FUNCTION log_agendamento_changes()
 //   CREATE OR REPLACE FUNCTION public.log_agendamento_changes()
 //    RETURNS trigger
@@ -2554,7 +2563,7 @@ export const Constants = {
 //     RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION log_medicamento_historico()
 //   CREATE OR REPLACE FUNCTION public.log_medicamento_historico()
 //    RETURNS trigger
@@ -2575,7 +2584,7 @@ export const Constants = {
 //     RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION merge_whatsapp_contacts(uuid, uuid, uuid[])
 //   CREATE OR REPLACE FUNCTION public.merge_whatsapp_contacts(p_user_id uuid, p_primary_contact_id uuid, p_secondary_contact_ids uuid[])
 //    RETURNS void
@@ -2588,14 +2597,14 @@ export const Constants = {
 //       SET contact_id = p_primary_contact_id
 //       WHERE user_id = p_user_id
 //         AND contact_id = ANY(p_secondary_contact_ids);
-//
+//   
 //       -- Delete the secondary duplicate contacts
 //       DELETE FROM public.whatsapp_contacts
 //       WHERE user_id = p_user_id
 //         AND id = ANY(p_secondary_contact_ids);
 //   END;
 //   $function$
-//
+//   
 // FUNCTION set_atualizado_em()
 //   CREATE OR REPLACE FUNCTION public.set_atualizado_em()
 //    RETURNS trigger
@@ -2606,7 +2615,7 @@ export const Constants = {
 //     RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 // FUNCTION set_form_drafts_updated_at()
 //   CREATE OR REPLACE FUNCTION public.set_form_drafts_updated_at()
 //    RETURNS trigger
@@ -2617,7 +2626,7 @@ export const Constants = {
 //     RETURN NEW;
 //   END;
 //   $function$
-//
+//   
 
 // --- TRIGGERS ---
 // Table: agendamentos
@@ -2676,3 +2685,4 @@ export const Constants = {
 //   CREATE UNIQUE INDEX whatsapp_contacts_user_id_remote_jid_key ON public.whatsapp_contacts USING btree (user_id, remote_jid)
 // Table: whatsapp_messages
 //   CREATE UNIQUE INDEX whatsapp_messages_user_id_message_id_key ON public.whatsapp_messages USING btree (user_id, message_id)
+
