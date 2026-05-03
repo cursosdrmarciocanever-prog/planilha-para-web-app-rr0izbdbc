@@ -167,16 +167,22 @@ export function ExpenseFormModal() {
 
   useEffect(() => {
     if (!isOpen || isDraftLoading) return
-    if (contaPagamento === 'Cartão de Crédito Unicred') {
+    if (
+      formaPagamento === 'Cartão de Crédito Unicred' ||
+      contaPagamento === 'Cartão de Crédito Unicred'
+    ) {
       setDataVencimento(
         format(setDate(dataVencimento ? parseISO(dataVencimento) : new Date(), 10), 'yyyy-MM-dd'),
       )
-    } else if (contaPagamento === 'Cartão de Crédito Sicoob') {
+    } else if (
+      formaPagamento === 'Cartão de Crédito Sicoob' ||
+      contaPagamento === 'Cartão de Crédito Sicoob'
+    ) {
       setDataVencimento(
         format(setDate(dataVencimento ? parseISO(dataVencimento) : new Date(), 19), 'yyyy-MM-dd'),
       )
     }
-  }, [contaPagamento, isOpen, isDraftLoading])
+  }, [contaPagamento, formaPagamento, isOpen, isDraftLoading])
 
   const handleDelete = async () => {
     if (!editId || !confirm('Tem certeza que deseja excluir?')) return
@@ -188,10 +194,18 @@ export function ExpenseFormModal() {
   }
 
   const handleSave = async () => {
-    if (!dataVencimento || !descricao || !categoria || !valor || !formaPagamento) {
+    if (
+      !dataVencimento ||
+      !descricao ||
+      !categoria ||
+      !valor ||
+      !formaPagamento ||
+      !contaPagamento
+    ) {
       return toast({
         title: 'Atenção',
-        description: 'Preencha todos os campos obrigatórios (incluindo Forma de Pagamento).',
+        description:
+          'Preencha todos os campos obrigatórios (incluindo Forma de Pagamento e Conta Bancária).',
         variant: 'destructive',
       })
     }
@@ -442,24 +456,41 @@ export function ExpenseFormModal() {
             )}
             <div className="space-y-2">
               <Label className="font-semibold text-foreground">Forma de Pagamento *</Label>
-              <Select value={formaPagamento} onValueChange={setFormaPagamento}>
+              <Select
+                value={formaPagamento}
+                onValueChange={(val) => {
+                  setFormaPagamento(val)
+                  if (val === 'Cartão de Crédito Unicred')
+                    setContaPagamento('Cartão de Crédito Unicred')
+                  else if (val === 'Cartão de Crédito Sicoob')
+                    setContaPagamento('Cartão de Crédito Sicoob')
+                  else if (val === 'Dinheiro') setContaPagamento('ESPÉCIE')
+                  else if (
+                    (val === 'PIX' || val === 'Boleto') &&
+                    contaPagamento.includes('Cartão')
+                  ) {
+                    setContaPagamento('Unicred')
+                  }
+                }}
+              >
                 <SelectTrigger className="bg-secondary/20 h-11 border-primary">
                   <SelectValue placeholder="Selecione..." />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="PIX">PIX</SelectItem>
-                  <SelectItem value="Cartão de Crédito">Cartão de Crédito</SelectItem>
-                  <SelectItem value="Cartão de Débito">Cartão de Débito</SelectItem>
-                  <SelectItem value="Boleto">Boleto</SelectItem>
                   <SelectItem value="Dinheiro">Dinheiro</SelectItem>
-                  <SelectItem value="Transferência">Transferência Bancária</SelectItem>
+                  <SelectItem value="PIX">PIX</SelectItem>
+                  <SelectItem value="Boleto">Boleto</SelectItem>
+                  <SelectItem value="Cartão de Crédito Sicoob">Cartão de Crédito Sicoob</SelectItem>
+                  <SelectItem value="Cartão de Crédito Unicred">
+                    Cartão de Crédito Unicred
+                  </SelectItem>
                 </SelectContent>
               </Select>
             </div>
             <div className="space-y-2">
-              <Label className="font-semibold text-foreground">Conta / Cartão</Label>
+              <Label className="font-semibold text-foreground">Conta Bancária *</Label>
               <Select value={contaPagamento} onValueChange={setContaPagamento}>
-                <SelectTrigger className="bg-secondary/20 h-11">
+                <SelectTrigger className="bg-secondary/20 h-11 border-primary">
                   <SelectValue placeholder="Selecione a conta..." />
                 </SelectTrigger>
                 <SelectContent>
