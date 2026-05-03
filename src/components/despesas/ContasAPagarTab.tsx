@@ -24,6 +24,7 @@ import {
   Mail,
   CreditCard,
   List,
+  Repeat,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
@@ -1023,47 +1024,86 @@ export function ContasAPagarTab({
       </Dialog>
 
       <Dialog open={!!selectedGroup} onOpenChange={(open) => !open && setSelectedGroup(null)}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle>Detalhes: {selectedGroup}</DialogTitle>
+        <DialogContent className="max-w-[100vw] w-screen h-screen max-h-screen m-0 p-0 rounded-none overflow-hidden flex flex-col bg-background/95 backdrop-blur-sm">
+          <DialogHeader className="px-6 py-6 border-b bg-card shadow-sm">
+            <DialogTitle className="text-3xl font-bold flex items-center gap-3">
+              <List className="w-8 h-8 text-primary" />
+              Detalhes: {selectedGroup}
+            </DialogTitle>
           </DialogHeader>
-          <ScrollArea className="flex-1 -mx-6 px-6">
-            <div className="space-y-4 py-4">
+          <ScrollArea className="flex-1 min-h-0 px-4 sm:px-8 bg-muted/10">
+            <div className="max-w-5xl mx-auto space-y-4 py-8">
               {groupDetails.length > 0 ? (
                 groupDetails.map((item: any, i: number) => (
                   <div
                     key={i}
-                    className="flex justify-between items-center border-b pb-3 last:border-0 last:pb-0"
+                    className="flex flex-col sm:flex-row sm:justify-between sm:items-center bg-card p-5 rounded-2xl border shadow-sm gap-4 transition-all hover:scale-[1.01] hover:border-primary/30 hover:shadow-md"
                   >
                     <div>
-                      <div className="font-semibold text-sm">{item.descricao}</div>
-                      <div className="text-xs text-muted-foreground mt-1 flex gap-2">
-                        <span>Venc: {format(parseISO(item.data_vencimento), 'dd/MM/yyyy')}</span>
-                        {item.parcelamento && <span>(Parc: {item.parcelamento})</span>}
-                        {item.frequencia && item.frequencia !== 'Única' && (
-                          <span>(Conta Fixa)</span>
+                      <div className="font-bold text-xl text-foreground mb-1">{item.descricao}</div>
+                      <div className="flex flex-wrap items-center gap-2 mt-2">
+                        <span className="text-xs font-semibold text-muted-foreground bg-secondary/60 px-2.5 py-1 rounded-md flex items-center gap-1">
+                          <CalendarRange className="w-3.5 h-3.5" />
+                          Venc: {format(parseISO(item.data_vencimento), 'dd/MM/yyyy')}
+                        </span>
+                        {item.parcelamento && (
+                          <span className="text-xs font-bold bg-primary/10 text-primary px-2.5 py-1 rounded-md border border-primary/20">
+                            Parc: {item.parcelamento}
+                          </span>
                         )}
+                        {item.frequencia && item.frequencia !== 'Única' && (
+                          <span className="text-xs font-bold bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-300 px-2.5 py-1 rounded-md border border-amber-200 dark:border-amber-800">
+                            Conta Fixa
+                          </span>
+                        )}
+                        <span
+                          className={cn(
+                            'text-[10px] uppercase tracking-wider font-bold px-2.5 py-1 rounded-md',
+                            item.status === 'Pago' || item.status === 'Confirmado'
+                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300'
+                              : item.status === 'Vencido'
+                                ? 'bg-rose-100 text-rose-800 dark:bg-rose-900/40 dark:text-rose-300'
+                                : 'bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300',
+                          )}
+                        >
+                          {item.status || 'Pendente'}
+                        </span>
                       </div>
                     </div>
-                    <div className="font-bold">
-                      {new Intl.NumberFormat('pt-BR', {
-                        style: 'currency',
-                        currency: 'BRL',
-                      }).format(Number(item.valor))}
+                    <div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-center gap-3 w-full sm:w-auto border-t sm:border-t-0 pt-4 sm:pt-0 mt-2 sm:mt-0">
+                      <div className="font-black text-2xl tracking-tight text-primary">
+                        {new Intl.NumberFormat('pt-BR', {
+                          style: 'currency',
+                          currency: 'BRL',
+                        }).format(Number(item.valor))}
+                      </div>
+                      {!item.isConsolidated && item.id && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="rounded-full shadow-sm"
+                          onClick={() => {
+                            onEdit(item)
+                          }}
+                        >
+                          Editar
+                        </Button>
+                      )}
                     </div>
                   </div>
                 ))
               ) : (
-                <div className="text-center text-muted-foreground py-8">
-                  Nenhum detalhe encontrado.
+                <div className="text-center text-muted-foreground py-20 flex flex-col items-center bg-card rounded-3xl border border-dashed">
+                  <FileText className="w-16 h-16 mb-4 opacity-20" />
+                  <p className="text-xl font-medium">Nenhum detalhe encontrado para este grupo.</p>
                 </div>
               )}
             </div>
           </ScrollArea>
-          <DialogFooter className="border-t pt-4 mt-auto">
-            <div className="flex w-full justify-between items-center">
-              <span className="font-semibold">Total do Grupo:</span>
-              <span className="text-xl font-bold tracking-tight text-primary">
+          <DialogFooter className="px-6 py-6 bg-card border-t shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] mt-auto">
+            <div className="flex w-full justify-between items-center max-w-5xl mx-auto">
+              <span className="text-xl font-semibold text-muted-foreground">Total do Grupo:</span>
+              <span className="text-4xl font-black tracking-tighter text-primary">
                 {new Intl.NumberFormat('pt-BR', { style: 'currency', currency: 'BRL' }).format(
                   groupDetails.reduce((acc, curr) => acc + Number(curr.valor), 0),
                 )}
