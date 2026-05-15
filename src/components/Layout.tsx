@@ -15,6 +15,7 @@ import { format, parseISO } from 'date-fns'
 import { Plus } from 'lucide-react'
 import { useExpenseModalStore } from '@/stores/use-expense-modal'
 import { ExpenseFormModal } from './despesas/ExpenseFormModal'
+import { AdminChatbot } from './AdminChatbot'
 
 export default function Layout() {
   const { selectedConta, setSelectedConta } = useLembretes()
@@ -52,6 +53,7 @@ export default function Layout() {
       </div>
 
       <ExpenseFormModal />
+      <AdminChatbot />
 
       <Dialog open={!!selectedConta} onOpenChange={(open) => !open && setSelectedConta(null)}>
         <DialogContent className="sm:max-w-[425px]">
