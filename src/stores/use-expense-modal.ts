@@ -1,21 +1,42 @@
-import { create } from 'zustand'
+import { useSyncExternalStore } from 'react'
 
-interface ExpenseModalState {
+type ExpenseModalState = {
   isOpen: boolean
-  editId: string | null
-  editType: 'despesa' | 'conta_fixa'
-  openModal: (editId?: string | null, editType?: 'despesa' | 'conta_fixa') => void
+  openModal: () => void
   closeModal: () => void
-  refreshTrigger: number
-  triggerRefresh: () => void
 }
 
-export const useExpenseModalStore = create<ExpenseModalState>((set) => ({
+let state: ExpenseModalState = {
   isOpen: false,
-  editId: null,
-  editType: 'despesa',
-  openModal: (editId = null, editType = 'despesa') => set({ isOpen: true, editId, editType }),
-  closeModal: () => set({ isOpen: false, editId: null }),
-  refreshTrigger: 0,
-  triggerRefresh: () => set((state) => ({ refreshTrigger: state.refreshTrigger + 1 })),
-}))
+  openModal: () => updateState({ isOpen: true }),
+  closeModal: () => updateState({ isOpen: false }),
+}
+
+const listeners = new Set<() => void>()
+
+function subscribe(listener: () => void) {
+  listeners.add(listener)
+  return () => listeners.delete(listener)
+}
+
+function getSnapshot() {
+  return state
+}
+
+function updateState(newState: Partial<ExpenseModalState>) {
+  state = { ...state, ...newState }
+  listeners.forEach((l) => l())
+}
+
+export function useExpenseModalStore(): ExpenseModalState
+export function useExpenseModalStore<T>(selector: (state: ExpenseModalState) => T): T
+export function useExpenseModalStore<T>(selector?: (state: ExpenseModalState) => T) {
+  const currentState = useSyncExternalStore(subscribe, getSnapshot)
+  return selector ? selector(currentState) : currentState
+}
+
+useExpenseModalStore.getState = getSnapshot
+useExpenseModalStore.setState = updateState
+useExpenseModalStore.subscribe = subscribe
+
+export default useExpenseModalStore
